@@ -2218,3 +2218,30 @@ button, input, .chip, .music-card, .song-item, .glass-icon-btn, .profile-pill-bt
 .chip:active, .hero-play-btn:active, .card-play-btn:active, .glass-icon-btn:active, .profile-pill-btn:active {
   transform: scale(0.94);
 }
+
+/* Collapsible Email Auth Box */
+.toggle-email-link {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px;
+  margin-top: 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  touch-action: manipulation;
+}
+
+.toggle-email-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.email-form-wrapper {
+  margin-top: 10px;
+  transition: all 0.3s ease;
+}

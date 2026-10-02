@@ -444,34 +444,41 @@
               <span>Continue with Google</span>
             </button>
 
-            <div class="auth-divider">
-              <span>OR USE EMAIL</span>
+            <!-- Collapsible clean email toggle -->
+            <button class="toggle-email-link" id="prof-toggle-email-btn" type="button">
+              Or Use Email & Password ▼
+            </button>
+
+            <div class="email-form-wrapper hidden" id="prof-email-form-box">
+              <div class="auth-divider">
+                <span>EMAIL ACCOUNT</span>
+              </div>
+
+              <div class="auth-card-header">
+                <div class="auth-tabs">
+                  <button class="auth-tab active" id="prof-tab-login">Sign In</button>
+                  <button class="auth-tab" id="prof-tab-signup">Create Account</button>
+                </div>
+              </div>
+
+              <form class="auth-form" id="profile-auth-form">
+                <div class="input-group">
+                  <i class="fa-solid fa-envelope"></i>
+                  <input type="email" id="prof-email" placeholder="Your Email Address" required>
+                </div>
+
+                <div class="input-group">
+                  <i class="fa-solid fa-lock"></i>
+                  <input type="password" id="prof-password" placeholder="Password (minimum 6 characters)" minlength="6" required>
+                  <button type="button" class="eye-toggle" id="prof-toggle-pw"><i class="fa-solid fa-eye"></i></button>
+                </div>
+
+                <button type="submit" class="auth-submit-btn" id="prof-submit-btn">
+                  <span>Sign In with Email</span>
+                  <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </form>
             </div>
-
-            <div class="auth-card-header">
-              <div class="auth-tabs">
-                <button class="auth-tab active" id="prof-tab-login">Sign In</button>
-                <button class="auth-tab" id="prof-tab-signup">Create Account</button>
-              </div>
-            </div>
-
-            <form class="auth-form" id="profile-auth-form">
-              <div class="input-group">
-                <i class="fa-solid fa-envelope"></i>
-                <input type="email" id="prof-email" placeholder="Your Email Address" required>
-              </div>
-
-              <div class="input-group">
-                <i class="fa-solid fa-lock"></i>
-                <input type="password" id="prof-password" placeholder="Password (minimum 6 characters)" minlength="6" required>
-                <button type="button" class="eye-toggle" id="prof-toggle-pw"><i class="fa-solid fa-eye"></i></button>
-              </div>
-
-              <button type="submit" class="auth-submit-btn" id="prof-submit-btn">
-                <span>Sign In with Email</span>
-                <i class="fa-solid fa-arrow-right"></i>
-              </button>
-            </form>
           </div>
 
           <!-- When Logged In: Account Info Card -->
@@ -772,6 +779,12 @@
   </div>
 
   <!-- Application Script -->
+  <!-- Modular Architecture (Catalog, Storage, API, Player, Auth, App) -->
+  <script src="catalog.js"></script>
+  <script src="db.js"></script>
+  <script src="api.js"></script>
+  <script src="player.js"></script>
+  <script src="auth.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

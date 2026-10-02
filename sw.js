@@ -1,20 +1,22 @@
-// Service Worker for Anru Music PWA v5
-const CACHE_NAME = 'anru-music-v5';
+// Service Worker for Anru Music PWA v6
+const CACHE_NAME = 'anru-music-v6';
 const STATIC_SHELL = [
   './',
   './index.html',
   './style.css',
+  './catalog.js',
+  './db.js',
+  './api.js',
+  './player.js',
+  './auth.js',
   './app.js',
-  './manifest.json',
-  './icon-512.png',
-  './icon-192.png',
-  './favicon.png'
+  './manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Anru SW] Pre-caching app shell v5');
+      console.log('[Anru SW] Pre-caching app shell v6');
       return cache.addAll(STATIC_SHELL).catch(err => console.warn('Cache addAll notice:', err));
     })
   );
@@ -45,7 +47,6 @@ self.addEventListener('fetch', (event) => {
     reqUrl.origin !== self.location.origin ||
     event.request.destination === 'audio' ||
     reqUrl.pathname.includes('/api/') ||
-    reqUrl.pathname.includes('saavn') ||
     reqUrl.pathname.includes('soundhelix')
   ) {
     return;
@@ -62,7 +63,6 @@ self.addEventListener('fetch', (event) => {
         return networkResponse;
       })
       .catch(() => {
-        // If offline, serve from cache
         return caches.match(event.request).then((cached) => {
           if (cached) return cached;
           if (event.request.mode === 'navigate') {
