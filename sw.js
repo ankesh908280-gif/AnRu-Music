@@ -1,25 +1,22 @@
-// Service Worker for Anru Music Studio Pro v11 Live
-const CACHE_NAME = 'anru-music-v11-live';
+// Service Worker for Anru Music Studio Pro v10 Live
+const CACHE_NAME = 'anru-music-v12-live';
 const STATIC_SHELL = [
   './',
   './index.html',
-  './base.css?v=11.0',
-  './auth.css?v=11.0',
-  './app.css?v=11.0',
-  './player.css?v=11.0',
-  './catalog.js?v=11.0',
-  './db.js?v=11.0',
-  './api.js?v=11.0',
-  './player.js?v=11.0',
-  './auth.js?v=11.0',
-  './app.js?v=11.0',
+  './style.css?v=12.0',
+  './catalog.js?v=12.0',
+  './db.js?v=12.0',
+  './api.js?v=12.0',
+  './player.js?v=12.0',
+  './auth.js?v=12.0',
+  './app.js?v=12.0',
   './manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Anru SW] Pre-caching v11 app shell');
+      console.log('[Anru SW] Pre-caching v10 app shell');
       return cache.addAll(STATIC_SHELL).catch(err => console.warn('Cache addAll notice:', err));
     })
   );

@@ -35,11 +35,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Stylesheet -->
-    <!-- Modular CSS Architecture (Zero Collisions & Blazing Fast Parallel Loading) -->
-  <link rel="stylesheet" href="base.css?v=11.0">
-  <link rel="stylesheet" href="auth.css?v=11.0">
-  <link rel="stylesheet" href="app.css?v=11.0">
-  <link rel="stylesheet" href="player.css?v=11.0">
+  <link rel="stylesheet" href="style.css?v=12.0">
 
   <!-- Gatekeeper Script: Immediate Session Evaluation -->
   <script>
@@ -54,7 +50,7 @@
   </script>
 
   <!-- Auth Controller loaded in head so login handlers are available immediately -->
-  <script src="auth.js?v=11.0"></script>
+  <script src="auth.js?v=12.0"></script>
 </head>
 <body class="theme-aurora">
 
@@ -73,7 +69,7 @@
       <div class="auth-hero">
         <div class="logo-ring">
           <div class="logo-inner">
-            <img src="icon-512.png" onerror="this.onerror=null; this.src='icons/icon-512.png';" alt="Logo" class="auth-logo-img">
+            <img src="icon-512.png" onerror="this.onerror=null; this.src='icons/icon-512.png';" alt="Logo" class="auth-logo-img" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">
           </div>
         </div>
         <h1 class="auth-title">Anru <span class="gradient-text">Music</span></h1>
@@ -182,8 +178,8 @@
       <!-- Top Header -->
       <header class="app-header glass-panel">
         <div class="header-brand" id="brand-home-btn">
-          <div class="logo-box">
-            <img src="icon-512.png" onerror="this.onerror=null; this.src='icons/icon-512.png';" alt="AR Logo" class="brand-logo-img">
+          <div class="logo-box" style="width:38px;height:38px;border-radius:12px;overflow:hidden;flex-shrink:0;">
+            <img src="icon-512.png" onerror="this.onerror=null; this.src='icons/icon-512.png';" alt="AR Logo" class="brand-logo-img" style="width:100%;height:100%;object-fit:cover;display:block;">
           </div>
           <div class="brand-text-col">
             <span class="brand-title">Anru Music</span>
@@ -588,7 +584,7 @@
 
         <div class="fs-artwork-container">
           <div class="fs-artwork-wrapper" id="artwork-wrapper">
-            <img src="icon-512.png" onerror="this.onerror=null; this.src='icons/icon-512.png';" alt="Artwork" class="fs-artwork-img" id="fs-artwork">
+            <img src="icon-512.png" onerror="this.onerror=null; this.src='icons/icon-512.png';" alt="Artwork" class="fs-artwork-img" id="fs-artwork" style="width:100%;height:100%;object-fit:cover;display:block;">
             <div class="vinyl-disc-glow"></div>
           </div>
         </div>
@@ -777,10 +773,10 @@
   </div>
 
   <!-- Modular Scripts: Catalog, Database, API, Player Engine, App Coordinator -->
-  <script src="catalog.js?v=11.0"></script>
-  <script src="db.js?v=11.0"></script>
-  <script src="api.js?v=11.0"></script>
-  <script src="player.js?v=11.0"></script>
-  <script src="app.js?v=11.0"></script>
+  <script src="catalog.js?v=12.0"></script>
+  <script src="db.js?v=12.0"></script>
+  <script src="api.js?v=12.0"></script>
+  <script src="player.js?v=12.0"></script>
+  <script src="app.js?v=12.0"></script>
 </body>
 </html>
