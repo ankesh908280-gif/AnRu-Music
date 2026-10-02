@@ -2245,3 +2245,942 @@ button, input, .chip, .music-card, .song-item, .glass-icon-btn, .profile-pill-bt
   margin-top: 10px;
   transition: all 0.3s ease;
 }
+
+/* ==========================================
+   ANRU FOCUS GATEKEEPER LOGIN & SCREEN SWITCHER
+   ========================================== */
+#loginScreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px 18px;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg);
+  background-attachment: fixed;
+  overflow-y: auto;
+}
+
+#appScreen {
+  display: none;
+}
+
+html.user-authenticated #loginScreen {
+  display: none !important;
+}
+
+html.user-authenticated #appScreen {
+  display: block !important;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+  position: relative;
+  z-index: 10;
+}
+
+.auth-hero {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.logo-ring {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 14px;
+  position: relative;
+}
+
+.logo-ring::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: var(--gradAccent);
+  animation: spinRing 4s linear infinite;
+}
+
+@keyframes spinRing {
+  to { transform: rotate(360deg); }
+}
+
+.logo-inner {
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: #15102a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.4), 0 0 25px var(--accentGlow);
+}
+
+.auth-logo-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.auth-title {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+
+.auth-tagline-chip {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--accent);
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid var(--accent);
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+
+.auth-sub {
+  color: var(--textMuted);
+  font-size: 13px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.auth-card {
+  padding: 24px 20px;
+  border-radius: 24px;
+  background: var(--glassCard);
+  backdrop-filter: blur(25px);
+  border: 1px solid var(--glassBorder);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 16px 0;
+  color: var(--textMuted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.auth-divider::before, .auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auth-divider span {
+  padding: 0 10px;
+}
+
+.auth-tabs {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 3px;
+  margin-bottom: 16px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: none;
+  color: var(--textMuted);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.auth-tab.active {
+  background: var(--gradAccent);
+  color: #ffffff;
+  box-shadow: 0 4px 15px var(--accentGlow);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-group i:first-child {
+  position: absolute;
+  left: 14px;
+  color: var(--textMuted);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 13px 40px 13px 40px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glassBorder);
+  border-radius: 14px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.25s;
+}
+
+.input-group input:focus {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 12px var(--accentGlow);
+}
+
+.eye-toggle {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--textMuted);
+  cursor: pointer;
+  padding: 6px;
+  font-size: 14px;
+}
+
+.auth-submit-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: var(--gradAccent);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 8px 25px var(--accentGlow);
+  margin-top: 6px;
+  font-family: inherit;
+  transition: transform 0.2s;
+}
+
+.auth-submit-btn:active {
+  transform: scale(0.97);
+}
+
+.auth-footer-actions {
+  text-align: center;
+  margin-top: 14px;
+}
+
+.guest-skip-btn {
+  background: none;
+  border: none;
+  color: var(--textMuted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s;
+  font-family: inherit;
+}
+
+.guest-skip-btn:hover {
+  color: var(--accent);
+}
+
+/* ==========================================
+   GOOGLE ACCOUNT PICKER MODAL
+   ========================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 24px;
+  padding: 24px 20px;
+  background: rgba(22, 17, 46, 0.98);
+  border: 1px solid var(--glassBorder);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.google-modal-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.google-modal-badge h4 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  color: var(--textMuted);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.modal-sub {
+  font-size: 12px;
+  color: var(--textMuted);
+  margin-bottom: 18px;
+}
+
+.google-accounts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.google-acc-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--glassBorder);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.google-acc-item:hover, .google-acc-item:active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--accent);
+}
+
+.google-acc-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #4285F4;
+  color: #ffffff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.google-acc-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.acc-name {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.acc-email {
+  font-size: 11px;
+  color: var(--textMuted);
+}
+
+.acc-check {
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.custom-acc-input-box {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.custom-acc-input-box input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--glassBorder);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+  font-family: inherit;
+}
+
+.custom-acc-btn {
+  padding: 0 16px;
+  border-radius: 12px;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ==========================================
+   TOP RIGHT HEADER AVATAR (NO RAW EMAIL TEXT)
+   ========================================== */
+.header-avatar-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.header-avatar-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--gradAccent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 15px;
+  position: relative;
+  box-shadow: 0 0 14px var(--accentGlow);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+}
+
+.header-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.online-indicator-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background: #10b981;
+  border-radius: 50%;
+  border: 2px solid #0f0c29;
+}
+
+/* ==========================================
+   YOUTUBE MUSIC STYLE HOME COMPONENTS
+   ========================================== */
+.yt-quick-section {
+  margin-bottom: 24px;
+}
+
+.yt-sub-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+
+.yt-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.yt-quick-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: var(--glassCard);
+  border: 1px solid var(--glassBorder);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.yt-quick-card:hover, .yt-quick-card:active {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.yt-quick-art-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.yt-quick-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.yt-quick-play-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  border: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.yt-quick-card:hover .yt-quick-play-overlay {
+  opacity: 1;
+}
+
+.yt-quick-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.yt-quick-title {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.yt-quick-artist {
+  font-size: 11px;
+  color: var(--textMuted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+/* ==========================================
+   PLAYLISTS TAB COMPONENTS (UNIFIED LIBRARY)
+   ========================================== */
+.system-playlists-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.system-pl-card {
+  padding: 16px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.system-pl-card:hover, .system-pl-card:active {
+  transform: translateY(-3px);
+}
+
+.sys-pl-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.sys-pl-icon-wrap.cyan {
+  background: rgba(6, 182, 212, 0.15);
+  color: #06b6d4;
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+}
+
+.sys-pl-icon-wrap.pink {
+  background: rgba(236, 72, 153, 0.15);
+  color: #ec4899;
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.2);
+}
+
+.sys-pl-info h4 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.sys-pl-sub {
+  font-size: 11px;
+  color: var(--textMuted);
+}
+
+.sys-pl-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--textMuted);
+  margin-top: 4px;
+}
+
+.custom-pl-section {
+  margin-top: 10px;
+}
+
+.custom-playlists-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.custom-pl-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.custom-pl-card:hover, .custom-pl-card:active {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+}
+
+.custom-pl-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--gradAccent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+}
+
+.custom-pl-info {
+  flex: 1;
+}
+
+.custom-pl-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.custom-pl-sub {
+  font-size: 12px;
+  color: var(--textMuted);
+  margin-top: 2px;
+}
+
+.custom-pl-play-btn {
+  background: none;
+  border: none;
+  color: var(--textMuted);
+  font-size: 16px;
+}
+
+/* Playlist Detail View */
+.detail-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: var(--textMuted);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 0;
+  cursor: pointer;
+  margin-bottom: 14px;
+  font-family: inherit;
+}
+
+.detail-back-btn:hover {
+  color: var(--accent);
+}
+
+.playlist-hero {
+  display: flex;
+  gap: 18px;
+  padding: 20px;
+  border-radius: 24px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.detail-hero-icon-box {
+  width: 70px;
+  height: 70px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.detail-hero-icon {
+  font-size: 32px;
+}
+
+.detail-hero-icon.cyan { color: #06b6d4; text-shadow: 0 0 20px rgba(6, 182, 212, 0.4); }
+.detail-hero-icon.pink { color: #ec4899; text-shadow: 0 0 20px rgba(236, 72, 153, 0.4); }
+.detail-hero-icon.purple { color: #a855f7; text-shadow: 0 0 20px rgba(168, 85, 247, 0.4); }
+
+.detail-hero-meta {
+  flex: 1;
+}
+
+.detail-hero-meta h2 {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.detail-pl-sub {
+  font-size: 12px;
+  color: var(--textMuted);
+  display: block;
+  margin-bottom: 12px;
+}
+
+.detail-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fs-circle-btn.del-btn {
+  color: #ef4444;
+}
+
+/* ==========================================
+   PROFILE TAB DASHBOARD (NO LOGIN FORM)
+   ========================================== */
+.profile-large-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--gradAccent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 28px;
+  box-shadow: 0 0 25px var(--accentGlow);
+}
+
+.profile-provider-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+  color: var(--textMuted);
+}
+
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 10px;
+  border-radius: 18px;
+}
+
+.stat-number {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--textMuted);
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.profile-signout-box {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.sign-out-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.sign-out-btn:hover, .sign-out-btn:active {
+  background: rgba(239, 68, 68, 0.25);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+/* ==========================================
+   SPOTIFY QUEUE DRAWER
+   ========================================== */
+.queue-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.queue-clear-btn {
+  background: none;
+  border: none;
+  color: var(--textMuted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.queue-clear-btn:hover {
+  color: #ef4444;
+}
+
+.queue-section-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--textMuted);
+  margin: 14px 0 8px 0;
+}
+
+.queue-now-playing-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--accent);
+  background: rgba(168, 85, 247, 0.1);
+}
+
+.queue-ctrl-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glassBorder);
+  border-radius: 8px;
+  color: var(--textMuted);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.2s;
+}
+
+.queue-ctrl-btn:hover, .queue-ctrl-btn:active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.queue-ctrl-btn.btn-del:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* Custom Playlist Picker Modal */
+.picker-playlists-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  margin: 14px 0;
+}
+
+.picker-pl-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--glassBorder);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.picker-pl-item:hover, .picker-pl-item:active {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: var(--accent);
+}
+
+.picker-create-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px dashed var(--accent);
+  background: rgba(168, 85, 247, 0.1);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
