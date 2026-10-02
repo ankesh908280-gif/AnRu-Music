@@ -13,19 +13,19 @@
   --accentGlow: rgba(168, 85, 247, 0.45);
   --grad: linear-gradient(135deg, var(--p1) 0%, var(--p2) 50%, var(--p3) 100%);
   --gradAccent: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
-  --bgGrad: linear-gradient(160deg, #0f0c29 0%, #302b63 40%, #24243e 70%, #1a0533 100%);
+  --bgGrad: linear-gradient(160deg, #0d0b18 0%, #1e1435 40%, #17102b 70%, #0d0b18 100%);
   
   /* Glassmorphism System */
-  --glass: rgba(255, 255, 255, 0.07);
+  --glass: rgba(255, 255, 255, 0.06);
   --glass2: rgba(255, 255, 255, 0.12);
-  --glassCard: rgba(20, 16, 45, 0.72);
-  --glassBorder: rgba(255, 255, 255, 0.16);
-  --glassBorderHover: rgba(168, 85, 247, 0.55);
+  --glassCard: rgba(24, 19, 48, 0.78);
+  --glassBorder: rgba(255, 255, 255, 0.12);
+  --glassBorderHover: rgba(168, 85, 247, 0.6);
   
   /* Typography & Text */
   --text: #ffffff;
   --textMuted: rgba(255, 255, 255, 0.55);
-  --textSub: rgba(255, 255, 255, 0.82);
+  --textSub: rgba(255, 255, 255, 0.85);
   
   /* Status Colors */
   --success: #10b981;
@@ -33,154 +33,173 @@
   --warn: #f59e0b;
   
   /* Dimensions & Spacing */
-  --shadow: 0 20px 45px rgba(102, 126, 234, 0.3);
-  --r: 20px;
-  --rCard: 14px;
-  --rSm: 10px;
-  --playerHeight: 68px;
+  --playerHeight: 64px;
   --navHeight: 64px;
-  --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Theme Presets */
-body.theme-cyber {
-  --accent: #ff0055;
-  --accentGlow: rgba(255, 0, 85, 0.45);
-  --gradAccent: linear-gradient(135deg, #ff0055 0%, #ff5500 100%);
-  --bgGrad: linear-gradient(160deg, #1f000b 0%, #2e0013 40%, #0d001a 100%);
-  --glassCard: rgba(35, 5, 20, 0.72);
-}
-
-body.theme-ocean {
-  --accent: #00c6ff;
-  --accentGlow: rgba(0, 198, 255, 0.45);
-  --gradAccent: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
-  --bgGrad: linear-gradient(160deg, #021b33 0%, #052c54 40%, #021326 100%);
-  --glassCard: rgba(5, 25, 45, 0.72);
-}
-
-body.theme-sunset {
-  --accent: #ff7e5f;
-  --accentGlow: rgba(255, 126, 95, 0.45);
-  --gradAccent: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
-  --bgGrad: linear-gradient(160deg, #2b110b 0%, #42180e 40%, #1f0a05 100%);
-  --glassCard: rgba(45, 15, 10, 0.72);
-}
-
-body.theme-matrix {
-  --accent: #00ff87;
-  --accentGlow: rgba(0, 255, 135, 0.45);
-  --gradAccent: linear-gradient(135deg, #00ff87 0%, #60efff 100%);
-  --bgGrad: linear-gradient(160deg, #001f11 0%, #002e1a 40%, #00120a 100%);
-  --glassCard: rgba(0, 30, 18, 0.72);
-}
-
-body.theme-midnight {
+[data-theme="aurora"], body.theme-aurora {
   --accent: #a855f7;
-  --accentGlow: rgba(168, 85, 247, 0.4);
-  --gradAccent: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+  --accentGlow: rgba(168, 85, 247, 0.45);
+  --gradAccent: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  --bgGrad: linear-gradient(160deg, #0d0b18 0%, #1e1435 40%, #17102b 70%, #0d0b18 100%);
+  --glassCard: rgba(24, 19, 48, 0.78);
+}
+
+[data-theme="amoled"], body.theme-amoled {
+  --accent: #a855f7;
+  --accentGlow: rgba(168, 85, 247, 0.35);
+  --gradAccent: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
   --bgGrad: #000000;
-  --glassCard: rgba(18, 18, 22, 0.85);
+  --glassCard: #121216;
   --glassBorder: rgba(255, 255, 255, 0.1);
 }
 
-/* Global Reset & Image Safety */
+[data-theme="cyber"], body.theme-cyber {
+  --accent: #00f2fe;
+  --accentGlow: rgba(0, 242, 254, 0.45);
+  --gradAccent: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+  --bgGrad: linear-gradient(160deg, #050510 0%, #0a0e27 45%, #050510 100%);
+  --glassCard: rgba(12, 18, 45, 0.82);
+  --glassBorder: rgba(0, 242, 254, 0.2);
+}
+
+[data-theme="emerald"], body.theme-emerald {
+  --accent: #1db954;
+  --accentGlow: rgba(29, 185, 84, 0.45);
+  --gradAccent: linear-gradient(135deg, #1db954 0%, #1ed760 100%);
+  --bgGrad: linear-gradient(160deg, #060e09 0%, #0b1e13 45%, #050a07 100%);
+  --glassCard: rgba(12, 28, 18, 0.82);
+  --glassBorder: rgba(29, 185, 84, 0.2);
+}
+
+/* Global Reset */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
-  user-select: none;
 }
 
 html, body {
   width: 100%;
-  height: 100%;
   min-height: 100vh;
   min-height: 100dvh;
-  overflow-x: hidden;
   font-family: var(--font-family);
   background: var(--bgGrad);
   background-attachment: fixed;
   color: var(--text);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 img {
   max-width: 100%;
-  height: auto;
   display: block;
 }
 
-button, input {
+button, input, select {
   font-family: inherit;
   touch-action: manipulation;
 }
 
 button {
   cursor: pointer;
+  border: none;
+  background: none;
 }
 
-/* Ambient Floating Glow Orbs */
-.ambient-orb {
-  position: fixed;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.22;
-  pointer-events: none;
-  z-index: 0;
-}
+/* Utilities */
+.hidden { display: none !important; }
 
-.orb-1 { width: 320px; height: 320px; background: var(--p1); top: -80px; left: -80px; }
-.orb-2 { width: 380px; height: 380px; background: var(--p4); bottom: 10%; right: -100px; }
-.orb-3 { width: 250px; height: 250px; background: var(--p3); top: 45%; left: 20%; }
-
-/* Glassmorphism Primitives */
 .glass-panel {
   background: var(--glass2);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--glassBorder);
 }
 
 .glass-card {
   background: var(--glassCard);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--glassBorder);
 }
 
-.gradient-text {
-  background: var(--gradAccent);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.glass-modal {
+  background: #16122d;
+  border: 1px solid var(--glassBorder);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
 }
 
-/* Screen Switcher Management */
-#loginScreen { display: flex; }
-#appScreen { display: none; }
-html.user-authenticated #loginScreen { display: none !important; }
-html.user-authenticated #appScreen { display: block !important; }
+.primary-glow {
+  box-shadow: 0 4px 18px var(--accentGlow) !important;
+}
 
-/* Universal Strict Utility */
-.hidden { display: none !important; }
-
-/* Extra Visual Glows & Helpers */
-.cyan-glow { box-shadow: 0 4px 20px rgba(0, 198, 255, 0.2); }
-.pink-glow { box-shadow: 0 4px 20px rgba(236, 72, 153, 0.2); }
-.hero-content { display: flex; flex-direction: column; }
-.install-pwa-btn {
-  background: var(--gradAccent);
-  border: none;
+/* Toast Notification */
+.app-toast {
+  position: fixed;
+  bottom: 84px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(22, 18, 45, 0.95);
+  border: 1px solid var(--accent);
   color: #fff;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  z-index: 9999;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.25s ease;
+  white-space: nowrap;
 }
-.header-ico { font-size: 15px; }
-.dropdown-header { font-size: 11px; font-weight: 800; color: var(--textMuted); margin-bottom: 4px; padding: 4px 8px; }
-.clear-cache-btn { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+.app-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+
+/* Robust Offline Icon Fallbacks (Guarantees visible icons with zero internet) */
+i.fa-solid:empty:before, i.fa-regular:empty:before {
+  display: inline-block;
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  line-height: 1;
+}
+
+i.fa-play:empty:before { content: "▶"; font-size: 0.9em; }
+i.fa-pause:empty:before { content: "⏸"; font-size: 0.9em; }
+i.fa-backward-step:empty:before { content: "⏮"; }
+i.fa-forward-step:empty:before { content: "⏭"; }
+i.fa-shuffle:empty:before { content: "🔀"; }
+i.fa-repeat:empty:before { content: "🔁"; }
+i.fa-heart:empty:before { content: "♥"; }
+i.fa-sliders:empty:before { content: "🎚"; }
+i.fa-moon:empty:before { content: "🌙"; }
+i.fa-list-ol:empty:before, i.fa-list-ul:empty:before { content: "☰"; }
+i.fa-chevron-down:empty:before { content: "⌵"; font-weight: 800; font-size: 1.2em; }
+i.fa-chevron-right:empty:before { content: "›"; font-weight: 800; }
+i.fa-arrow-left:empty:before { content: "←"; font-weight: 800; }
+i.fa-arrow-up:empty:before { content: "↑"; }
+i.fa-arrow-down:empty:before { content: "↓"; }
+i.fa-plus:empty:before { content: "+"; font-weight: 800; }
+i.fa-folder-open:empty:before, i.fa-folder-plus:empty:before { content: "📁"; }
+i.fa-xmark:empty:before { content: "✕"; font-weight: 800; }
+i.fa-music:empty:before { content: "🎵"; }
+i.fa-lines-leaning:empty:before { content: "📚"; }
+i.fa-ellipsis-vertical:empty:before { content: "⋮"; font-weight: 800; }
+i.fa-trash-can:empty:before { content: "🗑"; }
+i.fa-palette:empty:before { content: "🎨"; }
+i.fa-bolt:empty:before { content: "⚡"; }
+i.fa-leaf:empty:before { content: "🍃"; }
+i.fa-microchip:empty:before { content: "💾"; }
+i.fa-volume-high:empty:before { content: "🔊"; }
+i.fa-volume-low:empty:before { content: "🔉"; }
+i.fa-magnifying-glass:empty:before { content: "🔍"; }
+i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }

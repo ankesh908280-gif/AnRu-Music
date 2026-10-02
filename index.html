@@ -19,12 +19,13 @@
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- Modular Stylesheets -->
-  <link rel="stylesheet" href="base.css?v=15.0">
-  <link rel="stylesheet" href="home.css?v=15.0">
-  <link rel="stylesheet" href="search.css?v=15.0">
-  <link rel="stylesheet" href="player.css?v=15.0">
-  <link rel="stylesheet" href="profile.css?v=15.0">
+  <!-- Consolidated & Modular Stylesheets -->
+  <link rel="stylesheet" href="base.css?v=15.1">
+  <link rel="stylesheet" href="home.css?v=15.1">
+  <link rel="stylesheet" href="search.css?v=15.1">
+  <link rel="stylesheet" href="player.css?v=15.1">
+  <link rel="stylesheet" href="profile.css?v=15.1">
+  <link rel="stylesheet" href="style.css?v=15.1">
 </head>
 <body>
 
@@ -38,7 +39,7 @@
     <header class="app-header">
       <div class="header-left">
         <div class="logo-box">
-          <img src="icon-512.png" alt="Anru Logo" class="brand-logo" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%2300c6ff\'/><polygon points=\'40,30 70,50 40,70\' fill=\'%23ffffff\'/></svg>';">
+          <img src="icon-512.png" alt="Anru Logo" class="brand-logo" onerror="this.onerror=null; this.src='icons/icon-512.png';">
         </div>
         <div class="brand-text">
           <span class="brand-name">Anru Studio</span>
@@ -67,7 +68,7 @@
           <div class="search-input-box">
             <i class="fa-solid fa-magnifying-glass search-ico"></i>
             <input type="text" id="search-input" placeholder="Search songs, artists, albums..." autocomplete="off">
-            <button class="clear-btn hidden" id="clear-search-btn"><i class="fa-solid fa-xmark"></i></button>
+            <button class="clear-btn hidden" id="clear-search-btn" title="Clear search"><i class="fa-solid fa-xmark"></i></button>
           </div>
         </div>
 
@@ -125,12 +126,26 @@
         <!-- Playlist Detail Overlay -->
         <div class="playlist-detail-overlay hidden" id="playlist-detail-view">
           <div class="pl-detail-header">
-            <button class="back-btn" id="pl-detail-back-btn"><i class="fa-solid fa-arrow-left"></i></button>
+            <button class="back-btn" id="pl-detail-back-btn" title="Back to Playlists"><i class="fa-solid fa-arrow-left"></i></button>
             <div class="pl-detail-meta">
               <h3 id="pl-detail-title">Playlist</h3>
               <span id="pl-detail-count">0 Songs</span>
             </div>
           </div>
+          
+          <!-- Playlist Action Buttons -->
+          <div class="pl-detail-actions">
+            <button class="pl-action-btn primary-glow" id="pl-play-all-btn">
+              <i class="fa-solid fa-play"></i> <span>Play All</span>
+            </button>
+            <button class="pl-action-btn" id="pl-shuffle-btn">
+              <i class="fa-solid fa-shuffle"></i> <span>Shuffle</span>
+            </button>
+            <button class="pl-action-btn danger hidden" id="pl-delete-btn">
+              <i class="fa-solid fa-trash-can"></i> <span>Delete</span>
+            </button>
+          </div>
+
           <div class="songs-list-container" id="pl-detail-songs">
             <!-- Playlist songs -->
           </div>
@@ -141,13 +156,35 @@
       <section class="tab-view" id="view-studio">
         <div class="studio-header">
           <h2>Studio Tools</h2>
-          <p>Audio DSP & Personalization Settings</p>
+          <p>Audio DSP, Equalizer & Themes</p>
         </div>
 
         <div class="studio-section">
-          <h3>Themes</h3>
+          <h3><i class="fa-solid fa-sliders"></i> Audio Enhancements</h3>
+          <div class="studio-tools-grid">
+            <button class="studio-tool-card glass-card" id="studio-open-eq-btn">
+              <div class="tool-icon-wrap cyan"><i class="fa-solid fa-sliders"></i></div>
+              <div class="tool-meta">
+                <h4>5-Band Studio Equalizer</h4>
+                <p>Bass Boost, Rock, Vocal & Dance DSP</p>
+              </div>
+              <i class="fa-solid fa-chevron-right chevron-ico"></i>
+            </button>
+            <button class="studio-tool-card glass-card" id="studio-open-st-btn">
+              <div class="tool-icon-wrap pink"><i class="fa-solid fa-moon"></i></div>
+              <div class="tool-meta">
+                <h4>Sleep Timer</h4>
+                <p id="studio-st-status">Off (Tap to configure)</p>
+              </div>
+              <i class="fa-solid fa-chevron-right chevron-ico"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="studio-section">
+          <h3><i class="fa-solid fa-palette"></i> Themes</h3>
           <div class="theme-chips-row">
-            <button class="theme-btn" data-theme="aurora"><i class="fa-solid fa-palette"></i> Aurora</button>
+            <button class="theme-btn active" data-theme="aurora"><i class="fa-solid fa-palette"></i> Aurora</button>
             <button class="theme-btn" data-theme="amoled"><i class="fa-solid fa-moon"></i> AMOLED</button>
             <button class="theme-btn" data-theme="cyber"><i class="fa-solid fa-bolt"></i> Cyber</button>
             <button class="theme-btn" data-theme="emerald"><i class="fa-solid fa-leaf"></i> Emerald</button>
@@ -155,7 +192,7 @@
         </div>
 
         <div class="studio-section">
-          <h3>Offline Audio Engine</h3>
+          <h3><i class="fa-solid fa-microchip"></i> Offline Audio Engine</h3>
           <div class="dsp-info-card glass-card">
             <div class="dsp-info-row">
               <span>Decoder</span>
@@ -163,11 +200,15 @@
             </div>
             <div class="dsp-info-row">
               <span>Equalizer</span>
-              <span class="highlight">5-Band Studio DSP</span>
+              <span class="highlight">5-Band Studio DSP + Bass</span>
             </div>
             <div class="dsp-info-row">
               <span>Storage</span>
               <span class="highlight">IndexedDB Persistent Blob</span>
+            </div>
+            <div class="dsp-info-row">
+              <span>Cloud / Network</span>
+              <span class="highlight success">100% Offline (No Server)</span>
             </div>
           </div>
         </div>
@@ -182,7 +223,7 @@
       </div>
       <div class="mini-player-content" id="mini-player-content">
         <div class="mini-art-box">
-          <img src="icon-512.png" alt="Cover" class="mini-thumb" id="mini-thumb">
+          <img src="icon-512.png" alt="Cover" class="mini-thumb" id="mini-thumb" onerror="this.src='icons/icon-512.png'">
           <div class="mini-playing-indicator" id="mini-equalizer">
             <span></span><span></span><span></span>
           </div>
@@ -235,7 +276,7 @@
       <!-- Vinyl / Artwork Center Stage -->
       <div class="fs-artwork-stage">
         <div class="fs-vinyl-box" id="fs-vinyl-box">
-          <img src="icon-512.png" alt="Album Cover" class="fs-artwork-img" id="fs-artwork" onerror="this.src='icon-512.png'">
+          <img src="icon-512.png" alt="Album Cover" class="fs-artwork-img" id="fs-artwork" onerror="this.src='icons/icon-512.png'">
         </div>
       </div>
 
@@ -257,7 +298,7 @@
         </div>
       </div>
 
-      <!-- Main Playback Controls -->
+      <!-- Main Playback Controls (NEVER WRAP, PERFECT CENTERING) -->
       <div class="fs-controls-row">
         <button class="fs-ctrl-btn" id="fs-shuffle-btn" title="Shuffle"><i class="fa-solid fa-shuffle"></i></button>
         <button class="fs-ctrl-btn" id="fs-prev-btn" title="Previous"><i class="fa-solid fa-backward-step"></i></button>
@@ -380,7 +421,7 @@
     <div class="action-sheet-overlay hidden" id="action-sheet-overlay">
       <div class="action-sheet-card glass-modal">
         <div class="as-header">
-          <img src="icon-512.png" id="as-thumb" alt="cover" class="as-thumb">
+          <img src="icon-512.png" id="as-thumb" alt="cover" class="as-thumb" onerror="this.src='icons/icon-512.png'">
           <div class="as-info">
             <div class="as-title" id="as-title">Song Title</div>
             <div class="as-artist" id="as-artist">Artist</div>
@@ -399,9 +440,9 @@
   </div>
 
   <!-- Scripts -->
-  <script src="id3.js?v=15.0"></script>
-  <script src="db.js?v=15.0"></script>
-  <script src="player.js?v=15.0"></script>
-  <script src="app.js?v=15.0"></script>
+  <script src="id3.js?v=15.1"></script>
+  <script src="db.js?v=15.1"></script>
+  <script src="player.js?v=15.1"></script>
+  <script src="app.js?v=15.1"></script>
 </body>
 </html>

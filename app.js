@@ -404,10 +404,14 @@ function openActionSheet(song) {
 function initEqualizerUI() {
   const eqModal = document.getElementById('equalizer-modal');
   const openEqBtn = document.getElementById('fs-eq-btn');
+  const studioEqBtn = document.getElementById('studio-open-eq-btn');
   const closeEqBtn = document.getElementById('close-eq-btn');
 
   if (openEqBtn && eqModal) {
     openEqBtn.addEventListener('click', () => eqModal.classList.remove('hidden'));
+  }
+  if (studioEqBtn && eqModal) {
+    studioEqBtn.addEventListener('click', () => eqModal.classList.remove('hidden'));
   }
   if (closeEqBtn && eqModal) {
     closeEqBtn.addEventListener('click', () => eqModal.classList.add('hidden'));
@@ -451,10 +455,14 @@ function initEqualizerUI() {
 function initSleepTimerUI() {
   const stModal = document.getElementById('sleep-timer-modal');
   const openStBtn = document.getElementById('fs-sleep-btn');
+  const studioStBtn = document.getElementById('studio-open-st-btn');
   const closeStBtn = document.getElementById('close-st-btn');
 
   if (openStBtn && stModal) {
     openStBtn.addEventListener('click', () => stModal.classList.remove('hidden'));
+  }
+  if (studioStBtn && stModal) {
+    studioStBtn.addEventListener('click', () => stModal.classList.remove('hidden'));
   }
   if (closeStBtn && stModal) {
     closeStBtn.addEventListener('click', () => stModal.classList.add('hidden'));
@@ -535,6 +543,9 @@ function openPlaylistDetail(id, title, songIds) {
   const countEl = document.getElementById('pl-detail-count');
   const listEl = document.getElementById('pl-detail-songs');
   const backBtn = document.getElementById('pl-detail-back-btn');
+  const playAllBtn = document.getElementById('pl-play-all-btn');
+  const shuffleBtn = document.getElementById('pl-shuffle-btn');
+  const deleteBtn = document.getElementById('pl-delete-btn');
 
   if (!plView || !listEl) return;
 
@@ -542,23 +553,86 @@ function openPlaylistDetail(id, title, songIds) {
   const plSongs = allLibrarySongs.filter(s => songIds.includes(s.id));
   if (countEl) countEl.textContent = `${plSongs.length} Songs`;
 
+  // Bind Play All
+  if (playAllBtn) {
+    playAllBtn.onclick = () => {
+      if (plSongs.length > 0) {
+        player.playSong(plSongs[0], plSongs);
+        showToast(`Playing "${title}" ▶`);
+      } else {
+        showToast('Playlist is empty.');
+      }
+    };
+  }
+
+  // Bind Shuffle
+  if (shuffleBtn) {
+    shuffleBtn.onclick = () => {
+      if (plSongs.length > 0) {
+        const shuffled = [...plSongs].sort(() => Math.random() - 0.5);
+        player.playSong(shuffled[0], shuffled);
+        showToast(`Shuffling "${title}" 🔀`);
+      } else {
+        showToast('Playlist is empty.');
+      }
+    };
+  }
+
+  // Bind Delete for custom playlists
+  if (deleteBtn) {
+    if (id === 'favorites') {
+      deleteBtn.classList.add('hidden');
+    } else {
+      deleteBtn.classList.remove('hidden');
+      deleteBtn.onclick = async () => {
+        if (confirm(`Delete playlist "${title}"?`)) {
+          await db.deletePlaylist(id);
+          plView.classList.add('hidden');
+          renderPlaylistsTab();
+          showToast(`Deleted playlist "${title}" 🗑️`);
+        }
+      };
+    }
+  }
+
   listEl.innerHTML = '';
-  plSongs.forEach((song, idx) => {
-    const row = document.createElement('div');
-    row.className = 'song-row';
-    row.innerHTML = `
-      <span class="row-num">${idx + 1}</span>
-      <div class="row-art-box">
-        <img src="${song.artwork || 'icon-512.png'}" alt="cover" class="row-art">
-      </div>
-      <div class="row-meta">
-        <div class="row-title">${song.title}</div>
-        <div class="row-artist">${song.artist}</div>
-      </div>
-    `;
-    row.onclick = () => player.playSong(song, plSongs);
-    listEl.appendChild(row);
-  });
+  if (plSongs.length === 0) {
+    listEl.innerHTML = '<div class="empty-sub">No songs in this playlist yet. Add songs using the 3-dots menu on any track!</div>';
+  } else {
+    plSongs.forEach((song, idx) => {
+      const row = document.createElement('div');
+      row.className = 'song-row';
+      row.innerHTML = `
+        <span class="row-num">${idx + 1}</span>
+        <div class="row-art-box">
+          <img src="${song.artwork || 'icon-512.png'}" alt="cover" class="row-art" onerror="this.src='icon-512.png'">
+          <div class="row-play-hover"><i class="fa-solid fa-play"></i></div>
+        </div>
+        <div class="row-meta">
+          <div class="row-title">${song.title}</div>
+          <div class="row-artist">${song.artist} • ${song.album || 'Single'}</div>
+        </div>
+        <button class="row-action-btn menu-trigger" title="Options" data-id="${song.id}">
+          <i class="fa-solid fa-ellipsis-vertical"></i>
+        </button>
+      `;
+
+      row.onclick = (e) => {
+        if (e.target.closest('.row-action-btn')) return;
+        player.playSong(song, plSongs);
+      };
+
+      const menuBtn = row.querySelector('.menu-trigger');
+      if (menuBtn) {
+        menuBtn.onclick = (e) => {
+          e.stopPropagation();
+          openActionSheet(song);
+        };
+      }
+
+      listEl.appendChild(row);
+    });
+  }
 
   plView.classList.remove('hidden');
   if (backBtn) backBtn.onclick = () => plView.classList.add('hidden');
@@ -592,15 +666,23 @@ async function promptAddToPlaylist(song) {
 // 8. THEME ENGINE & HELPERS
 // ==========================================
 function initThemeEngine() {
-  const savedTheme = localStorage.getItem('anru_theme') || 'aurora';
+  let savedTheme = 'aurora';
+  try {
+    savedTheme = localStorage.getItem('anru_theme') || 'aurora';
+  } catch (e) {}
   document.documentElement.setAttribute('data-theme', savedTheme);
 
   document.querySelectorAll('.theme-btn').forEach(btn => {
+    if (btn.dataset.theme === savedTheme) btn.classList.add('active');
+    else btn.classList.remove('active');
+
     btn.addEventListener('click', (e) => {
       const t = e.currentTarget.dataset.theme;
       if (t) {
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        e.currentTarget.classList.add('active');
         document.documentElement.setAttribute('data-theme', t);
-        localStorage.setItem('anru_theme', t);
+        try { localStorage.setItem('anru_theme', t); } catch (err) {}
         showToast(`Theme: ${t.toUpperCase()}`);
       }
     });
