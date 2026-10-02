@@ -8,21 +8,25 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Anru Music - Pro Studio & Offline Player</title>
   
-  <!-- Manifest & Favicon -->
+  <!-- Manifest & Favicon (Works from both root and /icons/) -->
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="icons/favicon.png">
-  <link rel="apple-touch-icon" href="icons/icon-512.png">
+  <link rel="icon" type="image/png" href="icon-512.png">
+  <link rel="apple-touch-icon" href="icon-512.png">
 
-  <!-- Google Fonts: Outfit (Anru Focus Design System) -->
+  <!-- Google Fonts: Outfit (Anru Focus Typography) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-  <!-- FontAwesome 6 (Strictly Vector Icons, No Emojis) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- FontAwesome 6 (Clean CDN) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- App Stylesheet -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- Google Firebase SDK 10.7.1 Compat -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 </head>
 <body class="theme-aurora">
   
@@ -31,14 +35,14 @@
   <div class="ambient-orb orb-2"></div>
   <div class="ambient-orb orb-3"></div>
 
-  <!-- App Shell -->
+  <!-- Main App Shell -->
   <div class="app-container">
 
     <!-- Top Header -->
     <header class="app-header glass-panel">
       <div class="header-brand" id="brand-home-btn">
         <div class="logo-box">
-          <img src="icons/icon-512.png" alt="AR Logo" class="brand-logo-img">
+          <img src="icon-512.png" onerror="this.onerror=null; this.src='icons/icon-512.png';" alt="AR Logo" class="brand-logo-img">
         </div>
         <div class="brand-text-col">
           <span class="brand-title">Anru Music</span>
@@ -47,26 +51,26 @@
       </div>
 
       <div class="header-right-actions">
-        <!-- In-App PWA 1-Click Install Button -->
-        <button class="install-pwa-btn hidden" id="pwa-install-btn" title="Install App on Phone">
+        <!-- In-App PWA Install Button -->
+        <button class="install-pwa-btn hidden" id="pwa-install-btn" title="Install App">
           <i class="fa-solid fa-download"></i>
           <span>Install</span>
         </button>
 
-        <!-- Theme Switcher Button -->
+        <!-- Theme Palette Switcher -->
         <button class="glass-icon-btn" id="theme-toggle-btn" title="Color Themes">
           <i class="fa-solid fa-palette"></i>
         </button>
 
-        <!-- User Profile / Auth Button -->
-        <button class="profile-pill-btn" id="profile-btn" title="Account / Profile">
+        <!-- Profile / Account Header Pill (Glassmorphism Styled) -->
+        <button class="profile-pill-btn" id="header-profile-btn" title="View Profile & Account">
           <i class="fa-solid fa-circle-user"></i>
-          <span id="user-display-name">Guest</span>
+          <span id="header-user-name">Guest</span>
         </button>
       </div>
     </header>
 
-    <!-- Theme Selection Dropdown -->
+    <!-- Theme Palette Dropdown Modal -->
     <div class="theme-dropdown hidden" id="theme-dropdown">
       <div class="dropdown-header">Select Color Theme</div>
       <div class="theme-options-grid">
@@ -114,7 +118,7 @@
           <i class="fa-solid fa-fire-flame-curved"></i>
           <span>Trending</span>
         </button>
-        <button class="chip" data-query="bhojpuri top hits">
+        <button class="chip" data-query="bhojpuri hits">
           <i class="fa-solid fa-guitar"></i>
           <span>Bhojpuri Hits</span>
         </button>
@@ -122,33 +126,29 @@
           <i class="fa-solid fa-film"></i>
           <span>Bollywood</span>
         </button>
-        <button class="chip" data-query="punjabi hits">
+        <button class="chip" data-query="punjabi beats">
           <i class="fa-solid fa-bolt-lightning"></i>
           <span>Punjabi Beats</span>
-        </button>
-        <button class="chip" data-query="arijit singh">
-          <i class="fa-solid fa-microphone-lines"></i>
-          <span>Arijit Singh</span>
         </button>
         <button class="chip" data-query="pawan singh">
           <i class="fa-solid fa-music"></i>
           <span>Pawan Singh</span>
         </button>
-        <button class="chip" data-query="khesari lal yadav">
+        <button class="chip" data-query="khesari lal">
           <i class="fa-solid fa-compact-disc"></i>
           <span>Khesari Lal</span>
         </button>
-        <button class="chip" data-query="lofi hindi chill">
+        <button class="chip" data-query="arijit singh">
+          <i class="fa-solid fa-microphone-lines"></i>
+          <span>Arijit Singh</span>
+        </button>
+        <button class="chip" data-query="lofi chill">
           <i class="fa-solid fa-headphones-simple"></i>
           <span>Lo-Fi Chill</span>
         </button>
-        <button class="chip" data-query="romantic hindi hits">
+        <button class="chip" data-query="romantic hindi">
           <i class="fa-solid fa-heart"></i>
           <span>Romantic</span>
-        </button>
-        <button class="chip" data-query="party dance hindi">
-          <i class="fa-solid fa-sliders"></i>
-          <span>Party DJ</span>
         </button>
       </div>
     </section>
@@ -179,7 +179,7 @@
               <i class="fa-solid fa-guitar section-icon"></i>
               <h3>Bhojpuri Superhits</h3>
             </div>
-            <span class="section-see-all" data-tag="bhojpuri superhit">See All <i class="fa-solid fa-angle-right"></i></span>
+            <span class="section-see-all" data-tag="bhojpuri hits">See All <i class="fa-solid fa-angle-right"></i></span>
           </div>
           <div class="horizontal-scroll" id="home-bhojpuri-cards">
             <!-- Dynamic cards -->
@@ -193,7 +193,7 @@
               <i class="fa-solid fa-film section-icon"></i>
               <h3>Bollywood Top Charts</h3>
             </div>
-            <span class="section-see-all" data-tag="bollywood trending">See All <i class="fa-solid fa-angle-right"></i></span>
+            <span class="section-see-all" data-tag="bollywood latest">See All <i class="fa-solid fa-angle-right"></i></span>
           </div>
           <div class="horizontal-scroll" id="home-bollywood-cards">
             <!-- Dynamic cards -->
@@ -207,7 +207,7 @@
               <i class="fa-solid fa-bolt-lightning section-icon"></i>
               <h3>Punjabi Club Beats</h3>
             </div>
-            <span class="section-see-all" data-tag="punjabi hits">See All <i class="fa-solid fa-angle-right"></i></span>
+            <span class="section-see-all" data-tag="punjabi beats">See All <i class="fa-solid fa-angle-right"></i></span>
           </div>
           <div class="horizontal-scroll" id="home-punjabi-cards">
             <!-- Dynamic cards -->
@@ -229,7 +229,7 @@
         <!-- Loader -->
         <div class="loader-box hidden" id="search-loader">
           <div class="neon-spinner"></div>
-          <p>Scanning JioSaavn & YouTube Audio streams...</p>
+          <p>Scanning high-fidelity audio streams...</p>
         </div>
 
         <!-- Songs List -->
@@ -272,7 +272,7 @@
           <div class="empty-state">
             <i class="fa-solid fa-arrow-down-to-bracket empty-icon"></i>
             <h4>Koi song download nahi hai</h4>
-            <p>Kisi bhi gaane par three dots (...) ya download button dabayein aur offline sunein.</p>
+            <p>Kisi bhi song ke three dots (...) par click karein aur yahan offline sunein.</p>
           </div>
         </div>
       </div>
@@ -302,6 +302,129 @@
         </div>
       </div>
 
+      <!-- 5. SPOTIFY-STYLE PROFILE & SETTINGS VIEW -->
+      <div class="tab-view" id="view-profile">
+        
+        <!-- Profile Header Card -->
+        <div class="profile-hero-card glass-panel">
+          <div class="profile-avatar-box">
+            <img src="icon-512.png" onerror="this.onerror=null; this.src='icons/icon-512.png';" alt="Avatar" class="profile-avatar-img" id="profile-avatar">
+            <span class="profile-online-badge"></span>
+          </div>
+          <div class="profile-hero-info">
+            <h2 id="profile-user-title">Guest Listener</h2>
+            <span class="profile-plan-tag" id="profile-plan-tag"><i class="fa-solid fa-shield-halved"></i> Guest Account</span>
+            <p id="profile-user-email">Sign in below to save playlists and sync your library</p>
+          </div>
+        </div>
+
+        <!-- Auth Section inside Profile -->
+        <div class="profile-auth-section" id="profile-auth-container">
+          
+          <!-- When in Guest Mode: Login/Signup Card with Continue with Google -->
+          <div class="profile-auth-card glass-card" id="profile-guest-auth-card">
+            
+            <!-- Continue with Google Button -->
+            <button class="google-auth-btn" id="prof-google-btn" type="button">
+              <svg class="google-svg-icon" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <span>Continue with Google</span>
+            </button>
+
+            <div class="auth-divider">
+              <span>OR USE EMAIL</span>
+            </div>
+
+            <div class="auth-card-header">
+              <div class="auth-tabs">
+                <button class="auth-tab active" id="prof-tab-login">Sign In</button>
+                <button class="auth-tab" id="prof-tab-signup">Create Account</button>
+              </div>
+            </div>
+
+            <form class="auth-form" id="profile-auth-form">
+              <div class="input-group">
+                <i class="fa-solid fa-envelope"></i>
+                <input type="email" id="prof-email" placeholder="Your Email Address" required>
+              </div>
+
+              <div class="input-group">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="prof-password" placeholder="Password (minimum 6 characters)" minlength="6" required>
+                <button type="button" class="eye-toggle" id="prof-toggle-pw"><i class="fa-solid fa-eye"></i></button>
+              </div>
+
+              <button type="submit" class="auth-submit-btn" id="prof-submit-btn">
+                <span>Sign In with Email</span>
+                <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </form>
+          </div>
+
+          <!-- When Logged In: Account Info Card -->
+          <div class="profile-logged-card glass-card hidden" id="profile-logged-card">
+            <div class="logged-row">
+              <div class="logged-item">
+                <span class="logged-label">AUTHENTICATED USER</span>
+                <span class="logged-val" id="logged-email-text">user@example.com</span>
+              </div>
+              <div class="logged-item">
+                <span class="logged-label">PROVIDER</span>
+                <span class="logged-val green" id="logged-provider-text"><i class="fa-solid fa-circle-check"></i> Google Verified</span>
+              </div>
+            </div>
+
+            <button class="sign-out-btn" id="profile-signout-btn">
+              <i class="fa-solid fa-right-from-bracket"></i>
+              <span>Sign Out</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Spotify-Style Audio & App Settings -->
+        <div class="profile-settings-section">
+          <div class="settings-group-title"><i class="fa-solid fa-sliders"></i> AUDIO & APP SETTINGS</div>
+
+          <div class="setting-item glass-card">
+            <div class="setting-text">
+              <div class="setting-name">Audio Streaming Quality</div>
+              <div class="setting-desc">320kbps High Fidelity (Direct CDN)</div>
+            </div>
+            <span class="setting-badge">Extreme HD</span>
+          </div>
+
+          <div class="setting-item glass-card">
+            <div class="setting-text">
+              <div class="setting-name">Offline Storage Engine</div>
+              <div class="setting-desc" id="profile-storage-text">IndexedDB Local Cache Active</div>
+            </div>
+            <button class="clear-cache-btn" id="profile-clear-cache-btn">Clear Cache</button>
+          </div>
+
+          <div class="setting-item glass-card">
+            <div class="setting-text">
+              <div class="setting-name">Color Theme</div>
+              <div class="setting-desc">Anru Focus Cosmic Aurora Design</div>
+            </div>
+            <button class="setting-btn-link" id="profile-change-theme-btn">Change Theme</button>
+          </div>
+
+          <div class="setting-item glass-card">
+            <div class="setting-text">
+              <div class="setting-name">App Version</div>
+              <div class="setting-desc">Anru Music Studio v3.0 (Firebase Connected)</div>
+            </div>
+            <span class="setting-badge green"><i class="fa-solid fa-check"></i> Latest</span>
+          </div>
+        </div>
+
+      </div>
+
     </main>
 
     <!-- Bottom Sticky Mini Player -->
@@ -312,7 +435,7 @@
 
       <div class="mini-player-content" id="mini-player-content">
         <div class="mini-art-box">
-          <img src="icons/icon-512.png" alt="Track Art" class="mini-thumb" id="mini-thumb">
+          <img src="icon-512.png" onerror="this.onerror=null; this.src='icons/icon-512.png';" alt="Track Art" class="mini-thumb" id="mini-thumb">
           <div class="mini-playing-indicator" id="mini-equalizer">
             <span></span><span></span><span></span>
           </div>
@@ -324,17 +447,14 @@
         </div>
 
         <div class="mini-actions">
-          <!-- Queue Quick Open -->
           <button class="mini-action-btn" id="mini-queue-btn" title="View Queue">
             <i class="fa-solid fa-list-ul"></i>
           </button>
 
-          <!-- Play/Pause -->
           <button class="mini-action-btn play-circle" id="mini-play-btn" aria-label="Play/Pause">
             <i class="fa-solid fa-play" id="mini-play-icon"></i>
           </button>
 
-          <!-- Next Track -->
           <button class="mini-action-btn" id="mini-next-btn" aria-label="Next">
             <i class="fa-solid fa-forward-step"></i>
           </button>
@@ -345,7 +465,6 @@
     <!-- Fullscreen Player Modal -->
     <div class="fullscreen-player hidden" id="fullscreen-player">
       
-      <!-- Top Modal Navigation -->
       <div class="fs-header">
         <button class="fs-nav-btn" id="fs-close-btn" aria-label="Minimize">
           <i class="fa-solid fa-chevron-down"></i>
@@ -359,15 +478,13 @@
         </button>
       </div>
 
-      <!-- Vinyl & Artwork -->
       <div class="fs-art-wrapper">
         <div class="vinyl-disc-glow" id="vinyl-glow"></div>
         <div class="fs-artwork-card glass-panel" id="artwork-wrapper">
-          <img src="icons/icon-512.png" alt="Artwork" class="fs-artwork" id="fs-artwork">
+          <img src="icon-512.png" onerror="this.onerror=null; this.src='icons/icon-512.png';" alt="Artwork" class="fs-artwork" id="fs-artwork">
         </div>
       </div>
 
-      <!-- Song Meta & Quick Actions -->
       <div class="fs-meta-block">
         <div class="fs-text-group">
           <h2 class="fs-title" id="fs-title">Song Title</h2>
@@ -386,7 +503,6 @@
         </div>
       </div>
 
-      <!-- Timeline & Seek Bar -->
       <div class="fs-timeline">
         <input type="range" class="fs-slider" id="fs-seek-slider" min="0" max="100" value="0">
         <div class="fs-time-stamps">
@@ -395,7 +511,6 @@
         </div>
       </div>
 
-      <!-- Master Audio Controls -->
       <div class="fs-controls-master">
         <button class="fs-ctrl-btn" id="fs-shuffle-btn" title="Shuffle">
           <i class="fa-solid fa-shuffle"></i>
@@ -418,27 +533,26 @@
         </button>
       </div>
 
-      <!-- Volume Bar -->
       <div class="fs-volume-wrap">
         <i class="fa-solid fa-volume-low vol-ico"></i>
         <input type="range" class="fs-vol-slider" id="fs-vol-slider" min="0" max="1" step="0.05" value="1">
         <i class="fa-solid fa-volume-high vol-ico"></i>
       </div>
 
-      <!-- Spotify-Style Smart Recommender ("सजेस्टर") -->
+      <!-- Spotify-Style Smart Recommender -->
       <div class="fs-suggestions-section">
         <div class="suggestions-header">
           <i class="fa-solid fa-wand-magic-sparkles"></i>
           <span>Recommended For You</span>
         </div>
         <div class="suggestions-list" id="fs-suggestions-list">
-          <!-- Dynamic similar songs -->
+          <!-- Dynamic recommendations -->
         </div>
       </div>
 
     </div>
 
-    <!-- Up Next Queue Drawer (Reorder & Customize Upcoming Songs) -->
+    <!-- Up Next Queue Drawer -->
     <div class="queue-drawer hidden" id="queue-drawer">
       <div class="queue-header glass-panel">
         <div class="queue-header-left">
@@ -457,9 +571,9 @@
           <span class="queue-empty-text">No active song playing</span>
         </div>
 
-        <div class="queue-section-title">UP NEXT (DRAG OR REORDER)</div>
+        <div class="queue-section-title">UP NEXT (TAP TO REORDER OR REMOVE)</div>
         <div class="queue-list" id="queue-upcoming-list">
-          <span class="queue-empty-text">Queue is empty. Use 3-dot menu to add songs!</span>
+          <span class="queue-empty-text">Queue is empty. Use 3-dot menu on any song to add!</span>
         </div>
       </div>
     </div>
@@ -468,7 +582,7 @@
     <div class="action-sheet-overlay hidden" id="action-sheet-overlay">
       <div class="action-sheet glass-panel" id="action-sheet">
         <div class="sheet-song-preview">
-          <img src="icons/icon-512.png" alt="art" class="sheet-thumb" id="sheet-song-thumb">
+          <img src="icon-512.png" onerror="this.onerror=null; this.src='icons/icon-512.png';" alt="art" class="sheet-thumb" id="sheet-song-thumb">
           <div class="sheet-song-info">
             <h4 class="sheet-song-title" id="sheet-song-title">Song Title</h4>
             <p class="sheet-song-artist" id="sheet-song-artist">Artist</p>
@@ -506,57 +620,7 @@
       </div>
     </div>
 
-    <!-- Authentication Modal (Email/Password & Guest Mode) -->
-    <div class="auth-modal-overlay hidden" id="auth-modal">
-      <div class="auth-card glass-panel">
-        <div class="auth-header">
-          <div class="auth-logo">
-            <img src="icons/icon-512.png" alt="Logo">
-          </div>
-          <h2>Welcome to Anru Music</h2>
-          <p>Login to sync favorites or listen anonymously in Guest mode</p>
-        </div>
-
-        <!-- Auth Tabs: Login / Signup -->
-        <div class="auth-tabs">
-          <button class="auth-tab active" id="tab-login-btn">Sign In</button>
-          <button class="auth-tab" id="tab-signup-btn">Create Account</button>
-        </div>
-
-        <!-- Auth Form -->
-        <form class="auth-form" id="auth-form">
-          <div class="input-group">
-            <i class="fa-solid fa-envelope"></i>
-            <input type="email" id="auth-email" placeholder="Email address" required>
-          </div>
-
-          <div class="input-group">
-            <i class="fa-solid fa-lock"></i>
-            <input type="password" id="auth-password" placeholder="Password (min 6 chars)" minlength="6" required>
-            <button type="button" class="eye-toggle" id="toggle-pw-btn"><i class="fa-solid fa-eye"></i></button>
-          </div>
-
-          <button type="submit" class="auth-submit-btn" id="auth-submit-btn">
-            <span>Sign In</span>
-            <i class="fa-solid fa-arrow-right"></i>
-          </button>
-        </form>
-
-        <div class="auth-divider">
-          <span>OR</span>
-        </div>
-
-        <!-- Guest Bypass Option -->
-        <button class="guest-btn" id="continue-guest-btn">
-          <i class="fa-solid fa-user-secret"></i>
-          <span>Continue as Guest</span>
-        </button>
-        
-        <button class="auth-close-x" id="auth-close-btn"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-    </div>
-
-    <!-- Bottom Navigation Bar -->
+    <!-- Bottom Navigation Bar (5 Tabs) -->
     <nav class="bottom-nav glass-panel">
       <button class="nav-tab active" data-tab="home" id="nav-home">
         <i class="fa-solid fa-house"></i>
@@ -579,6 +643,11 @@
       <button class="nav-tab" data-tab="favorites" id="nav-favorites">
         <i class="fa-solid fa-heart"></i>
         <span>Liked</span>
+      </button>
+
+      <button class="nav-tab" data-tab="profile" id="nav-profile">
+        <i class="fa-solid fa-user"></i>
+        <span>Profile</span>
       </button>
     </nav>
 
