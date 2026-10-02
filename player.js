@@ -95,7 +95,7 @@ class PlayerController {
     this.updateTrackUI();
     this.updateMediaSession();
     renderQueueDrawer();
-    generateSmartSuggestions(song);
+    if (typeof generateSmartSuggestions === "function") generateSmartSuggestions(song);
   }
 
   togglePlay() {
@@ -347,7 +347,8 @@ class PlayerController {
 
 const player = new PlayerController();
 
-// UI Helpers
+
+// Playback UI Utilities
 function formatTime(seconds) {
   if (!seconds || isNaN(seconds)) return '0:00';
   const mins = Math.floor(seconds / 60);
@@ -372,211 +373,6 @@ function showToast(message) {
   }, 2400);
 }
 
-function renderSongItem(song, container, options = {}) {
-  const item = document.createElement('div');
-  item.className = 'song-item';
-  item.dataset.id = song.id;
-
-  if (player.currentSong?.id === song.id) {
-    item.classList.add('playing');
-  }
-
-  item.innerHTML = `
-    <img src="${song.image || song.artwork || "icon-512.png"}" alt="art" class="song-item-thumb" loading="lazy" onerror="this.src='icon-512.png'">
-    <div class="song-item-info">
-      <div class="song-item-title">${song.title}</div>
-      <div class="song-item-artist">${song.artist} • ${formatTime(song.duration)}</div>
-    </div>
-    <div class="song-item-actions">
-      <button class="item-act-btn btn-dots" title="More Options" data-id="${song.id}">
-        <i class="fa-solid fa-ellipsis-vertical"></i>
-      </button>
-      <button class="item-act-btn btn-like" title="Favorite" data-id="${song.id}">
-        <i class="fa-regular fa-heart"></i>
-      </button>
-    </div>
-  `;
-
-  if (typeof db !== 'undefined') {
-    db.isFavorite(song.id).then(fav => {
-      if (fav) {
-        const likeBtn = item.querySelector('.btn-like');
-        if (likeBtn) {
-          likeBtn.classList.add('liked');
-          likeBtn.innerHTML = '<i class="fa-solid fa-heart"></i>';
-        }
-      }
-    }).catch(() => {});
-  }
-
-  item.addEventListener('click', (e) => {
-    if (e.target.closest('.item-act-btn')) return;
-    player.playSong(song, options.queue);
-  });
-
-  const dotsBtn = item.querySelector('.btn-dots');
-  if (dotsBtn) {
-    dotsBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openActionSheet(song);
-    });
-  }
-
-  const likeBtn = item.querySelector('.btn-like');
-  if (likeBtn) {
-    likeBtn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      if (typeof db !== 'undefined') {
-        const isNowFav = await db.toggleFavorite(song);
-        likeBtn.classList.toggle('liked', isNowFav);
-        likeBtn.innerHTML = isNowFav ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>';
-        showToast(isNowFav ? 'Added to Liked Songs' : 'Removed from Liked Songs');
-        if (player.currentSong?.id === song.id) {
-          player.updateLikeBtnUI(isNowFav);
-        }
-        loadFavoritesView();
-      }
-    });
-  }
-
-  container.appendChild(item);
-}
-
-function renderMusicCard(song, container, queue) {
-  const card = document.createElement('div');
-  card.className = 'music-card';
-  card.dataset.id = song.id;
-  card.innerHTML = `
-    <div class="card-img-wrapper">
-      <img src="${song.image || song.artwork || "icon-512.png"}" alt="art" class="card-img" loading="lazy" onerror="this.src='icon-512.png'">
-      <button class="card-play-btn" aria-label="Play">
-        <i class="fa-solid fa-play"></i>
-      </button>
-    </div>
-    <div class="card-title">${song.title}</div>
-    <div class="card-artist">${song.artist}</div>
-  `;
-
-  card.addEventListener('click', () => {
-    player.playSong(song, queue);
-  });
-
-  container.appendChild(card);
-}
-
-async function handleDownload(song) {
-  if (typeof db === 'undefined') return;
-  const isDl = await db.getDownload(song.id);
-  if (isDl) {
-    if (confirm(`Remove "${song.title}" from offline downloads?`)) {
-      await db.deleteDownload(song.id);
-      showToast('Removed from offline downloads');
-      updateDownloadBadge();
-      loadDownloadsView();
-      if (player.currentSong?.id === song.id) player.updateDownloadBtnUI(false);
-    }
-    return;
-  }
-
-  showToast(`Downloading full track "${song.title}"...`);
-  try {
-    const audioRes = await fetch(song.audioUrl);
-    if (!audioRes.ok) throw new Error('Audio download failed');
-    const audioBlob = await audioRes.blob();
-
-    await db.saveDownload(song, audioBlob);
-    showToast(`"${song.title}" saved offline!`);
-    updateDownloadBadge();
-    loadDownloadsView();
-    if (player.currentSong?.id === song.id) player.updateDownloadBtnUI(true);
-  } catch (err) {
-    console.warn('Download notice:', err);
-    showToast('Download notice: Ready for streaming.');
-  }
-}
-
-async function updateDownloadBadge() {
-  if (typeof db === 'undefined') return;
-  const dls = await db.getAllDownloads();
-  const count = dls.length;
-  const badge = document.getElementById('downloads-badge');
-  const countInfo = document.getElementById('download-count-badge');
-  const profileStorage = document.getElementById('profile-storage-text');
-
-  if (count > 0) {
-    if (badge) { badge.textContent = count; badge.classList.remove('hidden'); }
-    if (countInfo) countInfo.textContent = `${count} track${count > 1 ? 's' : ''} saved`;
-    if (profileStorage) profileStorage.textContent = `${count} tracks stored offline`;
-  } else {
-    if (badge) badge.classList.add('hidden');
-    if (countInfo) countInfo.textContent = '0 tracks saved';
-    if (profileStorage) profileStorage.textContent = '0 tracks saved offline';
-  }
-}
-
-async function loadDownloadsView() {
-  if (typeof db === 'undefined') return;
-  const dls = await db.getAllDownloads();
-  const container = document.getElementById('downloaded-songs-list');
-  if (!container) return;
-  container.innerHTML = '';
-
-  if (dls.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <i class="fa-solid fa-arrow-down-to-bracket empty-icon"></i>
-        <h4>Koi song download nahi hai</h4>
-        <p>Kisi bhi song ke three dots (...) par click karein aur yahan offline sunein.</p>
-      </div>
-    `;
-    return;
-  }
-
-  dls.forEach(song => renderSongItem(song, container, { queue: dls }));
-}
-
-async function loadFavoritesView() {
-  if (typeof db === 'undefined') return;
-  const favs = await db.getAllFavorites();
-  const container = document.getElementById('favorite-songs-list');
-  if (!container) return;
-  container.innerHTML = '';
-
-  if (favs.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <i class="fa-regular fa-heart empty-icon"></i>
-        <h4>Abhi tak koi favorite nahi hai</h4>
-        <p>Gaane pasand aane par Heart icon dabayein.</p>
-      </div>
-    `;
-    return;
-  }
-
-  favs.forEach(song => renderSongItem(song, container, { queue: favs }));
-}
-
-let activeSheetSong = null;
-
-function openActionSheet(song) {
-  activeSheetSong = song;
-  const overlay = document.getElementById('action-sheet-overlay');
-  const thumb = document.getElementById('sheet-song-thumb');
-  const title = document.getElementById('sheet-song-title');
-  const artist = document.getElementById('sheet-song-artist');
-
-  if (thumb) thumb.src = song.image;
-  if (title) title.textContent = song.title;
-  if (artist) artist.textContent = song.artist;
-  if (overlay) overlay.classList.remove('hidden');
-}
-
-function closeActionSheet() {
-  const overlay = document.getElementById('action-sheet-overlay');
-  if (overlay) overlay.classList.add('hidden');
-  activeSheetSong = null;
-}
-
 function renderQueueDrawer() {
   const nowBox = document.getElementById('queue-now-playing');
   const upList = document.getElementById('queue-upcoming-list');
@@ -584,157 +380,86 @@ function renderQueueDrawer() {
 
   if (player.currentSong) {
     nowBox.innerHTML = `
-      <img src="${player.currentSong.image}" alt="art" class="queue-item-thumb" onerror="this.src='icon-512.png'">
-      <div class="queue-item-info">
-        <div class="queue-item-title">${player.currentSong.title}</div>
-        <div class="queue-item-artist">${player.currentSong.artist}</div>
+      <img src="${player.currentSong.artwork || player.currentSong.image || 'icon-512.png'}" alt="art" class="queue-thumb" onerror="this.src='icon-512.png'">
+      <div class="queue-info">
+        <div class="queue-title">${player.currentSong.title}</div>
+        <div class="queue-artist">${player.currentSong.artist}</div>
       </div>
-      <span style="font-size:11px;font-weight:700;color:var(--accent);">PLAYING</span>
+      <div class="queue-playing-tag"><i class="fa-solid fa-volume-high"></i> PLAYING</div>
     `;
   } else {
-    nowBox.innerHTML = '<span class="queue-empty-text">No active song playing</span>';
+    nowBox.innerHTML = '<div class="empty-sub">No track actively playing</div>';
   }
 
-  upList.innerHTML = '';
   const upcoming = player.queue.slice(player.currentIndex + 1);
+  upList.innerHTML = '';
 
   if (upcoming.length === 0) {
-    upList.innerHTML = '<span class="queue-empty-text">Queue is empty. Use 3-dot menu on any song to add!</span>';
+    upList.innerHTML = '<div class="empty-sub">No upcoming tracks in queue</div>';
     return;
   }
 
-  upcoming.forEach((song, relativeIndex) => {
-    const actualIndex = player.currentIndex + 1 + relativeIndex;
+  upcoming.forEach((song, idx) => {
+    const realIdx = player.currentIndex + 1 + idx;
     const item = document.createElement('div');
-    item.className = 'queue-item';
+    item.className = 'queue-row';
     item.innerHTML = `
-      <img src="${song.image || song.artwork || "icon-512.png"}" alt="art" class="queue-item-thumb" onerror="this.src='icon-512.png'">
-      <div class="queue-item-info">
-        <div class="queue-item-title">${song.title}</div>
-        <div class="queue-item-artist">${song.artist}</div>
+      <span class="queue-num">${idx + 1}</span>
+      <img src="${song.artwork || song.image || 'icon-512.png'}" alt="art" class="queue-row-thumb" onerror="this.src='icon-512.png'">
+      <div class="queue-row-info">
+        <div class="queue-row-title">${song.title}</div>
+        <div class="queue-row-artist">${song.artist}</div>
       </div>
-      <div class="queue-item-actions">
-        <button class="queue-ctrl-btn btn-up" title="Move Up"><i class="fa-solid fa-arrow-up"></i></button>
-        <button class="queue-ctrl-btn btn-down" title="Move Down"><i class="fa-solid fa-arrow-down"></i></button>
-        <button class="queue-ctrl-btn btn-del" title="Remove"><i class="fa-solid fa-xmark"></i></button>
-      </div>
+      <button class="queue-remove-btn" title="Remove" data-index="${realIdx}">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     `;
 
-    item.addEventListener('click', (e) => {
-      if (e.target.closest('.queue-ctrl-btn')) return;
+    const rmBtn = item.querySelector('.queue-remove-btn');
+    if (rmBtn) {
+      rmBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        player.removeFromQueue(realIdx);
+      });
+    }
+
+    item.addEventListener('click', () => {
+      player.currentIndex = realIdx;
       player.playSong(song);
     });
-
-    const upBtn = item.querySelector('.btn-up');
-    if (upBtn) {
-      upBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (actualIndex > player.currentIndex + 1) player.moveQueueItem(actualIndex, actualIndex - 1);
-      });
-    }
-
-    const downBtn = item.querySelector('.btn-down');
-    if (downBtn) {
-      downBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (actualIndex < player.queue.length - 1) player.moveQueueItem(actualIndex, actualIndex + 1);
-      });
-    }
-
-    const delBtn = item.querySelector('.btn-del');
-    if (delBtn) {
-      delBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        player.removeFromQueue(actualIndex);
-      });
-    }
 
     upList.appendChild(item);
   });
 }
 
+
 function generateSmartSuggestions(currentSong) {
-  const container = document.getElementById('fs-suggestions-list');
-  if (!container || typeof CURATED_FULL_CATALOG === 'undefined') return;
-  container.innerHTML = '';
-
-  const similar = CURATED_FULL_CATALOG
-    .filter(s => s.id !== currentSong.id && (s.category === currentSong.category || s.artist.includes(currentSong.artist)))
-    .slice(0, 4);
-
-  const pool = similar.length > 0 ? similar : CURATED_FULL_CATALOG.filter(s => s.id !== currentSong.id).slice(0, 4);
-
-  pool.forEach(song => {
-    const row = document.createElement('div');
-    row.className = 'song-item';
-    row.innerHTML = `
-      <img src="${song.image || song.artwork || "icon-512.png"}" alt="art" class="song-item-thumb" onerror="this.src='icon-512.png'">
-      <div class="song-item-info">
-        <div class="song-item-title">${song.title}</div>
-        <div class="song-item-artist">${song.artist}</div>
-      </div>
-      <button class="item-act-btn btn-add" title="Add to Queue"><i class="fa-solid fa-plus"></i></button>
-    `;
-
-    row.addEventListener('click', (e) => {
-      if (e.target.closest('.btn-add')) return;
-      player.playSong(song);
-    });
-
-    const addBtn = row.querySelector('.btn-add');
-    if (addBtn) {
-      addBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        player.addToQueue(song);
-      });
+  try {
+    if (typeof CURATED_FULL_CATALOG === 'undefined' || !currentSong) return;
+    const sameCat = CURATED_FULL_CATALOG.filter(s => s.id !== currentSong.id && s.category === currentSong.category);
+    if (player.queue.length <= 1 && sameCat.length > 0) {
+      const moreTracks = sameCat.slice(0, 3);
+      moreTracks.forEach(t => player.queue.push(t));
+      renderQueueDrawer();
     }
-
-    container.appendChild(row);
-  });
+  } catch (err) {
+    console.warn('generateSmartSuggestions notice:', err);
+  }
 }
 
-if (typeof window !== 'undefined') {
-  window.player = player;
-  window.formatTime = formatTime;
-  window.showToast = showToast;
-  window.renderSongItem = renderSongItem;
-  window.renderMusicCard = renderMusicCard;
-  window.handleDownload = handleDownload;
-  window.updateDownloadBadge = updateDownloadBadge;
-  window.loadDownloadsView = loadDownloadsView;
-  window.loadFavoritesView = loadFavoritesView;
-  window.openActionSheet = openActionSheet;
-  window.closeActionSheet = closeActionSheet;
-  window.renderQueueDrawer = renderQueueDrawer;
-  window.generateSmartSuggestions = generateSmartSuggestions;
-}
-if (typeof globalThis !== 'undefined') {
-  globalThis.player = player;
-  globalThis.formatTime = formatTime;
-  globalThis.showToast = showToast;
-  globalThis.renderSongItem = renderSongItem;
-  globalThis.renderMusicCard = renderMusicCard;
-  globalThis.handleDownload = handleDownload;
-  globalThis.updateDownloadBadge = updateDownloadBadge;
-  globalThis.loadDownloadsView = loadDownloadsView;
-  globalThis.loadFavoritesView = loadFavoritesView;
-  globalThis.openActionSheet = openActionSheet;
-  globalThis.closeActionSheet = closeActionSheet;
-  globalThis.renderQueueDrawer = renderQueueDrawer;
-  globalThis.generateSmartSuggestions = generateSmartSuggestions;
-}
+// Global Exports
+const playerExports = {
+  PlayerController,
+  player,
+  formatTime,
+  formatDuration,
+  showToast,
+  renderQueueDrawer
+};
 
 if (typeof window !== 'undefined') {
-  window.player = player;
-  window.formatTime = formatTime;
-  window.formatDuration = formatDuration;
-  window.showToast = showToast;
-  window.renderQueueDrawer = renderQueueDrawer;
+  Object.assign(window, playerExports);
 }
 if (typeof globalThis !== 'undefined') {
-  globalThis.player = player;
-  globalThis.formatTime = formatTime;
-  globalThis.formatDuration = formatDuration;
-  globalThis.showToast = showToast;
-  globalThis.renderQueueDrawer = renderQueueDrawer;
+  Object.assign(globalThis, playerExports);
 }

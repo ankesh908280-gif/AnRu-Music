@@ -1,15 +1,15 @@
 // Service Worker for Anru Music Studio Pro v10 Live
-const CACHE_NAME = 'anru-music-v10-live';
+const CACHE_NAME = 'anru-music-v10.1-live';
 const STATIC_SHELL = [
   './',
   './index.html',
-  './style.css?v=10.0',
-  './catalog.js?v=10.0',
-  './db.js?v=10.0',
-  './api.js?v=10.0',
-  './player.js?v=10.0',
-  './auth.js?v=10.0',
-  './app.js?v=10.0',
+  './style.css?v=10.1',
+  './catalog.js?v=10.1',
+  './db.js?v=10.1',
+  './api.js?v=10.1',
+  './player.js?v=10.1',
+  './auth.js?v=10.1',
+  './app.js?v=10.1',
   './manifest.json'
 ];
 

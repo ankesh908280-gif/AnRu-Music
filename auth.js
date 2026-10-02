@@ -77,6 +77,9 @@ function selectGoogleAccount(name, email) {
   if (typeof switchTab === 'function') {
     switchTab('home');
   }
+  if (typeof loadHomeFeatured === 'function') {
+    loadHomeFeatured();
+  }
 }
 
 function handleCustomGoogleSubmit(e) {
@@ -168,6 +171,9 @@ function handleEmailAuth(e) {
   if (typeof switchTab === 'function') {
     switchTab('home');
   }
+  if (typeof loadHomeFeatured === 'function') {
+    loadHomeFeatured();
+  }
 }
 
 function handleGuestAuth(e) {
@@ -187,6 +193,9 @@ function handleGuestAuth(e) {
   }
   if (typeof switchTab === 'function') {
     switchTab('home');
+  }
+  if (typeof loadHomeFeatured === 'function') {
+    loadHomeFeatured();
   }
 }
 
@@ -378,14 +387,7 @@ function initProfileAndAuth() {
   }
 }
 
-// 5. Automatic Instant Run
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initProfileAndAuth);
-} else {
-  initProfileAndAuth();
-}
-
-// 6. Global Exports to window & globalThis
+// 5. Global Exports to window & globalThis
 const exportsObj = {
   AuthSession,
   initProfileAndAuth,
@@ -407,4 +409,13 @@ if (typeof window !== 'undefined') {
 }
 if (typeof globalThis !== 'undefined') {
   Object.assign(globalThis, exportsObj);
+}
+
+// 6. Automatic Instant Run
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initProfileAndAuth);
+  } else {
+    initProfileAndAuth();
+  }
 }

@@ -392,13 +392,21 @@ body {
   padding: 14px 18px 8px 18px;
 }
 
+.search-bar-wrap,
 .search-bar-wrapper {
   position: relative;
-  display: flex;
+  display: flex !important;
   align-items: center;
-  border-radius: 26px;
-  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glassBorder) !important;
+  border-radius: 9999px !important;
+  padding: 12px 18px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
   transition: all 0.25s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
 }
 
 .search-bar-wrapper:focus-within {
@@ -3200,4 +3208,515 @@ html.user-authenticated #appScreen {
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
+}
+
+
+/* ==========================================================
+   ANRU MUSIC V10.1 UI PERFECTION & LAYOUT RESILIENCE PATCH
+   Fixes Search Bar, Mood Chips Horizontal Scroll, Quick Picks,
+   Cards Layout, and Gatekeeper Login Borders
+   ========================================================== */
+
+/* 1. SEARCH BAR RESILIENCE */
+.search-section {
+  padding: 12px 18px 6px 18px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.search-bar-wrap,
+.search-bar-wrapper {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid var(--glassBorder) !important;
+  border-radius: 9999px !important;
+  padding: 12px 18px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  transition: all 0.25s ease !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25) !important;
+}
+
+.search-bar-wrap:focus-within,
+.search-bar-wrapper:focus-within {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 16px var(--accentGlow) !important;
+  background: rgba(30, 24, 65, 0.95) !important;
+}
+
+.search-icon {
+  font-size: 16px !important;
+  color: var(--textMuted) !important;
+  margin-right: 12px !important;
+  flex-shrink: 0 !important;
+}
+
+.search-bar-wrap input,
+.search-bar-wrapper input {
+  flex: 1 !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  color: var(--text) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  font-family: inherit !important;
+  width: 100% !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.search-bar-wrap input::placeholder,
+.search-bar-wrapper input::placeholder {
+  color: var(--textMuted) !important;
+}
+
+/* 2. MOOD & ACTIVITY CHIPS (HORIZONTAL SCROLL ONLY - NEVER VERTICAL) */
+.chips-scroll,
+.category-chips,
+#yt-chips-container {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 8px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 10px 0 6px 0 !important;
+  scrollbar-width: none !important;
+  -webkit-overflow-scrolling: touch !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.chips-scroll::-webkit-scrollbar,
+.category-chips::-webkit-scrollbar,
+#yt-chips-container::-webkit-scrollbar {
+  display: none !important;
+}
+
+.chip {
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--textSub) !important;
+  border: 1px solid var(--glassBorder) !important;
+  padding: 8px 16px !important;
+  border-radius: 9999px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  font-family: inherit !important;
+  user-select: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.chip:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+  color: #fff !important;
+  border-color: var(--glassBorderHover) !important;
+}
+
+.chip.active {
+  background: var(--gradAccent) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 14px var(--accentGlow) !important;
+}
+
+/* 3. QUICK PICKS (2x2 COMPACT GRID) */
+.yt-quick-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 10px !important;
+  margin-top: 10px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.yt-quick-card {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  background: var(--glassCard) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid var(--glassBorder) !important;
+  border-radius: 12px !important;
+  padding: 8px 10px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.yt-quick-card:hover {
+  background: var(--glass2) !important;
+  border-color: var(--accent) !important;
+  transform: translateY(-2px);
+}
+
+.yt-quick-art-box {
+  position: relative !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+}
+
+.yt-quick-art {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.yt-quick-meta {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.yt-quick-title {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--text) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.yt-quick-artist {
+  font-size: 11px !important;
+  color: var(--textMuted) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* 4. HORIZONTAL SCROLL MUSIC CARDS */
+.horizontal-scroll {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  gap: 14px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 8px 2px 14px 2px !important;
+  scrollbar-width: none !important;
+  -webkit-overflow-scrolling: touch !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+  display: none !important;
+}
+
+.music-card {
+  min-width: 140px !important;
+  max-width: 140px !important;
+  flex-shrink: 0 !important;
+  background: var(--glassCard) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid var(--glassBorder) !important;
+  border-radius: 14px !important;
+  padding: 10px !important;
+  cursor: pointer !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-sizing: border-box !important;
+}
+
+.music-card:hover {
+  transform: translateY(-4px) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
+}
+
+.card-art-box {
+  position: relative !important;
+  width: 100% !important;
+  aspect-ratio: 1/1 !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  margin-bottom: 8px !important;
+  background: #111 !important;
+}
+
+.card-art {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  transition: transform 0.3s ease !important;
+}
+
+.card-play-btn {
+  position: absolute !important;
+  bottom: 8px !important;
+  right: 8px !important;
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 50% !important;
+  background: var(--gradAccent) !important;
+  border: none !important;
+  color: #fff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  opacity: 0.9 !important;
+  transition: transform 0.2s ease !important;
+}
+
+.card-play-btn:hover {
+  transform: scale(1.1) !important;
+}
+
+.card-duration {
+  position: absolute !important;
+  bottom: 8px !important;
+  left: 8px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  background: rgba(0, 0, 0, 0.65) !important;
+  color: #fff !important;
+  padding: 2px 6px !important;
+  border-radius: 6px !important;
+}
+
+.card-meta {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+
+.card-title {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--text) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.card-artist {
+  font-size: 11px !important;
+  color: var(--textMuted) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* 5. GATEKEEPER LOGIN CLEANUP (Fixing "Border edher udher tha") */
+#loginScreen {
+  background: var(--bgGrad) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  padding: 24px 18px 48px !important;
+  box-sizing: border-box !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.auth-container {
+  width: 100% !important;
+  max-width: 400px !important;
+  margin: auto !important;
+  box-sizing: border-box !important;
+}
+
+.logo-ring {
+  width: 72px !important;
+  height: 72px !important;
+  margin: 0 auto 14px !important;
+  border-radius: 50% !important;
+  padding: 3px !important;
+  background: var(--gradAccent) !important;
+  box-shadow: 0 0 25px var(--accentGlow) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.logo-ring::before {
+  display: none !important; /* Remove spinning distortion */
+}
+
+.logo-inner {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  background: #15102a !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  box-shadow: none !important;
+}
+
+.auth-logo-img {
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+}
+
+.auth-tagline-chip {
+  display: inline-block !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 1px !important;
+  color: var(--accent) !important;
+  background: rgba(168, 85, 247, 0.15) !important;
+  border: 1px solid rgba(168, 85, 247, 0.35) !important;
+  border-radius: 9999px !important;
+  padding: 4px 14px !important;
+  margin-bottom: 8px !important;
+}
+
+.auth-card {
+  background: rgba(22, 17, 46, 0.88) !important;
+  backdrop-filter: blur(25px) !important;
+  -webkit-backdrop-filter: blur(25px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 24px !important;
+  padding: 24px 20px !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+}
+
+.auth-tabs {
+  display: flex !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+  margin-bottom: 16px !important;
+  box-sizing: border-box !important;
+}
+
+.auth-tab {
+  flex: 1 !important;
+  padding: 9px !important;
+  border: none !important;
+  background: none !important;
+  color: var(--textMuted) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  border-radius: 9px !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+}
+
+.auth-tab.active {
+  background: var(--gradAccent) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px var(--accentGlow) !important;
+}
+
+.input-group {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.input-group input {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 13px 44px 13px 42px !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: 14px !important;
+  color: var(--text) !important;
+  font-size: 14px !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.input-group input:focus {
+  border-color: var(--accent) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 0 14px var(--accentGlow) !important;
+}
+
+.input-group i:first-child {
+  position: absolute !important;
+  left: 14px !important;
+  color: var(--textMuted) !important;
+  font-size: 15px !important;
+  pointer-events: none !important;
+}
+
+.eye-toggle {
+  position: absolute !important;
+  right: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  background: none !important;
+  border: none !important;
+  color: var(--textMuted) !important;
+  cursor: pointer !important;
+  padding: 6px !important;
+  font-size: 14px !important;
+}
+
+.auth-submit-btn {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  background: var(--gradAccent) !important;
+  color: #fff !important;
+  border: none !important;
+  padding: 14px !important;
+  border-radius: 14px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  box-shadow: 0 6px 20px var(--accentGlow) !important;
+  margin-top: 4px !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s !important;
+}
+
+.auth-submit-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px var(--accentGlow) !important;
+}
+
+.auth-footer-actions {
+  text-align: center !important;
+  margin-top: 14px !important;
+}
+
+.guest-skip-btn {
+  background: none !important;
+  border: none !important;
+  color: var(--accent) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  transition: all 0.2s !important;
+}
+
+.guest-skip-btn:hover {
+  background: rgba(168, 85, 247, 0.1) !important;
 }
