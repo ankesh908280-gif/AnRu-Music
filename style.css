@@ -1,7 +1,7 @@
-/* ANRU MUSIC STUDIO PRO - MASTER CONSOLIDATED STYLESHEET */
+/* ANRU MUSIC STUDIO PRO v16 - MASTER CONSOLIDATED STYLESHEET */
 
 /* ==========================================================
-   ANRU MUSIC - BASE DESIGN SYSTEM & THEMING (base.css)
+   1. BASE DESIGN SYSTEM, THEMING & NATIVE APP ENFORCEMENT
    ========================================================== */
 
 :root {
@@ -76,12 +76,31 @@
   --glassBorder: rgba(29, 185, 84, 0.2);
 }
 
-/* Global Reset */
+/* ==========================================================
+   STRICT NATIVE APP ENFORCEMENT (Zero browser callout/copy)
+   ========================================================== */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+}
+
+input, textarea {
+  -webkit-user-select: auto !important;
+  user-select: auto !important;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+  pointer-events: none !important;
+  -webkit-user-drag: none !important;
+  user-select: none !important;
 }
 
 html, body {
@@ -96,11 +115,6 @@ html, body {
   overflow-x: hidden;
 }
 
-img {
-  max-width: 100%;
-  display: block;
-}
-
 button, input, select {
   font-family: inherit;
   touch-action: manipulation;
@@ -112,8 +126,21 @@ button {
   background: none;
 }
 
-/* Utilities */
-.hidden { display: none !important; }
+/* Common Utilities */
+.hidden,
+.modal-overlay.hidden,
+.action-sheet-overlay.hidden,
+.queue-drawer.hidden,
+.fullscreen-player.hidden,
+.mini-player.hidden,
+.selection-action-bar.hidden,
+.playlist-detail-overlay.hidden,
+.empty-library-state.hidden,
+.clear-btn.hidden { 
+  display: none !important; 
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
 
 .glass-panel {
   background: var(--glass2);
@@ -139,7 +166,7 @@ button {
   box-shadow: 0 4px 18px var(--accentGlow) !important;
 }
 
-/* Toast Notification */
+/* App Toast */
 .app-toast {
   position: fixed;
   bottom: 84px;
@@ -165,8 +192,7 @@ button {
   transform: translateX(-50%) translateY(0);
 }
 
-
-/* Robust Offline Icon Fallbacks (Guarantees visible icons with zero internet) */
+/* Robust Offline Icon Fallbacks */
 i.fa-solid:empty:before, i.fa-regular:empty:before {
   display: inline-block;
   font-style: normal;
@@ -185,7 +211,7 @@ i.fa-heart:empty:before { content: "♥"; }
 i.fa-sliders:empty:before { content: "🎚"; }
 i.fa-moon:empty:before { content: "🌙"; }
 i.fa-list-ol:empty:before, i.fa-list-ul:empty:before { content: "☰"; }
-i.fa-chevron-down:empty:before { content: "⌵"; font-weight: 800; font-size: 1.2em; }
+i.fa-chevron-down:empty:before { content: "ˬ"; font-weight: 800; font-size: 1.2em; }
 i.fa-chevron-right:empty:before { content: "›"; font-weight: 800; }
 i.fa-arrow-left:empty:before { content: "←"; font-weight: 800; }
 i.fa-arrow-up:empty:before { content: "↑"; }
@@ -200,18 +226,23 @@ i.fa-trash-can:empty:before { content: "🗑"; }
 i.fa-palette:empty:before { content: "🎨"; }
 i.fa-bolt:empty:before { content: "⚡"; }
 i.fa-leaf:empty:before { content: "🍃"; }
-i.fa-microchip:empty:before { content: "💾"; }
+i.fa-microchip:empty:before { content: "💽"; }
 i.fa-volume-high:empty:before { content: "🔊"; }
 i.fa-volume-low:empty:before { content: "🔉"; }
 i.fa-magnifying-glass:empty:before { content: "🔍"; }
 i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
-
+i.fa-grip-lines:empty:before { content: "≡"; font-weight: 800; }
+i.fa-check-double:empty:before { content: "✓✓"; }
+i.fa-camera:empty:before { content: "📷"; }
+i.fa-headphones:empty:before { content: "🎧"; }
+i.fa-trophy:empty:before { content: "🏆"; }
+i.fa-chart-simple:empty:before { content: "📊"; }
+i.fa-microphone:empty:before { content: "🎤"; }
 
 /* ==========================================================
-   ANRU MUSIC - APP SHELL, HEADER, LIBRARY & STUDIO (home.css)
+   2. APP SHELL, HEADER & LAYOUT
    ========================================================== */
 
-/* 1. APP SHELL */
 .app-root {
   min-height: 100vh;
   min-height: 100dvh;
@@ -224,7 +255,6 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   width: 100%;
 }
 
-/* 2. STICKY TOP HEADER */
 .app-header {
   position: sticky;
   top: 0;
@@ -332,7 +362,6 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   border-color: var(--accent);
 }
 
-/* 3. MAIN CONTENT CONTAINER */
 .app-body {
   flex: 1;
   width: 100%;
@@ -355,7 +384,10 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* 4. LIBRARY VIEW STYLES */
+/* ==========================================================
+   3. LIBRARY VIEW, SEARCH, BATCH SELECTION
+   ========================================================== */
+
 .library-search-wrap {
   width: 100%;
   margin-bottom: 12px;
@@ -444,6 +476,33 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
 
 .meta-pill.storage {
   color: var(--accent);
+}
+
+.meta-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.select-mode-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glassBorder);
+  border-radius: 12px;
+  padding: 4px 12px;
+  color: var(--textSub);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.select-mode-toggle-btn:hover, .select-mode-toggle-btn.active {
+  background: rgba(168, 85, 247, 0.15);
+  border-color: var(--accent);
+  color: #fff;
 }
 
 .sort-select-wrap {
@@ -535,7 +594,7 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   transform: scale(0.96);
 }
 
-/* 5. SONGS LIST & ROWS */
+/* Songs List & Rows */
 .songs-list-container {
   display: flex;
   flex-direction: column;
@@ -560,8 +619,24 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   border-color: rgba(255, 255, 255, 0.14);
 }
 
-.song-row:active {
-  transform: scale(0.99);
+.song-row.selected {
+  background: rgba(168, 85, 247, 0.18) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 12px var(--accentGlow);
+}
+
+.row-checkbox-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+}
+
+.row-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
 }
 
 .row-num {
@@ -655,174 +730,77 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* 6. STUDIO TOOLS VIEW */
-.studio-header {
-  margin-bottom: 20px;
+/* Floating Multi-Select Action Bar */
+.selection-action-bar {
+  position: fixed;
+  bottom: 74px;
+  left: 16px;
+  right: 16px;
+  max-width: 648px;
+  margin: 0 auto;
+  height: 54px;
+  border-radius: 20px;
+  z-index: 2050;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: rgba(20, 15, 40, 0.95);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 15px var(--accentGlow);
+  border: 1px solid var(--accent);
+  animation: slideUpBar 0.2s ease-out;
 }
 
-.studio-header h2 {
-  font-size: 22px;
+@keyframes slideUpBar {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.sel-count-info {
+  font-size: 14px;
   font-weight: 800;
   color: #fff;
-  margin-bottom: 4px;
 }
 
-.studio-header p {
-  font-size: 13px;
-  color: var(--textMuted);
-}
-
-.studio-section {
-  margin-bottom: 24px;
-}
-
-.studio-section h3 {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--textSub);
-  margin-bottom: 12px;
+.sel-bar-actions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.studio-tools-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
-}
-
-.studio-tool-card {
-  display: flex;
+.sel-bar-btn {
+  display: inline-flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: var(--glassCard);
-  border: 1px solid var(--glassBorder);
-  cursor: pointer;
-  transition: all 0.2s;
-  text-align: left;
-  width: 100%;
-}
-
-.studio-tool-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-2px);
-}
-
-.tool-icon-wrap {
-  width: 44px;
-  height: 44px;
+  gap: 6px;
+  padding: 6px 12px;
   border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-}
-
-.tool-icon-wrap.cyan {
-  background: rgba(0, 242, 254, 0.15);
-  color: #00f2fe;
-}
-
-.tool-icon-wrap.pink {
-  background: rgba(236, 72, 153, 0.15);
-  color: #ec4899;
-}
-
-.tool-meta {
-  flex: 1;
-  min-width: 0;
-}
-
-.tool-meta h4 {
-  font-size: 14px;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 2px;
-}
-
-.tool-meta p {
   font-size: 12px;
-  color: var(--textMuted);
-}
-
-.chevron-ico {
-  font-size: 14px;
-  color: var(--textMuted);
-}
-
-.theme-chips-row {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-}
-
-.theme-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: var(--glassCard);
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
   border: 1px solid var(--glassBorder);
   color: #fff;
-  font-size: 13px;
-  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.theme-btn:hover {
-  border-color: rgba(255, 255, 255, 0.25);
+.sel-bar-btn.danger {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ef4444;
 }
 
-.theme-btn.active {
-  border-color: var(--accent);
-  background: rgba(168, 85, 247, 0.15);
-  box-shadow: 0 0 14px var(--accentGlow);
+.sel-bar-btn.cancel {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  justify-content: center;
 }
-
-.dsp-info-card {
-  padding: 16px 18px;
-  border-radius: 18px;
-  background: var(--glassCard);
-  border: 1px solid var(--glassBorder);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.dsp-info-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 13px;
-  color: var(--textSub);
-}
-
-.highlight {
-  font-weight: 700;
-  color: var(--accent);
-  font-size: 12px;
-  background: rgba(168, 85, 247, 0.12);
-  padding: 3px 8px;
-  border-radius: 8px;
-}
-
-.highlight.success {
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.12);
-}
-
 
 /* ==========================================================
-   ANRU MUSIC - PLAYLISTS, DETAIL OVERLAY & BOTTOM NAV (profile.css)
+   4. PLAYLISTS & PLAYLIST DETAIL VIEW
    ========================================================== */
 
-/* 1. PLAYLISTS VIEW */
 .playlists-header {
   display: flex;
   align-items: center;
@@ -908,7 +886,6 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   color: var(--textMuted);
 }
 
-/* 2. PLAYLIST DETAIL OVERLAY */
 .playlist-detail-overlay {
   position: fixed;
   inset: 0;
@@ -920,10 +897,6 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   display: flex;
   flex-direction: column;
   -webkit-overflow-scrolling: touch;
-}
-
-.playlist-detail-overlay.hidden {
-  display: none !important;
 }
 
 .pl-detail-header {
@@ -1023,17 +996,438 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   margin-left: auto;
 }
 
-.pl-action-btn.danger:hover {
-  background: rgba(239, 68, 68, 0.25);
+/* ==========================================================
+   5. HOLOGRAPHIC PROFILE & LISTENING ANALYTICS
+   ========================================================== */
+
+.holograph-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.18), rgba(236, 72, 153, 0.12), rgba(0, 242, 254, 0.08));
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), inset 0 0 24px rgba(168, 85, 247, 0.15);
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
 }
 
-#pl-detail-songs {
+.holograph-profile-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.06) 50%, transparent 60%);
+  animation: holoSheen 6s infinite linear;
+  pointer-events: none;
+}
+
+@keyframes holoSheen {
+  0% { transform: translateY(-50%) rotate(0deg); }
+  100% { transform: translateY(50%) rotate(360deg); }
+}
+
+.holo-avatar-wrap {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.holo-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+}
+
+.holo-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: #00f2fe;
+  border-right-color: #ec4899;
+  border-bottom-color: #a855f7;
+  animation: spinRing 4s linear infinite;
+}
+
+@keyframes spinRing {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.holo-avatar-edit-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #0d0b18;
+}
+
+.holo-profile-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#holo-profile-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.holo-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #00f2fe;
+  letter-spacing: 0.5px;
+}
+
+.holo-stats-chip {
+  font-size: 11px;
+  color: var(--textMuted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.stats-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stats-header-row h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--textSub);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stats-timeframe-selector {
+  display: flex;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glassBorder);
+  border-radius: 12px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.timeframe-btn {
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--textMuted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.timeframe-btn.active {
+  background: var(--gradAccent);
+  color: #fff;
+  box-shadow: 0 2px 8px var(--accentGlow);
+}
+
+.holo-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.holo-stat-card {
+  padding: 14px 10px;
+  border-radius: 16px;
+  background: var(--glassCard);
+  border: 1px solid var(--glassBorder);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.holo-stat-icon {
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+.holo-stat-icon.cyan { color: #00f2fe; }
+.holo-stat-icon.pink { color: #ec4899; }
+.holo-stat-icon.purple { color: #a855f7; }
+
+.holo-stat-val {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.holo-stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--textMuted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.top-tracks-card {
+  padding: 14px;
+  border-radius: 18px;
+  margin-top: 10px;
+}
+
+.top-tracks-card h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--textSub);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.top-tracks-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-/* 3. BOTTOM NAVIGATION BAR */
+.top-track-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.top-track-row:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--accent);
+}
+
+.top-rank-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.top-track-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.top-track-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top-track-artist {
+  font-size: 11px;
+  color: var(--textMuted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top-track-plays {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Studio Tools Grid & Cards */
+.studio-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.studio-tool-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--glassCard);
+  border: 1px solid var(--glassBorder);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+}
+
+.studio-tool-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.tool-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.tool-icon-wrap.cyan {
+  background: rgba(0, 242, 254, 0.15);
+  color: #00f2fe;
+}
+
+.tool-icon-wrap.pink {
+  background: rgba(236, 72, 153, 0.15);
+  color: #ec4899;
+}
+
+.tool-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.tool-meta h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.tool-meta p {
+  font-size: 12px;
+  color: var(--textMuted);
+}
+
+.chevron-ico {
+  font-size: 14px;
+  color: var(--textMuted);
+}
+
+.studio-section {
+  margin-bottom: 24px;
+}
+
+.studio-section h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--textSub);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-chips-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.theme-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--glassCard);
+  border: 1px solid var(--glassBorder);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.theme-btn:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.theme-btn.active {
+  border-color: var(--accent);
+  background: rgba(168, 85, 247, 0.15);
+  box-shadow: 0 0 14px var(--accentGlow);
+}
+
+.dsp-info-card {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--glassCard);
+  border: 1px solid var(--glassBorder);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dsp-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--textSub);
+}
+
+.highlight {
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 12px;
+  background: rgba(168, 85, 247, 0.12);
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+.highlight.success {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+/* ==========================================================
+   6. BOTTOM NAV & DOCKED MINI PLAYER
+   ========================================================== */
+
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -1082,12 +1476,6 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   font-weight: 700;
 }
 
-
-/* ==========================================================
-   ANRU MUSIC - MINI PLAYER, FULLSCREEN, QUEUE & MODALS (player.css)
-   ========================================================== */
-
-/* 1. DOCKED MINI PLAYER */
 .mini-player {
   position: fixed !important;
   bottom: 64px !important;
@@ -1101,10 +1489,6 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   max-width: 680px !important;
   margin: 0 auto !important;
   user-select: none;
-}
-
-.mini-player.hidden {
-  display: none !important;
 }
 
 .mini-progress-track {
@@ -1243,7 +1627,10 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   font-size: 15px;
 }
 
-/* 2. IMMERSIVE FULLSCREEN STUDIO PLAYER */
+/* ==========================================================
+   7. FULLSCREEN PLAYER
+   ========================================================== */
+
 .fullscreen-player {
   position: fixed !important;
   inset: 0 !important;
@@ -1258,11 +1645,6 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   margin: 0 auto !important;
   overflow: hidden !important;
   user-select: none;
-  -webkit-user-select: none;
-}
-
-.fullscreen-player.hidden {
-  display: none !important;
 }
 
 .fs-header {
@@ -1330,7 +1712,6 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   flex-shrink: 0;
 }
 
-/* Vinyl & Artwork Center Stage */
 .fs-artwork-stage {
   flex: 1;
   min-height: 180px;
@@ -1368,7 +1749,6 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   display: block;
 }
 
-/* Metadata Row */
 .fs-meta-row {
   display: flex;
   align-items: center;
@@ -1430,7 +1810,6 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   background: rgba(236, 72, 153, 0.15);
 }
 
-/* Seeker Box */
 .fs-seek-box {
   width: 100%;
   margin-bottom: 14px;
@@ -1468,7 +1847,7 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   margin-top: 6px;
 }
 
-/* Master Playback Controls Row (STRICT NON-SCATTERING HORIZONTAL FLEX) */
+/* Master Playback Controls Row (STRICT NON-SCATTERING) */
 .fs-controls-row {
   display: flex !important;
   align-items: center !important;
@@ -1529,7 +1908,6 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   transform: scale(0.92) !important;
 }
 
-/* Bottom Utility Row (Speed & Volume) */
 .fs-bottom-utility-row {
   display: flex;
   align-items: center;
@@ -1590,7 +1968,10 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   cursor: pointer;
 }
 
-/* 3. SPOTIFY-STYLE QUEUE DRAWER */
+/* ==========================================================
+   8. QUEUE DRAWER (TOUCH DRAG-AND-DROP REORDER)
+   ========================================================== */
+
 .queue-drawer {
   position: fixed !important;
   inset: 0 !important;
@@ -1604,10 +1985,6 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   max-width: 600px !important;
   margin: 0 auto !important;
   user-select: none;
-}
-
-.queue-drawer.hidden {
-  display: none !important;
 }
 
 .queue-header {
@@ -1641,11 +2018,6 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-}
-
-.clear-queue-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
 }
 
 .close-drawer-btn {
@@ -1746,17 +2118,54 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.06);
   cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
 }
 
 .queue-row:hover {
   background: rgba(255, 255, 255, 0.08);
 }
 
+.queue-row.drag-over {
+  border-top: 2px solid var(--accent) !important;
+  background: rgba(168, 85, 247, 0.15) !important;
+}
+
+.queue-row.dragging {
+  opacity: 0.4;
+}
+
+.queue-row.touch-dragging {
+  transform: scale(1.03);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8), 0 0 15px var(--accentGlow);
+  background: rgba(24, 19, 48, 0.95);
+  border-color: var(--accent);
+  z-index: 100;
+}
+
+.queue-drag-handle {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--textMuted);
+  font-size: 14px;
+  cursor: grab;
+  touch-action: none;
+  flex-shrink: 0;
+}
+
+.queue-drag-handle:active {
+  cursor: grabbing;
+  color: var(--accent);
+}
+
 .queue-num {
   font-size: 11px;
   font-weight: 700;
   color: var(--textMuted);
-  width: 18px;
+  width: 16px;
   text-align: center;
   flex-shrink: 0;
 }
@@ -1798,28 +2207,7 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
 .queue-row-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
   flex-shrink: 0;
-}
-
-.queue-move-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--glassBorder);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.queue-move-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: var(--accent);
 }
 
 .queue-remove-btn {
@@ -1847,7 +2235,10 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   padding: 20px;
 }
 
-/* 4. MODALS (EQUALIZER & SLEEP TIMER) */
+/* ==========================================================
+   9. 7-BAND STUDIO EQUALIZER & VISUALIZER MODAL
+   ========================================================== */
+
 .modal-overlay {
   position: fixed !important;
   inset: 0 !important;
@@ -1858,20 +2249,16 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 20px !important;
-}
-
-.modal-overlay.hidden {
-  display: none !important;
+  padding: 16px !important;
 }
 
 .modal-card {
   width: 100%;
-  max-width: 440px;
+  max-width: 460px;
   background: #16122d;
   border: 1px solid var(--glassBorder);
   border-radius: 24px;
-  padding: 22px;
+  padding: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
 }
 
@@ -1879,11 +2266,11 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .modal-header h3 {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 800;
   color: #fff;
   display: flex;
@@ -1909,13 +2296,33 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   background: rgba(255, 255, 255, 0.16);
 }
 
+.visualizer-container {
+  width: 100%;
+  height: 70px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  border: 1px solid var(--glassBorder);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eq-visualizer-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .eq-presets-wrap {
   display: flex;
   align-items: center;
   gap: 6px;
   overflow-x: auto;
-  padding-bottom: 10px;
-  margin-bottom: 16px;
+  padding-bottom: 8px;
+  margin-bottom: 14px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .eq-preset-chip {
@@ -1945,34 +2352,37 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 180px;
-  padding: 10px 0;
-  margin-bottom: 16px;
+  height: 170px;
+  padding: 6px 0;
+  margin-bottom: 14px;
+  width: 100%;
 }
 
 .eq-band-col {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 6px;
   flex: 1;
+  min-width: 0;
   height: 100%;
 }
 
 .eq-gain-val {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   color: var(--accent);
 }
 
 .eq-vertical-slider {
-  width: 120px;
-  height: 6px;
+  width: 110px;
+  height: 4px;
   -webkit-appearance: none;
   background: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
+  border-radius: 2px;
   transform: rotate(-90deg);
-  margin: 50px 0;
+  margin: 45px 0;
   outline: none;
   cursor: pointer;
 }
@@ -1987,7 +2397,7 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
 }
 
 .eq-freq-label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--textMuted);
 }
@@ -2027,7 +2437,10 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   box-shadow: 0 0 10px var(--accentGlow);
 }
 
-/* Sleep Timer */
+/* ==========================================================
+   10. SLEEP TIMER MODAL (PRESETS + CUSTOM STEPPER)
+   ========================================================== */
+
 .modal-sub-label {
   font-size: 13px;
   color: var(--textMuted);
@@ -2038,10 +2451,11 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
+  margin-bottom: 16px;
 }
 
 .st-pill {
-  padding: 12px;
+  padding: 10px;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--glassBorder);
@@ -2065,7 +2479,259 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   color: #ef4444;
 }
 
-/* 5. ACTION SHEET (3-DOTS MENU) */
+.custom-timer-section {
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.custom-timer-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--textSub);
+}
+
+.custom-timer-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.timer-step-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glassBorder);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.timer-step-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: var(--accent);
+}
+
+.timer-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glassBorder);
+  border-radius: 14px;
+  padding: 8px 14px;
+}
+
+#custom-timer-input {
+  width: 50px;
+  background: none;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.set-custom-timer-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--gradAccent);
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* ==========================================================
+   11. CUSTOM MODALS (REPLACING NATIVE BROWSER DIALOGS)
+   ========================================================== */
+
+.prompt-card, .confirm-card, .playlist-picker-card {
+  max-width: 420px;
+  text-align: center;
+}
+
+.prompt-card h3, .confirm-card h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.prompt-card p, .confirm-card p {
+  font-size: 13px;
+  color: var(--textMuted);
+  margin-bottom: 16px;
+}
+
+.confirm-icon-wrap {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px auto;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.modal-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glassBorder);
+  border-radius: 14px;
+  padding: 12px 16px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  outline: none;
+  margin-bottom: 18px;
+  transition: all 0.2s;
+}
+
+.modal-input:focus {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 14px var(--accentGlow);
+}
+
+.modal-btn-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.modal-action-btn {
+  flex: 1;
+  padding: 11px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-action-btn.cancel {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glassBorder);
+  color: var(--textSub);
+}
+
+.modal-action-btn.danger {
+  background: #ef4444;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+}
+
+.modal-action-btn.primary-glow {
+  background: var(--gradAccent);
+  color: #fff;
+  box-shadow: 0 4px 16px var(--accentGlow);
+}
+
+/* Playlist Picker Sheet */
+.create-new-pl-chip {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px dashed var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 14px;
+  transition: all 0.2s;
+}
+
+.create-new-pl-chip:hover {
+  background: rgba(168, 85, 247, 0.2);
+}
+
+.playlist-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.picker-pl-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glassBorder);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+}
+
+.picker-pl-card:hover {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.picker-pl-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(168, 85, 247, 0.15);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.picker-pl-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.picker-pl-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.picker-pl-count {
+  font-size: 11px;
+  color: var(--textMuted);
+}
+
+/* ==========================================================
+   12. ACTION SHEET (3-DOTS MENU)
+   ========================================================== */
+
 .action-sheet-overlay {
   position: fixed !important;
   inset: 0 !important;
@@ -2078,10 +2744,6 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   justify-content: center !important;
 }
 
-.action-sheet-overlay.hidden {
-  display: none !important;
-}
-
 .action-sheet-card {
   width: 100%;
   max-width: 500px;
@@ -2092,6 +2754,12 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   display: flex;
   flex-direction: column;
   gap: 14px;
+  animation: slideUpSheet 0.2s ease-out;
+}
+
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
 .as-header {
@@ -2169,21 +2837,15 @@ i.fa-arrow-down-short-wide:empty:before { content: "⇅"; }
   margin-top: 6px;
 }
 
-
-/* ==========================================================
-   ANRU MUSIC - SEARCH & ANIMATIONS (search.css)
-   ========================================================== */
-
-.search-highlight {
-  color: var(--accent);
-  font-weight: 700;
+.eq-presets-wrap::-webkit-scrollbar,
+.playlist-picker-list::-webkit-scrollbar,
+.queue-upcoming-list::-webkit-scrollbar {
+  display: none !important;
 }
 
-.search-count-pill {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--accent);
-  background: rgba(168, 85, 247, 0.15);
-  padding: 2px 8px;
-  border-radius: 10px;
+.eq-presets-wrap,
+.playlist-picker-list,
+.queue-upcoming-list {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }

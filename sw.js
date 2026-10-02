@@ -1,18 +1,13 @@
-// Service Worker for Anru Music Studio Offline Pro v15.1
-const CACHE_NAME = 'anru-music-v15.1-offline';
+// Service Worker for Anru Music Studio Offline Pro v16.0
+const CACHE_NAME = 'anru-music-v16-offline';
 const STATIC_ASSETS = [
   './',
   './index.html',
-  './style.css?v=15.1',
-  './base.css',
-  './home.css',
-  './player.css',
-  './profile.css',
-  './search.css',
-  './id3.js',
-  './db.js',
-  './player.js',
-  './app.js',
+  './style.css?v=16.0',
+  './id3.js?v=16.0',
+  './db.js?v=16.0',
+  './player.js?v=16.0',
+  './app.js?v=16.0',
   './manifest.json',
   './favicon.png',
   './icon-192.png',
@@ -22,7 +17,7 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Anru SW] Pre-caching v15.1 offline studio shell');
+      console.log('[Anru SW] Pre-caching v16 offline studio shell');
       return cache.addAll(STATIC_ASSETS).catch(err => console.warn('Cache error:', err));
     })
   );

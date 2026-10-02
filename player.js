@@ -1,11 +1,11 @@
 /**
- * ANRU MUSIC - ADVANCED OFFLINE AUDIO PLAYER & STUDIO DSP (player.js)
- * Features:
- * 1. Web Audio API 5-Band Graphic Equalizer + Real Bass Boost
- * 2. Spotify-Style Queue Manager: Play Next, Add to Queue, Reorder (↑/↓), Clear
- * 3. Smart Sleep Timer with smooth volume fade-out
- * 4. Playback Speed Controller (0.75x, 1.0x, 1.25x, 1.5x)
- * 5. Native MediaSession API integration (lockscreen album art & controls)
+ * ANRU MUSIC STUDIO PRO v16 - ADVANCED OFFLINE AUDIO PLAYER & STUDIO DSP (player.js)
+ * 1. 7-Band Studio Graphic Equalizer + Real-time Audio Visualizer Canvas (Web Audio API)
+ * 2. Bass Boost & Treble Enhancer DSP
+ * 3. Mobile Touch & Desktop Drag-and-Drop Queue Reordering
+ * 4. Custom Sleep Timer with Stepper & Minute Input
+ * 5. Automatic Listening Stats Logging to IndexedDB
+ * 6. Native MediaSession API integration (lockscreen art & controls)
  */
 
 class AudioPlayer {
@@ -25,14 +25,22 @@ class AudioPlayer {
     this.sleepTimerEndTime = null;
     this.sleepTimerMode = null; // 'minutes' or 'end_of_song'
 
-    // Web Audio DSP (Equalizer & Bass Boost)
+    // Listening stats tracking
+    this.songPlayStartTime = 0;
+    this.songListenedDuration = 0;
+
+    // Web Audio DSP (7-Band Equalizer, Bass Boost, Treble & Visualizer)
     this.audioCtx = null;
     this.sourceNode = null;
+    this.analyser = null;
     this.bassNode = null;
+    this.trebleNode = null;
     this.eqFilters = [];
-    this.eqFrequencies = [60, 230, 910, 3600, 14000];
-    this.eqGains = [0, 0, 0, 0, 0];
+    this.eqFrequencies = [60, 150, 400, 1000, 2500, 6000, 15000];
+    this.eqGains = [0, 0, 0, 0, 0, 0, 0];
     this.bassBoostGain = 0;
+    this.trebleBoostGain = 0;
+    this.visualizerAnimationId = null;
 
     this.initAudioListeners();
   }
@@ -40,12 +48,14 @@ class AudioPlayer {
   initAudioListeners() {
     this.audio.addEventListener('play', () => {
       this.isPlaying = true;
+      this.songPlayStartTime = Date.now();
       this.updatePlayPauseUI();
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
     });
 
     this.audio.addEventListener('pause', () => {
       this.isPlaying = false;
+      this.recordListeningTime();
       this.updatePlayPauseUI();
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
     });
@@ -54,11 +64,11 @@ class AudioPlayer {
     this.audio.addEventListener('ended', () => this.onEnded());
 
     this.audio.addEventListener('error', (e) => {
-      console.warn('Audio playback error notice:', e);
+      console.warn('[Anru Player] Audio playback error notice:', e);
       this.isPlaying = false;
       this.updatePlayPauseUI();
       if (typeof showToast === 'function') {
-        showToast('⚠️ Could not play audio file format.');
+        showToast('⚠️ Could not play audio format.');
       }
     });
 
@@ -75,7 +85,10 @@ class AudioPlayer {
     }
   }
 
-  // Initialize Web Audio API nodes on user gesture
+  // ==========================================
+  // WEB AUDIO DSP (7-BAND EQ & ANALYSER)
+  // ==========================================
+
   initWebAudio() {
     if (this.audioCtx) return;
     try {
@@ -85,7 +98,12 @@ class AudioPlayer {
       this.audioCtx = new AudioContextClass();
       this.sourceNode = this.audioCtx.createMediaElementSource(this.audio);
 
-      // Create 5-band BiquadFilterNodes
+      // Create AnalyserNode for Real-Time Visualizer
+      this.analyser = this.audioCtx.createAnalyser();
+      this.analyser.fftSize = 64;
+      this.analyser.smoothingTimeConstant = 0.8;
+
+      // Create 7-Band Equalizer Filters
       let prevNode = this.sourceNode;
       this.eqFilters = this.eqFrequencies.map((freq, idx) => {
         const filter = this.audioCtx.createBiquadFilter();
@@ -100,23 +118,123 @@ class AudioPlayer {
         return filter;
       });
 
-      // Bass Boost filter (lowshelf at 80Hz)
+      // Extra Bass Boost (lowshelf @ 80Hz)
       this.bassNode = this.audioCtx.createBiquadFilter();
       this.bassNode.type = 'lowshelf';
       this.bassNode.frequency.value = 80;
       this.bassNode.gain.value = this.bassBoostGain || 0;
       prevNode.connect(this.bassNode);
+      prevNode = this.bassNode;
 
-      this.bassNode.connect(this.audioCtx.destination);
-      console.log('[Anru Audio] 5-Band Studio Equalizer & Bass Engine Active 🎧');
+      // Connect to Analyser
+      prevNode.connect(this.analyser);
+
+      // Connect Analyser to Destination (Speakers/Headphones)
+      this.analyser.connect(this.audioCtx.destination);
+      console.log('[Anru Audio] 7-Band Studio Equalizer & Analyser Active ⚡');
     } catch (err) {
-      console.warn('Web Audio DSP notice:', err);
+      console.warn('[Anru Audio] Web Audio notice:', err);
     }
   }
 
-  // Play a song object (either from audioBlob or URL)
+  startVisualizer(canvas) {
+    if (!canvas || !this.analyser) return;
+    const ctx = canvas.getContext('2d');
+    const bufferLength = this.analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const render = () => {
+      this.visualizerAnimationId = requestAnimationFrame(render);
+      this.analyser.getByteFrequencyData(dataArray);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const barWidth = (canvas.width / bufferLength) * 1.6;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = (dataArray[i] / 255) * canvas.height * 0.95;
+        const grad = ctx.createLinearGradient(0, canvas.height, 0, 0);
+        grad.addColorStop(0, 'rgba(168, 85, 247, 0.2)');
+        grad.addColorStop(0.6, '#a855f7');
+        grad.addColorStop(1, '#ec4899');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(x, canvas.height - barHeight, barWidth - 2, barHeight, [4, 4, 0, 0]);
+        } else {
+          ctx.rect(x, canvas.height - barHeight, barWidth - 2, barHeight);
+        }
+        ctx.fill();
+
+        x += barWidth;
+      }
+    };
+
+    if (this.visualizerAnimationId) cancelAnimationFrame(this.visualizerAnimationId);
+    render();
+  }
+
+  stopVisualizer() {
+    if (this.visualizerAnimationId) {
+      cancelAnimationFrame(this.visualizerAnimationId);
+      this.visualizerAnimationId = null;
+    }
+  }
+
+  setEQGain(bandIndex, gainVal) {
+    this.eqGains[bandIndex] = gainVal;
+    if (this.eqFilters[bandIndex]) {
+      this.eqFilters[bandIndex].gain.value = gainVal;
+    }
+    if (typeof db !== 'undefined') {
+      db.setSetting('eq_gains_v16', this.eqGains);
+    }
+  }
+
+  setBassBoost(gainVal) {
+    this.bassBoostGain = gainVal;
+    if (this.bassNode) {
+      this.bassNode.gain.value = gainVal;
+    }
+    if (typeof db !== 'undefined') {
+      db.setSetting('bass_boost', gainVal);
+    }
+  }
+
+  applyEQPreset(presetName) {
+    const presets = {
+      flat: [0, 0, 0, 0, 0, 0, 0],
+      bass_boost: [7, 5, 2, 0, 0, 1, 2],
+      dance: [6, 4, 1, -1, 2, 4, 5],
+      rock: [5, 3, -1, 1, 3, 5, 6],
+      vocal: [-2, 0, 4, 5, 3, 1, 0],
+      pop: [2, 4, 3, 1, 2, 4, 3],
+      hiphop: [8, 6, 2, 0, 1, 2, 3]
+    };
+
+    const gains = presets[presetName] || presets.flat;
+    gains.forEach((g, idx) => {
+      this.setEQGain(idx, g);
+      const slider = document.getElementById(`eq-band-${idx}`);
+      if (slider) slider.value = g;
+      const valLabel = document.getElementById(`eq-val-${idx}`);
+      if (valLabel) valLabel.textContent = `${g > 0 ? '+' : ''}${g}dB`;
+    });
+
+    if (typeof showToast === 'function') {
+      showToast(`EQ: ${presetName.toUpperCase()}`);
+    }
+  }
+
+  // ==========================================
+  // PLAYBACK CONTROL
+  // ==========================================
+
   async playSong(song, newQueue = null) {
     if (!song) return;
+
+    this.recordListeningTime();
 
     if (newQueue && Array.isArray(newQueue)) {
       this.queue = [...newQueue];
@@ -129,6 +247,8 @@ class AudioPlayer {
     }
 
     this.currentSong = song;
+    this.songPlayStartTime = Date.now();
+    this.songListenedDuration = 0;
 
     // Revoke previous blob URL to prevent memory leaks
     if (this.currentObjectUrl) {
@@ -150,15 +270,13 @@ class AudioPlayer {
     this.audio.playbackRate = this.playbackRate;
     if (this.audio && typeof this.audio.load === 'function') this.audio.load();
 
-    // Start playback
     const playPromise = (this.audio && typeof this.audio.play === 'function') ? this.audio.play() : undefined;
     if (playPromise !== undefined) {
       playPromise.catch(err => {
-        console.warn('Playback gesture notice:', err);
+        console.warn('[Anru Player] Playback notice:', err);
       });
     }
 
-    // Initialize Web Audio DSP on first user play
     this.initWebAudio();
     if (this.audioCtx && this.audioCtx.state === 'suspended') {
       this.audioCtx.resume();
@@ -167,6 +285,16 @@ class AudioPlayer {
     this.updateTrackUI();
     this.updateMediaSession();
     this.renderQueueDrawer();
+  }
+
+  recordListeningTime() {
+    if (this.currentSong && this.songPlayStartTime > 0) {
+      const listenedSec = Math.floor((Date.now() - this.songPlayStartTime) / 1000);
+      if (listenedSec >= 5 && typeof db !== 'undefined') {
+        db.logPlayEvent(this.currentSong, listenedSec);
+      }
+      this.songPlayStartTime = 0;
+    }
   }
 
   togglePlay() {
@@ -194,7 +322,7 @@ class AudioPlayer {
     let nextIndex = this.currentIndex + 1;
     if (nextIndex >= this.queue.length) {
       if (this.repeatMode === 'all') nextIndex = 0;
-      else return; // Stop at end of queue
+      else return; // Stop at end
     }
     this.playSong(this.queue[nextIndex]);
   }
@@ -212,7 +340,9 @@ class AudioPlayer {
   }
 
   onEnded() {
-    // If sleep timer set to end of song, pause now
+    this.recordListeningTime();
+
+    // Sleep timer: End of Song check
     if (this.sleepTimerMode === 'end_of_song') {
       this.audio.pause();
       this.cancelSleepTimer();
@@ -289,10 +419,9 @@ class AudioPlayer {
   }
 
   // ==========================================
-  // SPOTIFY-STYLE QUEUE MANAGEMENT
+  // SPOTIFY-STYLE QUEUE MANAGEMENT & REORDER
   // ==========================================
 
-  // Play Next: insert right after current song
   playNext(song) {
     if (!song) return;
     if (this.currentIndex >= 0 && this.currentIndex < this.queue.length) {
@@ -304,7 +433,6 @@ class AudioPlayer {
     if (typeof showToast === 'function') showToast(`Playing next: "${song.title}" ⏭️`);
   }
 
-  // Add to bottom of queue
   addToQueue(song) {
     if (!song) return;
     this.queue.push(song);
@@ -312,17 +440,19 @@ class AudioPlayer {
     if (typeof showToast === 'function') showToast(`Added to queue: "${song.title}" 🎶`);
   }
 
-  // Reorder queue: move song from one index to another
-  moveQueueItem(fromIndex, direction) {
-    const toIndex = fromIndex + direction;
-    if (toIndex < this.currentIndex + 1 || toIndex >= this.queue.length) return;
+  moveQueueItem(fromIndex, toIndex) {
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= this.queue.length || toIndex >= this.queue.length) return;
+    const [moved] = this.queue.splice(fromIndex, 1);
+    this.queue.splice(toIndex, 0, moved);
 
-    const item = this.queue.splice(fromIndex, 1)[0];
-    this.queue.splice(toIndex, 0, item);
+    // Maintain current song index
+    if (this.currentSong) {
+      this.currentIndex = this.queue.findIndex(s => s.id === this.currentSong.id);
+    }
     this.renderQueueDrawer();
+    if (navigator.vibrate) navigator.vibrate(30);
   }
 
-  // Remove song from queue
   removeFromQueue(index) {
     if (index < 0 || index >= this.queue.length) return;
     if (index === this.currentIndex) {
@@ -333,7 +463,6 @@ class AudioPlayer {
     this.renderQueueDrawer();
   }
 
-  // Clear upcoming songs in queue
   clearUpcomingQueue() {
     if (this.currentIndex >= 0) {
       this.queue = this.queue.slice(0, this.currentIndex + 1);
@@ -344,7 +473,7 @@ class AudioPlayer {
     if (typeof showToast === 'function') showToast('Upcoming queue cleared 🧹');
   }
 
-  // Render Queue Drawer with Spotify-style reorder buttons
+  // Render Queue with Touch & Mouse Drag and Drop
   renderQueueDrawer() {
     const nowBox = document.getElementById('queue-now-playing');
     const upList = document.getElementById('queue-upcoming-list');
@@ -374,7 +503,13 @@ class AudioPlayer {
       const realIdx = this.currentIndex + 1 + idx;
       const item = document.createElement('div');
       item.className = 'queue-row';
+      item.dataset.index = realIdx;
+      item.draggable = true;
+
       item.innerHTML = `
+        <div class="queue-drag-handle" title="Hold & Drag to Reorder">
+          <i class="fa-solid fa-grip-lines"></i>
+        </div>
         <span class="queue-num">${idx + 1}</span>
         <img src="${song.artwork || 'icon-512.png'}" alt="art" class="queue-row-thumb" onerror="this.src='icon-512.png'">
         <div class="queue-row-info">
@@ -382,42 +517,95 @@ class AudioPlayer {
           <div class="queue-row-artist">${song.artist}</div>
         </div>
         <div class="queue-row-actions">
-          <button class="queue-move-btn" title="Move Up" data-action="up" data-index="${realIdx}" ${idx === 0 ? 'disabled style="opacity:0.3;"' : ''}>
-            <i class="fa-solid fa-arrow-up"></i>
-          </button>
-          <button class="queue-move-btn" title="Move Down" data-action="down" data-index="${realIdx}" ${idx === upcoming.length - 1 ? 'disabled style="opacity:0.3;"' : ''}>
-            <i class="fa-solid fa-arrow-down"></i>
-          </button>
           <button class="queue-remove-btn" title="Remove" data-action="remove" data-index="${realIdx}">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
       `;
 
-      item.querySelector('[data-action="up"]')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.moveQueueItem(realIdx, -1);
+      // Tap row to play
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('.queue-drag-handle') || e.target.closest('.queue-remove-btn')) return;
+        this.playSong(song);
       });
-      item.querySelector('[data-action="down"]')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.moveQueueItem(realIdx, 1);
-      });
+
+      // Remove button
       item.querySelector('[data-action="remove"]')?.addEventListener('click', (e) => {
         e.stopPropagation();
         this.removeFromQueue(realIdx);
       });
 
-      item.addEventListener('click', () => {
-        this.playSong(song);
+      // Drag and Drop (Mouse / Desktop)
+      item.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', realIdx);
+        item.classList.add('dragging');
       });
+      item.addEventListener('dragend', () => item.classList.remove('dragging'));
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        item.classList.add('drag-over');
+      });
+      item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+      item.addEventListener('drop', (e) => {
+        e.preventDefault();
+        item.classList.remove('drag-over');
+        const fromIdx = parseInt(e.dataTransfer.getData('text/plain'), 10);
+        if (!isNaN(fromIdx)) {
+          this.moveQueueItem(fromIdx, realIdx);
+        }
+      });
+
+      // Touch Drag & Drop (Mobile Support)
+      const handle = item.querySelector('.queue-drag-handle');
+      if (handle) {
+        let touchStartY = 0;
+        let activeRow = null;
+
+        handle.addEventListener('touchstart', (e) => {
+          touchStartY = e.touches[0].clientY;
+          activeRow = item;
+          activeRow.classList.add('touch-dragging');
+          if (navigator.vibrate) navigator.vibrate(40);
+        }, { passive: true });
+
+        handle.addEventListener('touchmove', (e) => {
+          if (!activeRow) return;
+          const touchY = e.touches[0].clientY;
+          // Find element under touch point
+          const targetEl = document.elementFromPoint(e.touches[0].clientX, touchY);
+          const targetRow = targetEl ? targetEl.closest('.queue-row') : null;
+          document.querySelectorAll('.queue-row').forEach(r => r.classList.remove('drag-over'));
+          if (targetRow && targetRow !== activeRow) {
+            targetRow.classList.add('drag-over');
+          }
+        }, { passive: true });
+
+        handle.addEventListener('touchend', (e) => {
+          if (!activeRow) return;
+          activeRow.classList.remove('touch-dragging');
+          const lastTouch = e.changedTouches[0];
+          const targetEl = document.elementFromPoint(lastTouch.clientX, lastTouch.clientY);
+          const targetRow = targetEl ? targetEl.closest('.queue-row') : null;
+          document.querySelectorAll('.queue-row').forEach(r => r.classList.remove('drag-over'));
+
+          if (targetRow && targetRow !== activeRow) {
+            const toIdx = parseInt(targetRow.dataset.index, 10);
+            if (!isNaN(toIdx)) {
+              this.moveQueueItem(realIdx, toIdx);
+            }
+          }
+          activeRow = null;
+        });
+      }
 
       upList.appendChild(item);
     });
   }
 
   // ==========================================
-  // SLEEP TIMER ENGINE
+  // SLEEP TIMER ENGINE (PRESETS + CUSTOM)
   // ==========================================
+
   startSleepTimer(minutes) {
     this.cancelSleepTimer();
 
@@ -434,14 +622,13 @@ class AudioPlayer {
     this.sleepTimerMode = 'minutes';
     this.sleepTimerEndTime = Date.now() + mins * 60 * 1000;
 
-    // Check timer every second
     this.sleepTimerId = setInterval(() => {
       const remaining = Math.max(0, this.sleepTimerEndTime - Date.now());
       this.updateSleepTimerUI(remaining);
 
-      // Start fade out in last 10 seconds
-      if (remaining <= 10000 && remaining > 0) {
-        const factor = remaining / 10000;
+      // Smooth volume fade out in last 15 seconds
+      if (remaining <= 15000 && remaining > 0) {
+        const factor = remaining / 15000;
         this.audio.volume = Math.max(0, factor);
       }
 
@@ -471,11 +658,13 @@ class AudioPlayer {
   updateSleepTimerUI(remainingMs = 0) {
     const badge = document.getElementById('sleep-timer-badge');
     const statusText = document.getElementById('sleep-timer-status');
+    const studioStatus = document.getElementById('studio-st-status');
     const timerBtn = document.getElementById('fs-sleep-btn');
 
     if (!this.sleepTimerMode) {
       if (badge) badge.classList.add('hidden');
       if (statusText) statusText.textContent = 'Timer is off';
+      if (studioStatus) studioStatus.textContent = 'Off (Tap to configure)';
       if (timerBtn) timerBtn.classList.remove('active');
       return;
     }
@@ -485,6 +674,7 @@ class AudioPlayer {
     if (this.sleepTimerMode === 'end_of_song') {
       if (badge) { badge.classList.remove('hidden'); badge.textContent = 'End of Song'; }
       if (statusText) statusText.textContent = 'Stops after current song finishes';
+      if (studioStatus) studioStatus.textContent = 'Stops after current track';
     } else {
       const totalSec = Math.floor(remainingMs / 1000);
       const m = Math.floor(totalSec / 60);
@@ -492,56 +682,14 @@ class AudioPlayer {
       const timeStr = `${m}:${s < 10 ? '0' : ''}${s}`;
       if (badge) { badge.classList.remove('hidden'); badge.textContent = timeStr; }
       if (statusText) statusText.textContent = `Stopping in ${timeStr}`;
+      if (studioStatus) studioStatus.textContent = `Stopping in ${timeStr}`;
     }
-  }
-
-  // ==========================================
-  // 5-BAND EQUALIZER & BASS BOOST
-  // ==========================================
-  setEQGain(bandIndex, gainVal) {
-    this.eqGains[bandIndex] = gainVal;
-    if (this.eqFilters[bandIndex]) {
-      this.eqFilters[bandIndex].gain.value = gainVal;
-    }
-    if (typeof db !== 'undefined') {
-      db.setSetting('eq_gains', this.eqGains);
-    }
-  }
-
-  setBassBoost(gainVal) {
-    this.bassBoostGain = gainVal;
-    if (this.bassNode) {
-      this.bassNode.gain.value = gainVal;
-    }
-    if (typeof db !== 'undefined') {
-      db.setSetting('bass_boost', gainVal);
-    }
-  }
-
-  applyEQPreset(presetName) {
-    const presets = {
-      flat: [0, 0, 0, 0, 0],
-      bass_boost: [6, 4, 1, 0, 1],
-      dance: [5, 3, 0, 2, 4],
-      vocal: [-2, 1, 5, 3, 0],
-      rock: [4, 2, -1, 3, 5]
-    };
-
-    const gains = presets[presetName] || presets.flat;
-    gains.forEach((g, idx) => {
-      this.setEQGain(idx, g);
-      const slider = document.getElementById(`eq-band-${idx}`);
-      if (slider) slider.value = g;
-      const valLabel = document.getElementById(`eq-val-${idx}`);
-      if (valLabel) valLabel.textContent = `${g > 0 ? '+' : ''}${g}dB`;
-    });
-
-    if (typeof showToast === 'function') showToast(`Equalizer: ${presetName.toUpperCase()}`);
   }
 
   // ==========================================
   // UI & MEDIASESSION SYNCHRONIZATION
   // ==========================================
+
   updateTrackUI() {
     if (!this.currentSong) return;
     const song = this.currentSong;
@@ -568,7 +716,6 @@ class AudioPlayer {
 
     this.updatePlayPauseUI();
 
-    // Check favorite status
     if (typeof db !== 'undefined') {
       db.isFavorite(song.id).then(isFav => {
         const likeBtn = document.getElementById('fs-like-btn');
@@ -624,7 +771,6 @@ class AudioPlayer {
   }
 }
 
-// Global Player Instance
 const player = new AudioPlayer();
 if (typeof window !== 'undefined') window.player = player;
 if (typeof globalThis !== 'undefined') globalThis.player = player;

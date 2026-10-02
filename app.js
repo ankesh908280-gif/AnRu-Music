@@ -1,36 +1,65 @@
 /**
- * ANRU MUSIC STUDIO PRO - OFFLINE APP CONTROLLER (app.js)
- * 1. Zero-auth instant studio interface
- * 2. Multi-File & Folder Batch Importer with pure JS ID3 metadata & artwork parsing
- * 3. 100% Offline IndexedDB Library with real-time instant search & sorting
- * 4. Spotify-Style Queue, Sleep Timer, and 5-Band Studio Equalizer Controls
+ * ANRU MUSIC STUDIO PRO v16 - OFFLINE APP CONTROLLER (app.js)
+ * Features:
+ * 1. Zero-auth instant studio interface with 100% native mobile app feel
+ * 2. Complete suppression of browser-like artifacts (long-press callout, text selection, image context menu)
+ * 3. Smart duplicate song detection & notification on import
+ * 4. Custom glassmorphic modals (Prompt, Confirm, Playlist Picker) - NO native browser popups
+ * 5. Long-press multi-select mode with batch delete and batch playlist addition
+ * 6. 7-Band Studio Equalizer with real-time Web Audio spectrum visualizer
+ * 7. Custom minute sleep timer with stepper and countdown badge
+ * 8. Holographic Profile & Listening Analytics Studio (Hours, Plays, Top 5 songs, Top artists)
  */
 
 let allLibrarySongs = [];
+let isSelectionMode = false;
+let selectedSongIds = new Set();
 let activePlaylistDetail = null;
+let currentStatsTimeframe = 'week';
 
 // ==========================================
 // 1. APP INITIALIZATION & NAVIGATION
 // ==========================================
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('[Anru App] Initializing Pure Offline Studio v15 🚀');
+  console.log('[Anru App] Initializing Pure Offline Studio v16 🚀');
 
+  initNativeAppFeel();
   initNavigation();
   initPlayerControls();
   initImporter();
+  initSelectionMode();
   initEqualizerUI();
   initSleepTimerUI();
   initThemeEngine();
   initActionSheet();
+  initCustomModals();
+  initHolographicStudio();
 
   // Load persistent library from IndexedDB
   await refreshLibrary();
 });
 
+// Suppress web browser behaviors (touch callout, context menu, image dragging)
+function initNativeAppFeel() {
+  document.addEventListener('contextmenu', (e) => {
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  document.addEventListener('dragstart', (e) => {
+    if (e.target.tagName === 'IMG') {
+      e.preventDefault();
+    }
+  });
+}
+
 // Tab Navigation
 function switchTab(tabId) {
+  if (isSelectionMode) exitSelectionMode();
+
   document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.bottom-nav .nav-tab').forEach(b => b.classList.remove('active'));
 
   const targetView = document.getElementById(`view-${tabId}`);
   const targetNav = document.getElementById(`nav-${tabId}`);
@@ -40,11 +69,13 @@ function switchTab(tabId) {
 
   if (tabId === 'playlists') {
     renderPlaylistsTab();
+  } else if (tabId === 'studio') {
+    renderHolographicStats(currentStatsTimeframe);
   }
 }
 
 function initNavigation() {
-  document.querySelectorAll('.nav-tab').forEach(btn => {
+  document.querySelectorAll('.bottom-nav .nav-tab').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const tab = e.currentTarget.dataset.tab;
       if (tab) switchTab(tab);
@@ -92,14 +123,23 @@ async function handleFilesImport(fileList) {
     return;
   }
 
-  showToast(`Importing ${validAudioFiles.length} songs... ⏳`);
+  showToast(`Scanning ${validAudioFiles.length} files... ⏳`);
 
   let importedCount = 0;
+  let skippedDuplicates = 0;
+
   for (let i = 0; i < validAudioFiles.length; i++) {
     const file = validAudioFiles[i];
     try {
-      // Parse ID3 metadata and embedded artwork
+      // Parse ID3 metadata and embedded cover art
       const meta = await ID3Parser.parseFile(file);
+
+      // Check for duplicate song
+      const isDup = await db.findDuplicate(meta, file.size, file.name);
+      if (isDup) {
+        skippedDuplicates++;
+        continue;
+      }
 
       // Save to IndexedDB
       await db.saveSong({
@@ -110,16 +150,25 @@ async function handleFilesImport(fileList) {
         artwork: meta.artwork,
         duration: meta.duration,
         audioBlob: file,
-        fileSize: file.size
+        fileSize: file.size,
+        fileName: file.name,
+        dateAdded: Date.now()
       });
 
       importedCount++;
     } catch (err) {
-      console.warn('Import error for file:', file.name, err);
+      console.warn('[Anru Importer] Error processing file:', file.name, err);
     }
   }
 
-  showToast(`✅ Successfully imported ${importedCount} songs to library!`);
+  if (importedCount > 0 && skippedDuplicates > 0) {
+    showToast(`✅ Added ${importedCount} songs (${skippedDuplicates} duplicates skipped)`);
+  } else if (importedCount > 0) {
+    showToast(`✅ Successfully imported ${importedCount} songs!`);
+  } else if (skippedDuplicates > 0) {
+    showToast(`ℹ️ All ${skippedDuplicates} selected songs already in library!`);
+  }
+
   await refreshLibrary();
 }
 
@@ -129,6 +178,9 @@ async function handleFilesImport(fileList) {
 async function refreshLibrary() {
   allLibrarySongs = await db.getAllSongs();
   renderLibraryView(allLibrarySongs);
+
+  const holoTracks = document.getElementById('holo-total-tracks');
+  if (holoTracks) holoTracks.textContent = `${allLibrarySongs.length} Tracks in Library`;
 }
 
 function renderLibraryView(songs) {
@@ -159,25 +211,54 @@ function renderLibraryView(songs) {
 
   songs.forEach((song, idx) => {
     const row = document.createElement('div');
-    row.className = 'song-row';
+    row.className = `song-row ${selectedSongIds.has(song.id) ? 'selected' : ''}`;
+    row.dataset.id = song.id;
+
     row.innerHTML = `
-      <span class="row-num">${idx + 1}</span>
+      <div class="row-checkbox-wrap ${isSelectionMode ? '' : 'hidden'}">
+        <input type="checkbox" class="row-checkbox" ${selectedSongIds.has(song.id) ? 'checked' : ''}>
+      </div>
+      <span class="row-num ${isSelectionMode ? 'hidden' : ''}">${idx + 1}</span>
       <div class="row-art-box">
         <img src="${song.artwork || 'icon-512.png'}" alt="cover" class="row-art" loading="lazy" onerror="this.src='icon-512.png'">
         <div class="row-play-hover"><i class="fa-solid fa-play"></i></div>
       </div>
       <div class="row-meta">
         <div class="row-title">${song.title}</div>
-        <div class="row-artist">${song.artist} • ${song.album || 'Single'}</div>
+        <div class="row-artist">${song.artist} • ${song.album || 'Offline'}</div>
       </div>
-      <button class="row-action-btn menu-trigger" title="Options" data-id="${song.id}">
+      <button class="row-action-btn menu-trigger ${isSelectionMode ? 'hidden' : ''}" title="Options" data-id="${song.id}">
         <i class="fa-solid fa-ellipsis-vertical"></i>
       </button>
     `;
 
-    // Row click -> Play song
+    // Long press detection for selection mode
+    let touchTimer = null;
+    row.addEventListener('touchstart', (e) => {
+      touchTimer = setTimeout(() => {
+        if (!isSelectionMode) {
+          enterSelectionMode();
+          toggleSongSelection(song.id, row);
+        }
+      }, 550);
+    }, { passive: true });
+
+    row.addEventListener('touchend', () => {
+      if (touchTimer) clearTimeout(touchTimer);
+    });
+
+    row.addEventListener('touchmove', () => {
+      if (touchTimer) clearTimeout(touchTimer);
+    });
+
+    // Row click
     row.addEventListener('click', (e) => {
-      if (e.target.closest('.row-action-btn')) return;
+      if (e.target.closest('.menu-trigger')) return;
+
+      if (isSelectionMode) {
+        toggleSongSelection(song.id, row);
+        return;
+      }
       player.playSong(song, songs);
     });
 
@@ -194,7 +275,130 @@ function renderLibraryView(songs) {
   });
 }
 
-// Instant Offline Search (Filters all local songs in 0.001s)
+// Multi-Select Mode Logic
+function initSelectionMode() {
+  const selectBtn = document.getElementById('select-mode-btn');
+  const cancelBtn = document.getElementById('sel-cancel-btn');
+  const selectAllBtn = document.getElementById('sel-select-all-btn');
+  const deleteBtn = document.getElementById('sel-delete-btn');
+  const addPlBtn = document.getElementById('sel-add-playlist-btn');
+
+  if (selectBtn) {
+    selectBtn.addEventListener('click', () => {
+      if (isSelectionMode) exitSelectionMode();
+      else enterSelectionMode();
+    });
+  }
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', exitSelectionMode);
+  }
+
+  if (selectAllBtn) {
+    selectAllBtn.addEventListener('click', () => {
+      if (selectedSongIds.size === allLibrarySongs.length) {
+        selectedSongIds.clear();
+      } else {
+        selectedSongIds = new Set(allLibrarySongs.map(s => s.id));
+      }
+      updateSelectionUI();
+    });
+  }
+
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', async () => {
+      if (selectedSongIds.size === 0) return;
+      const confirmed = await showCustomConfirm({
+        title: 'Delete Selected Songs?',
+        message: `Permanently delete ${selectedSongIds.size} songs from offline library?`,
+        confirmText: `Delete (${selectedSongIds.size})`,
+        isDanger: true
+      });
+
+      if (confirmed) {
+        const ids = Array.from(selectedSongIds);
+        await db.deleteMultipleSongs(ids);
+        showToast(`🗑️ Deleted ${ids.length} songs`);
+        exitSelectionMode();
+        await refreshLibrary();
+      }
+    });
+  }
+
+  if (addPlBtn) {
+    addPlBtn.addEventListener('click', () => {
+      if (selectedSongIds.size === 0) return;
+      const selectedSongs = allLibrarySongs.filter(s => selectedSongIds.has(s.id));
+      openPlaylistPickerModal(selectedSongs);
+    });
+  }
+}
+
+function enterSelectionMode() {
+  isSelectionMode = true;
+  selectedSongIds.clear();
+  const bar = document.getElementById('selection-action-bar');
+  const btn = document.getElementById('select-mode-btn');
+  if (bar) bar.classList.remove('hidden');
+  if (btn) {
+    btn.classList.add('active');
+    btn.innerHTML = '<i class="fa-solid fa-xmark"></i> <span>Cancel</span>';
+  }
+  updateSelectionUI();
+  if (navigator.vibrate) navigator.vibrate(30);
+}
+
+function exitSelectionMode() {
+  isSelectionMode = false;
+  selectedSongIds.clear();
+  const bar = document.getElementById('selection-action-bar');
+  const btn = document.getElementById('select-mode-btn');
+  if (bar) bar.classList.add('hidden');
+  if (btn) {
+    btn.classList.remove('active');
+    btn.innerHTML = '<i class="fa-solid fa-check-double"></i> <span>Select</span>';
+  }
+  updateSelectionUI();
+}
+
+function toggleSongSelection(songId, rowEl) {
+  if (selectedSongIds.has(songId)) {
+    selectedSongIds.delete(songId);
+    rowEl.classList.remove('selected');
+    const chk = rowEl.querySelector('.row-checkbox');
+    if (chk) chk.checked = false;
+  } else {
+    selectedSongIds.add(songId);
+    rowEl.classList.add('selected');
+    const chk = rowEl.querySelector('.row-checkbox');
+    if (chk) chk.checked = true;
+  }
+  updateSelectionUI();
+  if (navigator.vibrate) navigator.vibrate(20);
+}
+
+function updateSelectionUI() {
+  const countEl = document.getElementById('sel-selected-count');
+  if (countEl) countEl.textContent = selectedSongIds.size;
+
+  document.querySelectorAll('.song-row').forEach(row => {
+    const id = row.dataset.id;
+    const isSelected = selectedSongIds.has(id);
+    row.classList.toggle('selected', isSelected);
+
+    const chkWrap = row.querySelector('.row-checkbox-wrap');
+    const numEl = row.querySelector('.row-num');
+    const menuBtn = row.querySelector('.menu-trigger');
+    const chk = row.querySelector('.row-checkbox');
+
+    if (chkWrap) chkWrap.classList.toggle('hidden', !isSelectionMode);
+    if (numEl) numEl.classList.toggle('hidden', isSelectionMode);
+    if (menuBtn) menuBtn.classList.toggle('hidden', isSelectionMode);
+    if (chk) chk.checked = isSelected;
+  });
+}
+
+// Instant Offline Search
 function setupSearch() {
   const input = document.getElementById('search-input');
   const clearBtn = document.getElementById('clear-search-btn');
@@ -320,7 +524,7 @@ function initPlayerControls() {
       likeBtn.innerHTML = isFav 
         ? '<i class="fa-solid fa-heart" style="color:#ec4899;"></i>' 
         : '<i class="fa-regular fa-heart"></i>';
-      showToast(isFav ? 'Added to Favorites ❤️' : 'Removed from Favorites');
+      showToast(isFav ? 'Added to Favorites 💖' : 'Removed from Favorites');
     });
   }
 
@@ -371,11 +575,19 @@ function initActionSheet() {
 
   document.getElementById('as-add-playlist')?.addEventListener('click', () => {
     overlay.classList.add('hidden');
-    if (actionSheetSong) promptAddToPlaylist(actionSheetSong);
+    if (actionSheetSong) openPlaylistPickerModal([actionSheetSong]);
   });
 
   document.getElementById('as-delete')?.addEventListener('click', async () => {
-    if (actionSheetSong && confirm(`Delete "${actionSheetSong.title}" from library?`)) {
+    if (!actionSheetSong) return;
+    const confirmed = await showCustomConfirm({
+      title: 'Delete from Library?',
+      message: `Delete "${actionSheetSong.title}" from local storage?`,
+      confirmText: 'Delete Song',
+      isDanger: true
+    });
+
+    if (confirmed) {
       await db.deleteSong(actionSheetSong.id);
       showToast('Deleted from library 🗑️');
       overlay.classList.add('hidden');
@@ -399,26 +611,180 @@ function openActionSheet(song) {
 }
 
 // ==========================================
-// 6. STUDIO EQUALIZER & SLEEP TIMER MODALS
+// 6. CUSTOM MODAL SYSTEM (REPLACES BROWSER DIALOGS)
+// ==========================================
+let promptResolver = null;
+let confirmResolver = null;
+
+function initCustomModals() {
+  // Custom Prompt
+  const promptModal = document.getElementById('custom-prompt-modal');
+  const promptInput = document.getElementById('custom-prompt-input');
+  const promptConfirm = document.getElementById('custom-prompt-confirm');
+  const promptCancel = document.getElementById('custom-prompt-cancel');
+
+  promptConfirm?.addEventListener('click', () => {
+    const val = promptInput?.value?.trim();
+    promptModal?.classList.add('hidden');
+    if (promptResolver) promptResolver(val || null);
+    promptResolver = null;
+  });
+
+  promptCancel?.addEventListener('click', () => {
+    promptModal?.classList.add('hidden');
+    if (promptResolver) promptResolver(null);
+    promptResolver = null;
+  });
+
+  promptInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') promptConfirm?.click();
+    if (e.key === 'Escape') promptCancel?.click();
+  });
+
+  // Custom Confirm
+  const confirmModal = document.getElementById('custom-confirm-modal');
+  const confirmOk = document.getElementById('custom-confirm-ok');
+  const confirmCancel = document.getElementById('custom-confirm-cancel');
+
+  confirmOk?.addEventListener('click', () => {
+    confirmModal?.classList.add('hidden');
+    if (confirmResolver) confirmResolver(true);
+    confirmResolver = null;
+  });
+
+  confirmCancel?.addEventListener('click', () => {
+    confirmModal?.classList.add('hidden');
+    if (confirmResolver) confirmResolver(false);
+    confirmResolver = null;
+  });
+
+  // Playlist Picker Modal
+  document.getElementById('close-pl-picker-btn')?.addEventListener('click', () => {
+    document.getElementById('custom-playlist-picker-modal')?.classList.add('hidden');
+  });
+
+  document.getElementById('picker-create-new-btn')?.addEventListener('click', async () => {
+    document.getElementById('custom-playlist-picker-modal')?.classList.add('hidden');
+    const name = await showCustomPrompt({
+      title: 'New Playlist',
+      desc: 'Enter a name for your playlist',
+      placeholder: 'Playlist Name'
+    });
+    if (name) {
+      const pl = await db.createPlaylist(name);
+      showToast(`Created "${pl.name}"! 📁`);
+      renderPlaylistsTab();
+    }
+  });
+}
+
+function showCustomPrompt({ title = 'Input', desc = '', placeholder = '', defaultValue = '' }) {
+  return new Promise((resolve) => {
+    promptResolver = resolve;
+    const modal = document.getElementById('custom-prompt-modal');
+    const titleEl = document.getElementById('custom-prompt-title');
+    const descEl = document.getElementById('custom-prompt-desc');
+    const inputEl = document.getElementById('custom-prompt-input');
+
+    if (titleEl) titleEl.textContent = title;
+    if (descEl) descEl.textContent = desc;
+    if (inputEl) {
+      inputEl.placeholder = placeholder;
+      inputEl.value = defaultValue;
+    }
+
+    if (modal) modal.classList.remove('hidden');
+    setTimeout(() => inputEl?.focus(), 100);
+  });
+}
+
+function showCustomConfirm({ title = 'Confirm', message = '', confirmText = 'Confirm', isDanger = false }) {
+  return new Promise((resolve) => {
+    confirmResolver = resolve;
+    const modal = document.getElementById('custom-confirm-modal');
+    const titleEl = document.getElementById('custom-confirm-title');
+    const msgEl = document.getElementById('custom-confirm-message');
+    const okBtn = document.getElementById('custom-confirm-ok');
+
+    if (titleEl) titleEl.textContent = title;
+    if (msgEl) msgEl.textContent = message;
+    if (okBtn) {
+      okBtn.textContent = confirmText;
+      okBtn.className = isDanger ? 'modal-action-btn danger' : 'modal-action-btn primary-glow';
+    }
+
+    if (modal) modal.classList.remove('hidden');
+  });
+}
+
+async function openPlaylistPickerModal(songs) {
+  if (!songs || songs.length === 0) return;
+  const pickerModal = document.getElementById('custom-playlist-picker-modal');
+  const list = document.getElementById('playlist-picker-list');
+  if (!pickerModal || !list) return;
+
+  const playlists = await db.getPlaylists();
+  list.innerHTML = '';
+
+  if (playlists.length === 0) {
+    list.innerHTML = '<div class="empty-sub">No playlists found. Create one above!</div>';
+  } else {
+    playlists.forEach(pl => {
+      const card = document.createElement('button');
+      card.className = 'picker-pl-card glass-card';
+      card.innerHTML = `
+        <div class="picker-pl-icon"><i class="fa-solid fa-list-ul"></i></div>
+        <div class="picker-pl-meta">
+          <div class="picker-pl-title">${pl.name}</div>
+          <div class="picker-pl-count">${(pl.songIds || []).length} Songs</div>
+        </div>
+        <i class="fa-solid fa-chevron-right chevron-ico"></i>
+      `;
+
+      card.addEventListener('click', async () => {
+        let addedCount = 0;
+        for (const s of songs) {
+          const ok = await db.addSongToPlaylist(pl.id, s.id);
+          if (ok) addedCount++;
+        }
+        pickerModal.classList.add('hidden');
+        showToast(`Added ${addedCount} song(s) to "${pl.name}"! 🎵`);
+        if (isSelectionMode) exitSelectionMode();
+      });
+
+      list.appendChild(card);
+    });
+  }
+
+  pickerModal.classList.remove('hidden');
+}
+
+// ==========================================
+// 7. 7-BAND STUDIO EQUALIZER & VISUALIZER
 // ==========================================
 function initEqualizerUI() {
   const eqModal = document.getElementById('equalizer-modal');
   const openEqBtn = document.getElementById('fs-eq-btn');
   const studioEqBtn = document.getElementById('studio-open-eq-btn');
   const closeEqBtn = document.getElementById('close-eq-btn');
+  const canvas = document.getElementById('eq-visualizer');
 
-  if (openEqBtn && eqModal) {
-    openEqBtn.addEventListener('click', () => eqModal.classList.remove('hidden'));
-  }
-  if (studioEqBtn && eqModal) {
-    studioEqBtn.addEventListener('click', () => eqModal.classList.remove('hidden'));
-  }
-  if (closeEqBtn && eqModal) {
-    closeEqBtn.addEventListener('click', () => eqModal.classList.add('hidden'));
-  }
+  const openEQ = () => {
+    if (eqModal) eqModal.classList.remove('hidden');
+    if (canvas) player.startVisualizer(canvas);
+  };
 
-  // 5 Frequency Band Sliders
-  [0, 1, 2, 3, 4].forEach(idx => {
+  const closeEQ = () => {
+    if (eqModal) eqModal.classList.add('hidden');
+    player.stopVisualizer();
+  };
+
+  openEqBtn?.addEventListener('click', openEQ);
+  studioEqBtn?.addEventListener('click', openEQ);
+  closeEqBtn?.addEventListener('click', closeEQ);
+
+  // 7 Frequency Band Sliders
+  [0, 1, 2, 3, 4, 5, 6].forEach(idx => {
     const slider = document.getElementById(`eq-band-${idx}`);
     const valText = document.getElementById(`eq-val-${idx}`);
     if (slider) {
@@ -452,23 +818,20 @@ function initEqualizerUI() {
   });
 }
 
+// ==========================================
+// 8. SLEEP TIMER (PRESETS & CUSTOM STEPPER)
+// ==========================================
 function initSleepTimerUI() {
   const stModal = document.getElementById('sleep-timer-modal');
   const openStBtn = document.getElementById('fs-sleep-btn');
   const studioStBtn = document.getElementById('studio-open-st-btn');
   const closeStBtn = document.getElementById('close-st-btn');
 
-  if (openStBtn && stModal) {
-    openStBtn.addEventListener('click', () => stModal.classList.remove('hidden'));
-  }
-  if (studioStBtn && stModal) {
-    studioStBtn.addEventListener('click', () => stModal.classList.remove('hidden'));
-  }
-  if (closeStBtn && stModal) {
-    closeStBtn.addEventListener('click', () => stModal.classList.add('hidden'));
-  }
+  openStBtn?.addEventListener('click', () => stModal?.classList.remove('hidden'));
+  studioStBtn?.addEventListener('click', () => stModal?.classList.remove('hidden'));
+  closeStBtn?.addEventListener('click', () => stModal?.classList.add('hidden'));
 
-  // Timer Pills
+  // Preset Pills
   document.querySelectorAll('.st-pill').forEach(pill => {
     pill.addEventListener('click', (e) => {
       document.querySelectorAll('.st-pill').forEach(p => p.classList.remove('active'));
@@ -476,17 +839,39 @@ function initSleepTimerUI() {
       const val = e.currentTarget.dataset.mins;
       if (val === '0') {
         player.cancelSleepTimer();
-        showToast('Sleep timer cancelled');
+        showToast('Sleep timer turned off');
       } else {
         player.startSleepTimer(val);
       }
-      if (stModal) stModal.classList.add('hidden');
+      stModal?.classList.add('hidden');
     });
+  });
+
+  // Custom Timer Stepper
+  const input = document.getElementById('custom-timer-input');
+  const decBtn = document.getElementById('timer-dec-btn');
+  const incBtn = document.getElementById('timer-inc-btn');
+  const setBtn = document.getElementById('set-custom-timer-btn');
+
+  decBtn?.addEventListener('click', () => {
+    if (input) input.value = Math.max(1, parseInt(input.value || 25, 10) - 5);
+  });
+
+  incBtn?.addEventListener('click', () => {
+    if (input) input.value = Math.min(360, parseInt(input.value || 25, 10) + 5);
+  });
+
+  setBtn?.addEventListener('click', () => {
+    const mins = parseInt(input?.value || 25, 10);
+    if (!isNaN(mins) && mins > 0) {
+      player.startSleepTimer(mins);
+      stModal?.classList.add('hidden');
+    }
   });
 }
 
 // ==========================================
-// 7. OFFLINE PLAYLISTS VIEW
+// 9. OFFLINE PLAYLISTS VIEW
 // ==========================================
 async function renderPlaylistsTab() {
   const container = document.getElementById('playlists-grid');
@@ -498,16 +883,20 @@ async function renderPlaylistsTab() {
 
   if (createBtn) {
     createBtn.onclick = async () => {
-      const name = prompt('Enter playlist name:');
-      if (name && name.trim()) {
-        await db.createPlaylist(name.trim());
-        showToast(`Created playlist "${name.trim()}"! 📁`);
+      const name = await showCustomPrompt({
+        title: 'New Playlist',
+        desc: 'Enter a name for your playlist',
+        placeholder: 'e.g., Workout, Chill, Favorites'
+      });
+      if (name) {
+        await db.createPlaylist(name);
+        showToast(`Created playlist "${name}"! 📁`);
         renderPlaylistsTab();
       }
     };
   }
 
-  // Add Favorites card
+  // Add Liked Songs card
   const favIds = await db.getAllFavorites();
   const favCard = document.createElement('div');
   favCard.className = 'playlist-card glass-card';
@@ -553,7 +942,7 @@ function openPlaylistDetail(id, title, songIds) {
   const plSongs = allLibrarySongs.filter(s => songIds.includes(s.id));
   if (countEl) countEl.textContent = `${plSongs.length} Songs`;
 
-  // Bind Play All
+  // Play All
   if (playAllBtn) {
     playAllBtn.onclick = () => {
       if (plSongs.length > 0) {
@@ -565,7 +954,7 @@ function openPlaylistDetail(id, title, songIds) {
     };
   }
 
-  // Bind Shuffle
+  // Shuffle
   if (shuffleBtn) {
     shuffleBtn.onclick = () => {
       if (plSongs.length > 0) {
@@ -578,14 +967,21 @@ function openPlaylistDetail(id, title, songIds) {
     };
   }
 
-  // Bind Delete for custom playlists
+  // Delete Playlist (Custom Modal)
   if (deleteBtn) {
     if (id === 'favorites') {
       deleteBtn.classList.add('hidden');
     } else {
       deleteBtn.classList.remove('hidden');
       deleteBtn.onclick = async () => {
-        if (confirm(`Delete playlist "${title}"?`)) {
+        const confirmed = await showCustomConfirm({
+          title: `Delete "${title}"?`,
+          message: 'Are you sure you want to delete this playlist? Your songs will stay in your library.',
+          confirmText: 'Delete Playlist',
+          isDanger: true
+        });
+
+        if (confirmed) {
           await db.deletePlaylist(id);
           plView.classList.add('hidden');
           renderPlaylistsTab();
@@ -638,32 +1034,91 @@ function openPlaylistDetail(id, title, songIds) {
   if (backBtn) backBtn.onclick = () => plView.classList.add('hidden');
 }
 
-async function promptAddToPlaylist(song) {
-  const playlists = await db.getPlaylists();
-  if (playlists.length === 0) {
-    const create = confirm('No custom playlists yet. Create one now?');
-    if (create) {
-      const name = prompt('Playlist name:');
-      if (name && name.trim()) {
-        const newPl = await db.createPlaylist(name.trim());
-        await db.addSongToPlaylist(newPl.id, song.id);
-        showToast(`Added to "${name.trim()}"!`);
-      }
+// ==========================================
+// 10. HOLOGRAPHIC STUDIO & LISTENING ANALYTICS
+// ==========================================
+function initHolographicStudio() {
+  const avatarBtn = document.getElementById('holo-avatar-btn');
+  const avatarPicker = document.getElementById('avatar-file-picker');
+  const profileImg = document.getElementById('holo-profile-img');
+
+  // Load saved profile
+  db.getSetting('user_avatar').then(dataUrl => {
+    if (dataUrl && profileImg) profileImg.src = dataUrl;
+  });
+
+  avatarBtn?.addEventListener('click', () => avatarPicker?.click());
+  avatarPicker?.addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const dataUrl = evt.target.result;
+        if (profileImg) profileImg.src = dataUrl;
+        db.setSetting('user_avatar', dataUrl);
+        showToast('Profile photo updated ✨');
+      };
+      reader.readAsDataURL(file);
     }
+  });
+
+  // Timeframe selector buttons (Week / Month / Year)
+  document.querySelectorAll('.timeframe-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.timeframe-btn').forEach(b => b.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      currentStatsTimeframe = e.currentTarget.dataset.timeframe || 'week';
+      renderHolographicStats(currentStatsTimeframe);
+    });
+  });
+}
+
+async function renderHolographicStats(timeframe = 'week') {
+  const stats = await db.getListeningStats(timeframe);
+
+  const hoursEl = document.getElementById('stat-hours');
+  const playsEl = document.getElementById('stat-plays');
+  const artistEl = document.getElementById('stat-top-artist-name');
+  const songsListEl = document.getElementById('stat-top-songs-list');
+
+  if (hoursEl) hoursEl.textContent = `${stats.totalHours}h`;
+  if (playsEl) playsEl.textContent = stats.totalPlays;
+  if (artistEl) artistEl.textContent = stats.topArtists[0]?.artist || 'None yet';
+
+  if (!songsListEl) return;
+
+  if (!stats.topSongs || stats.topSongs.length === 0) {
+    songsListEl.innerHTML = '<div class="empty-sub">Play music to see your top rankings!</div>';
     return;
   }
 
-  const names = playlists.map((p, i) => `${i + 1}. ${p.name}`).join('\n');
-  const choice = prompt(`Choose playlist (number):\n${names}`);
-  const idx = parseInt(choice, 10) - 1;
-  if (!isNaN(idx) && playlists[idx]) {
-    await db.addSongToPlaylist(playlists[idx].id, song.id);
-    showToast(`Added to "${playlists[idx].name}"! 🎵`);
-  }
+  songsListEl.innerHTML = '';
+  stats.topSongs.forEach((item, idx) => {
+    const rankColors = ['#f59e0b', '#94a3b8', '#b45309', 'var(--accent)', 'var(--accent)'];
+    const row = document.createElement('div');
+    row.className = 'top-track-row';
+    row.innerHTML = `
+      <div class="top-rank-badge" style="background:${rankColors[idx] || 'var(--accent)'};">#${idx + 1}</div>
+      <div class="top-track-meta">
+        <div class="top-track-title">${item.title}</div>
+        <div class="top-track-artist">${item.artist}</div>
+      </div>
+      <div class="top-track-plays"><i class="fa-solid fa-play"></i> ${item.count} plays</div>
+    `;
+
+    row.addEventListener('click', () => {
+      const match = allLibrarySongs.find(s => s.id === item.songId || s.title === item.title);
+      if (match) {
+        player.playSong(match);
+      }
+    });
+
+    songsListEl.appendChild(row);
+  });
 }
 
 // ==========================================
-// 8. THEME ENGINE & HELPERS
+// 11. THEME ENGINE & HELPERS
 // ==========================================
 function initThemeEngine() {
   let savedTheme = 'aurora';
@@ -708,4 +1163,6 @@ if (typeof window !== 'undefined') {
   window.switchTab = switchTab;
   window.refreshLibrary = refreshLibrary;
   window.showToast = showToast;
+  window.showCustomPrompt = showCustomPrompt;
+  window.showCustomConfirm = showCustomConfirm;
 }

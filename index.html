@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Anru Music Studio - Offline Pro</title>
-  <meta name="description" content="100% Offline High-Fidelity Music Studio Player with 5-Band Equalizer, Bass Boost & Spotify Queue">
+  <meta name="description" content="100% Offline High-Fidelity Music Studio Player with 7-Band Equalizer, Bass Boost, Spotify Queue & Holographic Analytics">
   <meta name="theme-color" content="#0d0b18">
 
   <!-- PWA Manifest -->
@@ -19,19 +19,15 @@
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- Consolidated & Modular Stylesheets -->
-  <link rel="stylesheet" href="base.css?v=15.1">
-  <link rel="stylesheet" href="home.css?v=15.1">
-  <link rel="stylesheet" href="search.css?v=15.1">
-  <link rel="stylesheet" href="player.css?v=15.1">
-  <link rel="stylesheet" href="profile.css?v=15.1">
-  <link rel="stylesheet" href="style.css?v=15.1">
+  <!-- Consolidated Master Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=16.0">
 </head>
 <body>
 
   <!-- Hidden Native File Pickers -->
   <input type="file" id="local-file-picker" multiple accept="audio/*" style="display:none;">
   <input type="file" id="local-folder-picker" webkitdirectory directory multiple style="display:none;">
+  <input type="file" id="avatar-file-picker" accept="image/*" style="display:none;">
 
   <div class="app-root">
 
@@ -72,21 +68,26 @@
           </div>
         </div>
 
-        <!-- Library Stats & Sort Controls -->
+        <!-- Library Stats & Selection Mode Controls -->
         <div class="library-meta-row">
           <div class="meta-badges">
             <span class="meta-pill" id="library-count-badge">0 Songs</span>
             <span class="meta-pill storage" id="library-storage-badge">0 MB</span>
           </div>
-          <div class="sort-select-wrap">
-            <i class="fa-solid fa-arrow-down-short-wide sort-ico"></i>
-            <select id="library-sort-select" aria-label="Sort Songs">
-              <option value="date-new">Newest Added</option>
-              <option value="title-asc">Title (A-Z)</option>
-              <option value="title-desc">Title (Z-A)</option>
-              <option value="artist-asc">Artist (A-Z)</option>
-              <option value="date-old">Oldest First</option>
-            </select>
+          <div class="meta-right-actions">
+            <button class="select-mode-toggle-btn" id="select-mode-btn" title="Multi-select songs">
+              <i class="fa-solid fa-check-double"></i> <span>Select</span>
+            </button>
+            <div class="sort-select-wrap">
+              <i class="fa-solid fa-arrow-down-short-wide sort-ico"></i>
+              <select id="library-sort-select" aria-label="Sort Songs">
+                <option value="date-new">Newest Added</option>
+                <option value="title-asc">Title (A-Z)</option>
+                <option value="title-desc">Title (Z-A)</option>
+                <option value="artist-asc">Artist (A-Z)</option>
+                <option value="date-old">Oldest First</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -152,21 +153,71 @@
         </div>
       </section>
 
-      <!-- 3. STUDIO TOOLS VIEW (Themes & Equalizer) -->
+      <!-- 3. STUDIO TOOLS VIEW (Holograph Profile, Listening Stats & DSP) -->
       <section class="tab-view" id="view-studio">
-        <div class="studio-header">
-          <h2>Studio Tools</h2>
-          <p>Audio DSP, Equalizer & Themes</p>
+        
+        <!-- Holograph Profile Card -->
+        <div class="holograph-profile-card">
+          <div class="holo-avatar-wrap" id="holo-avatar-btn" title="Tap to change avatar">
+            <img src="icon-512.png" id="holo-profile-img" alt="Profile" class="holo-avatar-img" onerror="this.src='icons/icon-512.png'">
+            <div class="holo-ring"></div>
+            <div class="holo-avatar-edit-badge"><i class="fa-solid fa-camera"></i></div>
+          </div>
+          <div class="holo-profile-meta">
+            <h3 id="holo-profile-name">Anru VIP Listener</h3>
+            <div class="holo-badge"><i class="fa-solid fa-bolt"></i> Hi-Res Studio Master</div>
+            <div class="holo-stats-chip"><i class="fa-solid fa-music"></i> <span id="holo-total-tracks">0 Tracks in Library</span></div>
+          </div>
         </div>
 
+        <!-- Holograph Listening Analytics Section -->
+        <div class="studio-section">
+          <div class="stats-header-row">
+            <h3><i class="fa-solid fa-chart-simple"></i> Listening Analytics</h3>
+            <div class="stats-timeframe-selector">
+              <button class="timeframe-btn active" data-timeframe="week">Week</button>
+              <button class="timeframe-btn" data-timeframe="month">Month</button>
+              <button class="timeframe-btn" data-timeframe="year">Year</button>
+            </div>
+          </div>
+
+          <!-- Holographic Stats Grid -->
+          <div class="holo-stats-grid">
+            <div class="holo-stat-card">
+              <i class="fa-solid fa-headphones holo-stat-icon cyan"></i>
+              <div class="holo-stat-val" id="stat-hours">0.0h</div>
+              <div class="holo-stat-label">Hours Listened</div>
+            </div>
+            <div class="holo-stat-card">
+              <i class="fa-solid fa-play holo-stat-icon pink"></i>
+              <div class="holo-stat-val" id="stat-plays">0</div>
+              <div class="holo-stat-label">Total Plays</div>
+            </div>
+            <div class="holo-stat-card">
+              <i class="fa-solid fa-microphone holo-stat-icon purple"></i>
+              <div class="holo-stat-val" id="stat-top-artist-name">--</div>
+              <div class="holo-stat-label">Top Artist</div>
+            </div>
+          </div>
+
+          <!-- Top 5 Most Played Tracks -->
+          <div class="top-tracks-card glass-card">
+            <h4><i class="fa-solid fa-trophy" style="color:#f59e0b;"></i> Top 5 Most Played</h4>
+            <div class="top-tracks-list" id="stat-top-songs-list">
+              <div class="empty-sub">Play your favorite songs to see top rankings here!</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audio Enhancements Section -->
         <div class="studio-section">
           <h3><i class="fa-solid fa-sliders"></i> Audio Enhancements</h3>
           <div class="studio-tools-grid">
             <button class="studio-tool-card glass-card" id="studio-open-eq-btn">
               <div class="tool-icon-wrap cyan"><i class="fa-solid fa-sliders"></i></div>
               <div class="tool-meta">
-                <h4>5-Band Studio Equalizer</h4>
-                <p>Bass Boost, Rock, Vocal & Dance DSP</p>
+                <h4>7-Band Studio Equalizer</h4>
+                <p>Bass Boost, Visualizer & Studio DSP</p>
               </div>
               <i class="fa-solid fa-chevron-right chevron-ico"></i>
             </button>
@@ -181,6 +232,7 @@
           </div>
         </div>
 
+        <!-- Themes Section -->
         <div class="studio-section">
           <h3><i class="fa-solid fa-palette"></i> Themes</h3>
           <div class="theme-chips-row">
@@ -191,6 +243,7 @@
           </div>
         </div>
 
+        <!-- Audio Engine Info -->
         <div class="studio-section">
           <h3><i class="fa-solid fa-microchip"></i> Offline Audio Engine</h3>
           <div class="dsp-info-card glass-card">
@@ -200,7 +253,7 @@
             </div>
             <div class="dsp-info-row">
               <span>Equalizer</span>
-              <span class="highlight">5-Band Studio DSP + Bass</span>
+              <span class="highlight">7-Band DSP + Live Analyser</span>
             </div>
             <div class="dsp-info-row">
               <span>Storage</span>
@@ -215,6 +268,19 @@
       </section>
 
     </main>
+
+    <!-- Bottom Selection Action Bar (Appears in multi-select mode) -->
+    <div class="selection-action-bar glass-panel hidden" id="selection-action-bar">
+      <div class="sel-count-info">
+        <span id="sel-selected-count">0</span> Selected
+      </div>
+      <div class="sel-bar-actions">
+        <button class="sel-bar-btn" id="sel-select-all-btn">Select All</button>
+        <button class="sel-bar-btn" id="sel-add-playlist-btn"><i class="fa-solid fa-plus"></i> Playlist</button>
+        <button class="sel-bar-btn danger" id="sel-delete-btn"><i class="fa-solid fa-trash-can"></i> Delete</button>
+        <button class="sel-bar-btn cancel" id="sel-cancel-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
 
     <!-- Bottom Sticky Mini Player -->
     <div class="mini-player glass-panel hidden" id="mini-player">
@@ -319,7 +385,7 @@
 
     </div>
 
-    <!-- SPOTIFY-STYLE QUEUE DRAWER -->
+    <!-- SPOTIFY-STYLE QUEUE DRAWER (TOUCH DRAG-AND-DROP REORDER) -->
     <div class="queue-drawer hidden" id="queue-drawer">
       <div class="queue-header">
         <div class="queue-title-wrap">
@@ -335,30 +401,37 @@
       <div class="queue-now-playing-box" id="queue-now-playing">
         <!-- Current track -->
       </div>
-      <div class="queue-section-title">UP NEXT (CUSTOM REORDER)</div>
+      <div class="queue-section-title">UP NEXT (HOLD & DRAG TO REORDER)</div>
       <div class="queue-upcoming-list" id="queue-upcoming-list">
         <!-- Reorderable list -->
       </div>
     </div>
 
-    <!-- 5-BAND STUDIO EQUALIZER MODAL -->
+    <!-- 7-BAND STUDIO EQUALIZER MODAL WITH LIVE SPECTRUM VISUALIZER -->
     <div class="modal-overlay hidden" id="equalizer-modal">
-      <div class="modal-card glass-modal">
+      <div class="modal-card glass-modal eq-card">
         <div class="modal-header">
           <h3><i class="fa-solid fa-sliders"></i> Studio Equalizer</h3>
           <button class="modal-close-btn" id="close-eq-btn"><i class="fa-solid fa-xmark"></i></button>
         </div>
+
+        <!-- Real-Time Audio Visualizer Canvas -->
+        <div class="visualizer-container">
+          <canvas id="eq-visualizer" class="eq-visualizer-canvas" width="340" height="70"></canvas>
+        </div>
         
-        <!-- Presets -->
+        <!-- Studio Presets -->
         <div class="eq-presets-wrap">
           <button class="eq-preset-chip active" data-preset="flat">Flat</button>
           <button class="eq-preset-chip" data-preset="bass_boost">Bass Boost</button>
-          <button class="eq-preset-chip" data-preset="dance">Dance/DJ</button>
-          <button class="eq-preset-chip" data-preset="vocal">Vocal</button>
+          <button class="eq-preset-chip" data-preset="dance">Club/DJ</button>
           <button class="eq-preset-chip" data-preset="rock">Rock</button>
+          <button class="eq-preset-chip" data-preset="vocal">Vocal</button>
+          <button class="eq-preset-chip" data-preset="pop">Pop</button>
+          <button class="eq-preset-chip" data-preset="hiphop">Hip Hop</button>
         </div>
 
-        <!-- 5 Frequency Sliders -->
+        <!-- 7 Responsive Frequency Sliders -->
         <div class="eq-sliders-stage">
           <div class="eq-band-col">
             <span class="eq-gain-val" id="eq-val-0">0dB</span>
@@ -368,22 +441,32 @@
           <div class="eq-band-col">
             <span class="eq-gain-val" id="eq-val-1">0dB</span>
             <input type="range" class="eq-vertical-slider" id="eq-band-1" min="-12" max="12" step="1" value="0">
-            <span class="eq-freq-label">230Hz</span>
+            <span class="eq-freq-label">150Hz</span>
           </div>
           <div class="eq-band-col">
             <span class="eq-gain-val" id="eq-val-2">0dB</span>
             <input type="range" class="eq-vertical-slider" id="eq-band-2" min="-12" max="12" step="1" value="0">
-            <span class="eq-freq-label">910Hz</span>
+            <span class="eq-freq-label">400Hz</span>
           </div>
           <div class="eq-band-col">
             <span class="eq-gain-val" id="eq-val-3">0dB</span>
             <input type="range" class="eq-vertical-slider" id="eq-band-3" min="-12" max="12" step="1" value="0">
-            <span class="eq-freq-label">3.6kHz</span>
+            <span class="eq-freq-label">1kHz</span>
           </div>
           <div class="eq-band-col">
             <span class="eq-gain-val" id="eq-val-4">0dB</span>
             <input type="range" class="eq-vertical-slider" id="eq-band-4" min="-12" max="12" step="1" value="0">
-            <span class="eq-freq-label">14kHz</span>
+            <span class="eq-freq-label">2.5k</span>
+          </div>
+          <div class="eq-band-col">
+            <span class="eq-gain-val" id="eq-val-5">0dB</span>
+            <input type="range" class="eq-vertical-slider" id="eq-band-5" min="-12" max="12" step="1" value="0">
+            <span class="eq-freq-label">6kHz</span>
+          </div>
+          <div class="eq-band-col">
+            <span class="eq-gain-val" id="eq-val-6">0dB</span>
+            <input type="range" class="eq-vertical-slider" id="eq-band-6" min="-12" max="12" step="1" value="0">
+            <span class="eq-freq-label">15kHz</span>
           </div>
         </div>
 
@@ -398,21 +481,39 @@
       </div>
     </div>
 
-    <!-- SLEEP TIMER MODAL -->
+    <!-- SLEEP TIMER MODAL (PRESETS + CUSTOM MINUTE STEPPER) -->
     <div class="modal-overlay hidden" id="sleep-timer-modal">
-      <div class="modal-card glass-modal">
+      <div class="modal-card glass-modal sleep-card">
         <div class="modal-header">
           <h3><i class="fa-solid fa-moon"></i> Sleep Timer</h3>
           <button class="modal-close-btn" id="close-st-btn"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <p class="modal-sub-label" id="sleep-timer-status">Timer is off</p>
+        
+        <!-- Preset Grid -->
         <div class="st-options-grid">
           <button class="st-pill" data-mins="15">15 Minutes</button>
           <button class="st-pill" data-mins="30">30 Minutes</button>
           <button class="st-pill" data-mins="45">45 Minutes</button>
           <button class="st-pill" data-mins="60">1 Hour</button>
-          <button class="st-pill" data-mins="end_of_song">End of Current Track</button>
-          <button class="st-pill turn-off" data-mins="0">Turn Off Timer</button>
+          <button class="st-pill" data-mins="end_of_song">End of Track</button>
+          <button class="st-pill turn-off" data-mins="0">Turn Off</button>
+        </div>
+
+        <!-- Custom Timer Stepper -->
+        <div class="custom-timer-section">
+          <div class="custom-timer-title">Custom Minutes</div>
+          <div class="custom-timer-row">
+            <button class="timer-step-btn" id="timer-dec-btn">-5</button>
+            <div class="timer-input-wrap">
+              <input type="number" id="custom-timer-input" min="1" max="360" value="25">
+              <span>min</span>
+            </div>
+            <button class="timer-step-btn" id="timer-inc-btn">+5</button>
+          </div>
+          <button class="set-custom-timer-btn primary-glow" id="set-custom-timer-btn">
+            <i class="fa-solid fa-clock"></i> Start Custom Timer
+          </button>
         </div>
       </div>
     </div>
@@ -437,12 +538,54 @@
       </div>
     </div>
 
+    <!-- CUSTOM PROMPT MODAL (REPLACES BROWSER PROMPT) -->
+    <div class="modal-overlay hidden" id="custom-prompt-modal">
+      <div class="modal-card glass-modal prompt-card">
+        <h3 id="custom-prompt-title">Create Playlist</h3>
+        <p id="custom-prompt-desc">Enter a name for your playlist</p>
+        <input type="text" id="custom-prompt-input" class="modal-input" placeholder="Playlist Name..." maxlength="40" autocomplete="off">
+        <div class="modal-btn-row">
+          <button class="modal-action-btn cancel" id="custom-prompt-cancel">Cancel</button>
+          <button class="modal-action-btn primary-glow" id="custom-prompt-confirm">Create</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUSTOM CONFIRM DIALOG (REPLACES BROWSER CONFIRM) -->
+    <div class="modal-overlay hidden" id="custom-confirm-modal">
+      <div class="modal-card glass-modal confirm-card">
+        <div class="confirm-icon-wrap" id="custom-confirm-icon"><i class="fa-solid fa-trash-can"></i></div>
+        <h3 id="custom-confirm-title">Are you sure?</h3>
+        <p id="custom-confirm-message">This action cannot be undone.</p>
+        <div class="modal-btn-row">
+          <button class="modal-action-btn cancel" id="custom-confirm-cancel">Cancel</button>
+          <button class="modal-action-btn danger" id="custom-confirm-ok">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUSTOM ADD-TO-PLAYLIST PICKER MODAL -->
+    <div class="modal-overlay hidden" id="custom-playlist-picker-modal">
+      <div class="modal-card glass-modal playlist-picker-card">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-folder-plus"></i> Add to Playlist</h3>
+          <button class="modal-close-btn" id="close-pl-picker-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <button class="create-new-pl-chip" id="picker-create-new-btn">
+          <i class="fa-solid fa-plus"></i> Create New Playlist
+        </button>
+        <div class="playlist-picker-list" id="playlist-picker-list">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- Scripts -->
-  <script src="id3.js?v=15.1"></script>
-  <script src="db.js?v=15.1"></script>
-  <script src="player.js?v=15.1"></script>
-  <script src="app.js?v=15.1"></script>
+  <!-- Master Offline Scripts -->
+  <script src="id3.js?v=16.0"></script>
+  <script src="db.js?v=16.0"></script>
+  <script src="player.js?v=16.0"></script>
+  <script src="app.js?v=16.0"></script>
 </body>
 </html>

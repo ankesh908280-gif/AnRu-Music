@@ -1,19 +1,19 @@
 /**
- * ANRU MUSIC - PERSISTENT OFFLINE STORAGE ENGINE (db.js)
- * IndexedDB storage for songs, audio Blobs, custom playlists & studio settings.
- * Retains all files permanently so songs are never lost on reload.
- * Includes graceful memory fallback if IndexedDB is sandboxed or denied.
+ * ANRU MUSIC STUDIO PRO v16 - PERSISTENT OFFLINE STORAGE ENGINE (db.js)
+ * IndexedDB storage for songs, audio blobs, custom playlists, listening history, and user profile.
+ * Retains all files permanently. Works 100% offline.
  */
 
 class MusicDatabase {
   constructor() {
     this.dbName = 'AnruLocalMusicDB';
-    this.dbVersion = 1;
+    this.dbVersion = 2; // Incremented for playHistory & analytics
     this.db = null;
     this.mem = {
       songs: [],
       playlists: [],
       favorites: new Set(),
+      playHistory: [],
       settings: {}
     };
     this.initPromise = this.init();
@@ -23,7 +23,7 @@ class MusicDatabase {
     return new Promise((resolve) => {
       try {
         if (!window.indexedDB) {
-          console.warn('IndexedDB not supported, using memory fallback.');
+          console.warn('[Anru DB] IndexedDB not supported, using memory fallback.');
           resolve(null);
           return;
         }
@@ -44,6 +44,12 @@ class MusicDatabase {
           if (!db.objectStoreNames.contains('favorites')) {
             db.createObjectStore('favorites', { keyPath: 'id' });
           }
+          if (!db.objectStoreNames.contains('playHistory')) {
+            const histStore = db.createObjectStore('playHistory', { keyPath: 'id', autoIncrement: true });
+            histStore.createIndex('timestamp', 'timestamp', { unique: false });
+            histStore.createIndex('songId', 'songId', { unique: false });
+            histStore.createIndex('artist', 'artist', { unique: false });
+          }
           if (!db.objectStoreNames.contains('settings')) {
             db.createObjectStore('settings', { keyPath: 'key' });
           }
@@ -51,7 +57,7 @@ class MusicDatabase {
 
         request.onsuccess = (e) => {
           this.db = e.target.result;
-          console.log('[Anru DB] IndexedDB Persistent Storage Ready ⚡');
+          console.log('[Anru DB] IndexedDB Storage Ready v16 ⚡');
           resolve(this.db);
         };
 
@@ -66,6 +72,37 @@ class MusicDatabase {
     });
   }
 
+  /**
+   * Check if a song already exists in the database to prevent duplicates.
+   */
+  async findDuplicate(meta, fileSize = 0, fileName = '') {
+    await this.initPromise;
+    const songs = await this.getAllSongs();
+    const cleanTitle = (meta.title || '').toLowerCase().trim();
+    const cleanArtist = (meta.artist || '').toLowerCase().trim();
+    const cleanFilename = (fileName || '').toLowerCase().trim();
+
+    return songs.find(s => {
+      const sTitle = (s.title || '').toLowerCase().trim();
+      const sArtist = (s.artist || '').toLowerCase().trim();
+      const sName = (s.fileName || '').toLowerCase().trim();
+
+      // Check by title and artist match
+      if (cleanTitle && sTitle === cleanTitle && cleanArtist !== 'local artist' && sArtist === cleanArtist) {
+        return true;
+      }
+      // Check by exact file size match AND filename match
+      if (fileSize > 0 && s.fileSize === fileSize && (cleanFilename && sName === cleanFilename)) {
+        return true;
+      }
+      // Check by identical title and same file size
+      if (cleanTitle && sTitle === cleanTitle && fileSize > 0 && s.fileSize === fileSize) {
+        return true;
+      }
+      return false;
+    });
+  }
+
   async saveSong(songData) {
     await this.initPromise;
     const record = {
@@ -76,8 +113,9 @@ class MusicDatabase {
       duration: songData.duration || 0,
       artwork: songData.artwork || 'icon-512.png',
       audioBlob: songData.audioBlob,
-      dateAdded: Date.now(),
-      fileSize: songData.fileSize || (songData.audioBlob ? songData.audioBlob.size : 0)
+      dateAdded: songData.dateAdded || Date.now(),
+      fileSize: songData.fileSize || (songData.audioBlob ? songData.audioBlob.size : 0),
+      fileName: songData.fileName || ''
     };
 
     if (!this.db) {
@@ -120,6 +158,9 @@ class MusicDatabase {
     if (!this.db) {
       this.mem.songs = this.mem.songs.filter(s => s.id !== id);
       this.mem.favorites.delete(id);
+      this.mem.playlists.forEach(pl => {
+        pl.songIds = pl.songIds.filter(sid => sid !== id);
+      });
       return true;
     }
 
@@ -127,6 +168,30 @@ class MusicDatabase {
       const tx = this.db.transaction(['songs', 'favorites'], 'readwrite');
       tx.objectStore('songs').delete(id);
       tx.objectStore('favorites').delete(id);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    });
+  }
+
+  async deleteMultipleSongs(ids) {
+    await this.initPromise;
+    if (!ids || ids.length === 0) return true;
+
+    if (!this.db) {
+      const idSet = new Set(ids);
+      this.mem.songs = this.mem.songs.filter(s => !idSet.has(s.id));
+      ids.forEach(id => this.mem.favorites.delete(id));
+      return true;
+    }
+
+    return new Promise((resolve) => {
+      const tx = this.db.transaction(['songs', 'favorites'], 'readwrite');
+      const songStore = tx.objectStore('songs');
+      const favStore = tx.objectStore('favorites');
+      ids.forEach(id => {
+        songStore.delete(id);
+        favStore.delete(id);
+      });
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => resolve(false);
     });
@@ -300,6 +365,106 @@ class MusicDatabase {
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => resolve(false);
     });
+  }
+
+  // ==========================================
+  // LISTENING HISTORY & HOLOGRAPHIC ANALYTICS
+  // ==========================================
+
+  async logPlayEvent(song, secondsListened = 30) {
+    if (!song) return;
+    await this.initPromise;
+    const event = {
+      songId: song.id,
+      title: song.title,
+      artist: song.artist,
+      duration: secondsListened,
+      timestamp: Date.now()
+    };
+
+    if (!this.db) {
+      this.mem.playHistory.push(event);
+      return;
+    }
+
+    try {
+      const tx = this.db.transaction(['playHistory'], 'readwrite');
+      tx.objectStore('playHistory').add(event);
+    } catch (e) {
+      console.warn('[Anru DB] Error logging play event', e);
+    }
+  }
+
+  async getListeningStats(timeframe = 'week') {
+    await this.initPromise;
+    let events = [];
+
+    if (!this.db) {
+      events = [...this.mem.playHistory];
+    } else {
+      events = await new Promise((resolve) => {
+        const tx = this.db.transaction(['playHistory'], 'readonly');
+        const store = tx.objectStore('playHistory');
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => resolve([]);
+      });
+    }
+
+    // Filter by timeframe
+    const now = Date.now();
+    let cutoff = 0;
+    if (timeframe === 'week') {
+      cutoff = now - (7 * 24 * 60 * 60 * 1000);
+    } else if (timeframe === 'month') {
+      cutoff = now - (30 * 24 * 60 * 60 * 1000);
+    } else { // 'year' / all time
+      cutoff = now - (365 * 24 * 60 * 60 * 1000);
+    }
+
+    const filtered = events.filter(e => (e.timestamp || 0) >= cutoff);
+
+    let totalSeconds = 0;
+    const songCountMap = {};
+    const artistCountMap = {};
+
+    filtered.forEach(e => {
+      totalSeconds += (e.duration || 30);
+      const sKey = e.songId || e.title;
+      if (!songCountMap[sKey]) {
+        songCountMap[sKey] = {
+          songId: e.songId,
+          title: e.title,
+          artist: e.artist,
+          count: 0
+        };
+      }
+      songCountMap[sKey].count++;
+
+      const aKey = (e.artist || 'Local Artist').trim();
+      artistCountMap[aKey] = (artistCountMap[aKey] || 0) + 1;
+    });
+
+    const topSongs = Object.values(songCountMap)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    const topArtists = Object.entries(artistCountMap)
+      .map(([artist, count]) => ({ artist, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    const totalHours = (totalSeconds / 3600).toFixed(1);
+    const totalMinutes = Math.round(totalSeconds / 60);
+
+    return {
+      timeframe,
+      totalHours,
+      totalMinutes,
+      totalPlays: filtered.length,
+      topSongs,
+      topArtists
+    };
   }
 
   async getSetting(key, defaultVal = null) {
