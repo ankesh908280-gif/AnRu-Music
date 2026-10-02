@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f0c29">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Anru Music - Pro Studio & Offline Player</title>
+  
+  <!-- Manifest & Favicon -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icons/icon-512.png">
+  <link rel="apple-touch-icon" href="icons/icon-512.png">
+
+  <!-- Google Fonts: Outfit (Anru Focus Typography) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome 6 (Premium Icons - No Emojis) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-aurora">
+  
+  <!-- Ambient Background Glowing Orbs (Anru Focus System) -->
+  <div class="ambient-orb orb-1"></div>
+  <div class="ambient-orb orb-2"></div>
+  <div class="ambient-orb orb-3"></div>
+
+  <!-- Main App Shell -->
+  <div class="app-container">
+
+    <!-- Top Glass Header -->
+    <header class="app-header glass-panel">
+      <div class="header-brand" id="brand-home-btn">
+        <div class="logo-box">
+          <img src="icons/icon-512.png" alt="AR Logo" class="brand-logo-img" id="app-brand-logo">
+        </div>
+        <div class="brand-text-col">
+          <span class="brand-title">Anru Music</span>
+          <span class="brand-badge">STUDIO PRO</span>
+        </div>
+      </div>
+
+      <div class="header-right-actions">
+        <!-- Theme Switcher -->
+        <button class="glass-icon-btn" id="theme-toggle-btn" title="Change Theme">
+          <i class="fa-solid fa-palette"></i>
+        </button>
+
+        <!-- Network Connectivity Status -->
+        <div class="network-badge online" id="network-status" title="Connection Mode">
+          <i class="fa-solid fa-wifi status-icon"></i>
+          <span class="status-text">Online</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Theme Palette Dropdown Modal -->
+    <div class="theme-dropdown hidden" id="theme-dropdown">
+      <div class="theme-dropdown-title">Select Color Theme</div>
+      <div class="theme-options-grid">
+        <button class="theme-opt active" data-theme="theme-aurora">
+          <span class="theme-swatch aurora"></span>
+          <span>Aurora Purple</span>
+        </button>
+        <button class="theme-opt" data-theme="theme-cyber">
+          <span class="theme-swatch cyber"></span>
+          <span>Cyber Neon</span>
+        </button>
+        <button class="theme-opt" data-theme="theme-ocean">
+          <span class="theme-swatch ocean"></span>
+          <span>Ocean Blue</span>
+        </button>
+        <button class="theme-opt" data-theme="theme-matrix">
+          <span class="theme-swatch matrix"></span>
+          <span>Matrix Green</span>
+        </button>
+        <button class="theme-opt" data-theme="theme-sunset">
+          <span class="theme-swatch sunset"></span>
+          <span>Sunset Gold</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Modern Search Area -->
+    <section class="search-section">
+      <div class="search-bar-wrapper glass-card">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input 
+          type="text" 
+          id="search-input" 
+          placeholder="Search Bhojpuri, Bollywood, Punjabi, Artists..." 
+          autocomplete="off"
+        >
+        <button id="clear-search-btn" class="clear-btn hidden" aria-label="Clear Search">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Premium Category Chips (Strictly FontAwesome, No Emojis) -->
+      <div class="category-chips" id="category-chips">
+        <button class="chip active" data-query="trending">
+          <i class="fa-solid fa-fire-flame-curved"></i>
+          <span>Trending</span>
+        </button>
+        <button class="chip" data-query="bhojpuri top hits">
+          <i class="fa-solid fa-guitar"></i>
+          <span>Bhojpuri Hits</span>
+        </button>
+        <button class="chip" data-query="bollywood latest">
+          <i class="fa-solid fa-film"></i>
+          <span>Bollywood</span>
+        </button>
+        <button class="chip" data-query="punjabi hits">
+          <i class="fa-solid fa-bolt-lightning"></i>
+          <span>Punjabi Beats</span>
+        </button>
+        <button class="chip" data-query="arijit singh">
+          <i class="fa-solid fa-microphone-lines"></i>
+          <span>Arijit Singh</span>
+        </button>
+        <button class="chip" data-query="pawan singh">
+          <i class="fa-solid fa-music"></i>
+          <span>Pawan Singh</span>
+        </button>
+        <button class="chip" data-query="khesari lal yadav">
+          <i class="fa-solid fa-compact-disc"></i>
+          <span>Khesari Lal</span>
+        </button>
+        <button class="chip" data-query="lofi hindi chill">
+          <i class="fa-solid fa-headphones-simple"></i>
+          <span>Lo-Fi Chill</span>
+        </button>
+        <button class="chip" data-query="romantic hindi hits">
+          <i class="fa-solid fa-heart"></i>
+          <span>Romantic</span>
+        </button>
+        <button class="chip" data-query="party dance hindi">
+          <i class="fa-solid fa-sliders"></i>
+          <span>Party DJ</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Main Views Controller -->
+    <main class="main-content" id="main-content">
+      
+      <!-- VIEW 1: HOME -->
+      <div class="tab-view active" id="view-home">
+        
+        <!-- Glass Hero Card -->
+        <div class="hero-card glass-panel">
+          <div class="hero-content">
+            <span class="hero-tag"><i class="fa-solid fa-sparkles"></i> High Fidelity Audio</span>
+            <h2>Unlimited Music & Offline Studio</h2>
+            <p>Stream regional & global hits, or download for 100% offline playback without internet.</p>
+          </div>
+          <button class="hero-action-btn" id="hero-explore-btn">
+            <i class="fa-solid fa-circle-play"></i>
+            <span>Explore Trends</span>
+          </button>
+        </div>
+
+        <!-- Section: Bhojpuri Superhits -->
+        <div class="section-container">
+          <div class="section-header">
+            <div class="section-title-wrap">
+              <i class="fa-solid fa-guitar section-icon"></i>
+              <h3>Bhojpuri Superhits</h3>
+            </div>
+            <span class="section-see-all" data-tag="bhojpuri superhit">See All <i class="fa-solid fa-angle-right"></i></span>
+          </div>
+          <div class="horizontal-scroll" id="home-bhojpuri-cards">
+            <!-- Dynamic Cards -->
+          </div>
+        </div>
+
+        <!-- Section: Bollywood Trending -->
+        <div class="section-container">
+          <div class="section-header">
+            <div class="section-title-wrap">
+              <i class="fa-solid fa-film section-icon"></i>
+              <h3>Bollywood Top Charts</h3>
+            </div>
+            <span class="section-see-all" data-tag="bollywood trending">See All <i class="fa-solid fa-angle-right"></i></span>
+          </div>
+          <div class="horizontal-scroll" id="home-bollywood-cards">
+            <!-- Dynamic Cards -->
+          </div>
+        </div>
+
+        <!-- Section: Punjabi Hits -->
+        <div class="section-container">
+          <div class="section-header">
+            <div class="section-title-wrap">
+              <i class="fa-solid fa-bolt-lightning section-icon"></i>
+              <h3>Punjabi Club Beats</h3>
+            </div>
+            <span class="section-see-all" data-tag="punjabi hits">See All <i class="fa-solid fa-angle-right"></i></span>
+          </div>
+          <div class="horizontal-scroll" id="home-punjabi-cards">
+            <!-- Dynamic Cards -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- VIEW 2: SEARCH RESULTS -->
+      <div class="tab-view" id="view-search">
+        <div class="results-header glass-card">
+          <div class="results-meta">
+            <h3 id="search-results-title">Search Results</h3>
+            <span id="results-count" class="count-pill">0 Tracks</span>
+          </div>
+          <span class="source-pill" id="search-source-pill">Direct Stream</span>
+        </div>
+
+        <!-- Loader -->
+        <div class="loader-box hidden" id="search-loader">
+          <div class="neon-spinner"></div>
+          <p>Scanning high-speed audio mirrors...</p>
+        </div>
+
+        <!-- Songs List -->
+        <div class="songs-list" id="search-songs-list">
+          <div class="empty-state">
+            <i class="fa-solid fa-music empty-icon"></i>
+            <h4>Find Any Song or Artist</h4>
+            <p>Type above to instantly stream and download in 320kbps HD.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 3: DOWNLOADS (OFFLINE) -->
+      <div class="tab-view" id="view-downloads">
+        <div class="library-header glass-panel">
+          <div class="library-meta">
+            <div class="library-title-row">
+              <i class="fa-solid fa-circle-down header-ico"></i>
+              <h3>Offline Downloads</h3>
+            </div>
+            <p class="library-sub">Bina internet ke sunne ke liye save kiye gaye gaane</p>
+          </div>
+          <button class="glow-pill-btn" id="play-all-downloads-btn">
+            <i class="fa-solid fa-play"></i>
+            <span>Play All</span>
+          </button>
+        </div>
+
+        <div class="storage-glass-bar">
+          <div class="bar-item">
+            <i class="fa-solid fa-hard-drive"></i>
+            <span id="download-count-badge">0 tracks saved</span>
+          </div>
+          <span class="offline-verified-tag">
+            <i class="fa-solid fa-circle-check"></i> 100% Offline Ready
+          </span>
+        </div>
+
+        <div class="songs-list" id="downloaded-songs-list">
+          <div class="empty-state">
+            <i class="fa-solid fa-arrow-down-to-bracket empty-icon"></i>
+            <h4>Koi song download nahi hai</h4>
+            <p>Kisi bhi song ke download icon par click karein aur yahan offline sunein.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 4: LIKED SONGS -->
+      <div class="tab-view" id="view-favorites">
+        <div class="library-header glass-panel">
+          <div class="library-meta">
+            <div class="library-title-row">
+              <i class="fa-solid fa-heart header-ico red"></i>
+              <h3>Favorites & Liked</h3>
+            </div>
+            <p class="library-sub">Aapke sabhi pasandeeda tracks</p>
+          </div>
+          <button class="glow-pill-btn" id="play-all-favorites-btn">
+            <i class="fa-solid fa-play"></i>
+            <span>Play All</span>
+          </button>
+        </div>
+
+        <div class="songs-list" id="favorite-songs-list">
+          <div class="empty-state">
+            <i class="fa-regular fa-heart empty-icon"></i>
+            <h4>Abhi tak koi favorite nahi hai</h4>
+            <p>Gaane pasand aane par Heart icon dabayein.</p>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Sticky Bottom Glass Mini Player -->
+    <div class="mini-player glass-panel hidden" id="mini-player">
+      <div class="mini-progress-track">
+        <div class="mini-progress-fill" id="mini-progress-fill"></div>
+      </div>
+
+      <div class="mini-player-content" id="mini-player-content">
+        <div class="mini-art-box">
+          <img src="icons/icon-512.png" alt="Track Art" class="mini-thumb" id="mini-thumb">
+          <div class="mini-playing-indicator" id="mini-equalizer">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="mini-info">
+          <div class="mini-title" id="mini-title">Select a Song</div>
+          <div class="mini-artist" id="mini-artist">Artist</div>
+        </div>
+
+        <div class="mini-actions">
+          <button class="mini-action-btn" id="mini-like-btn" aria-label="Favorite">
+            <i class="fa-regular fa-heart"></i>
+          </button>
+
+          <button class="mini-action-btn play-circle" id="mini-play-btn" aria-label="Play/Pause">
+            <i class="fa-solid fa-play" id="mini-play-icon"></i>
+          </button>
+
+          <button class="mini-action-btn" id="mini-next-btn" aria-label="Next">
+            <i class="fa-solid fa-forward-step"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fullscreen Studio Player Modal (Sliding Up) -->
+    <div class="fullscreen-player hidden" id="fullscreen-player">
+      
+      <!-- Top Modal Navigation -->
+      <div class="fs-header">
+        <button class="fs-nav-btn" id="fs-close-btn" aria-label="Minimize">
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="fs-title-col">
+          <span class="fs-header-label">PLAYING FROM STUDIO</span>
+          <span class="fs-album-sub" id="fs-header-album">Anru Music</span>
+        </div>
+        <div class="fs-quality-tag" id="fs-audio-badge">
+          <i class="fa-solid fa-wave-square"></i> HD 320K
+        </div>
+      </div>
+
+      <!-- Vinyl & Artwork Showcase -->
+      <div class="fs-art-wrapper">
+        <div class="vinyl-disc-glow" id="vinyl-glow"></div>
+        <div class="fs-artwork-card glass-panel" id="artwork-wrapper">
+          <img src="icons/icon-512.png" alt="Artwork" class="fs-artwork" id="fs-artwork">
+        </div>
+      </div>
+
+      <!-- Song Meta & Quick Actions -->
+      <div class="fs-meta-block">
+        <div class="fs-text-group">
+          <h2 class="fs-title" id="fs-title">Song Title</h2>
+          <p class="fs-artist" id="fs-artist">Artist Name</p>
+        </div>
+        <div class="fs-side-actions">
+          <button class="fs-act-btn" id="fs-like-btn" title="Add to Favorites">
+            <i class="fa-regular fa-heart"></i>
+          </button>
+          <button class="fs-act-btn" id="fs-download-btn" title="Save Offline">
+            <i class="fa-solid fa-arrow-down-to-bracket"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Seek Bar -->
+      <div class="fs-timeline">
+        <input type="range" class="fs-slider" id="fs-seek-slider" min="0" max="100" value="0">
+        <div class="fs-time-stamps">
+          <span id="fs-curr-time">0:00</span>
+          <span id="fs-duration">0:00</span>
+        </div>
+      </div>
+
+      <!-- Master Audio Controls -->
+      <div class="fs-controls-master">
+        <button class="fs-ctrl-btn" id="fs-shuffle-btn" title="Shuffle">
+          <i class="fa-solid fa-shuffle"></i>
+        </button>
+
+        <button class="fs-ctrl-btn" id="fs-prev-btn" title="Previous Track">
+          <i class="fa-solid fa-backward-step"></i>
+        </button>
+
+        <button class="fs-master-play-btn" id="fs-play-btn" title="Play / Pause">
+          <i class="fa-solid fa-play" id="fs-play-icon"></i>
+        </button>
+
+        <button class="fs-ctrl-btn" id="fs-next-btn" title="Next Track">
+          <i class="fa-solid fa-forward-step"></i>
+        </button>
+
+        <button class="fs-ctrl-btn" id="fs-repeat-btn" title="Repeat Track">
+          <i class="fa-solid fa-repeat"></i>
+        </button>
+      </div>
+
+      <!-- Volume Bar -->
+      <div class="fs-volume-wrap">
+        <i class="fa-solid fa-volume-low vol-ico"></i>
+        <input type="range" class="fs-vol-slider" id="fs-vol-slider" min="0" max="1" step="0.05" value="1">
+        <i class="fa-solid fa-volume-high vol-ico"></i>
+      </div>
+
+    </div>
+
+    <!-- Fixed Bottom Glass Navigation Bar -->
+    <nav class="bottom-nav glass-panel">
+      <button class="nav-tab active" data-tab="home" id="nav-home">
+        <i class="fa-solid fa-house"></i>
+        <span>Home</span>
+      </button>
+
+      <button class="nav-tab" data-tab="search" id="nav-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span>Search</span>
+      </button>
+
+      <button class="nav-tab" data-tab="downloads" id="nav-downloads">
+        <div class="nav-badge-box">
+          <i class="fa-solid fa-circle-down"></i>
+          <span class="nav-count-badge hidden" id="downloads-badge">0</span>
+        </div>
+        <span>Offline</span>
+      </button>
+
+      <button class="nav-tab" data-tab="favorites" id="nav-favorites">
+        <i class="fa-solid fa-heart"></i>
+        <span>Liked</span>
+      </button>
+    </nav>
+
+    <!-- Floating Toast Notification -->
+    <div class="toast-card glass-panel hidden" id="toast-notification">
+      <i class="fa-solid fa-circle-info toast-icon"></i>
+      <span class="toast-text">Message</span>
+    </div>
+
+    <!-- Hidden Native Audio Engine -->
+    <audio id="main-audio" preload="metadata"></audio>
+
+  </div>
+
+  <!-- Application Script -->
+  <script src="app.js"></script>
+</body>
+</html>
