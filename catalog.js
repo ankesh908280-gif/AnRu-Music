@@ -11,15 +11,26 @@ const CURATED_FULL_CATALOG = [
     "category": "bhojpuri",
     "tags": [
       "bhojpuri",
-      "pawan singh",
-      "lollipop",
+      "bhojpuri hits",
       "dance",
+      "desi",
+      "energize",
+      "hits",
+      "lollipop",
+      "party",
+      "pawan singh",
       "trending",
-      "hits"
+      "upbeat"
     ],
     "image": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    "moodTags": [
+      "energize",
+      "party",
+      "trending",
+      "workout"
+    ]
   },
   {
     "id": "bhojpuri-2",
@@ -29,16 +40,28 @@ const CURATED_FULL_CATALOG = [
     "duration": 210,
     "category": "bhojpuri",
     "tags": [
+      "anupama",
       "bhojpuri",
+      "bhojpuri hits",
+      "dance",
+      "desi",
+      "energize",
+      "hits",
+      "party",
       "pawan singh",
       "pudina",
-      "anupama",
       "trending",
-      "hits"
+      "upbeat"
     ],
     "image": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    "moodTags": [
+      "energize",
+      "party",
+      "trending",
+      "workout"
+    ]
   },
   {
     "id": "bhojpuri-3",
@@ -49,13 +72,25 @@ const CURATED_FULL_CATALOG = [
     "category": "bhojpuri",
     "tags": [
       "bhojpuri",
-      "pawan singh",
+      "bhojpuri hits",
+      "dance",
+      "desi",
+      "energize",
       "hari hari",
-      "trending"
+      "party",
+      "pawan singh",
+      "trending",
+      "upbeat"
     ],
     "image": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    "moodTags": [
+      "energize",
+      "party",
+      "trending",
+      "workout"
+    ]
   },
   {
     "id": "bhojpuri-4",
@@ -66,15 +101,27 @@ const CURATED_FULL_CATALOG = [
     "category": "bhojpuri",
     "tags": [
       "bhojpuri",
+      "bhojpuri hits",
+      "dance",
+      "desi",
+      "energize",
+      "hits",
       "khesari",
       "khesari lal",
+      "party",
       "shilpi raj",
       "trending",
-      "hits"
+      "upbeat"
     ],
     "image": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+    "moodTags": [
+      "energize",
+      "party",
+      "trending",
+      "workout"
+    ]
   },
   {
     "id": "bhojpuri-5",
@@ -85,13 +132,25 @@ const CURATED_FULL_CATALOG = [
     "category": "bhojpuri",
     "tags": [
       "bhojpuri",
+      "bhojpuri hits",
+      "dance",
+      "desi",
+      "energize",
       "khesari",
       "nathuniya",
-      "trending"
+      "party",
+      "trending",
+      "upbeat"
     ],
     "image": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+    "moodTags": [
+      "energize",
+      "party",
+      "trending",
+      "workout"
+    ]
   },
   {
     "id": "bhojpuri-6",
@@ -102,13 +161,25 @@ const CURATED_FULL_CATALOG = [
     "category": "bhojpuri",
     "tags": [
       "bhojpuri",
-      "shilpi raj",
+      "bhojpuri hits",
+      "dance",
+      "desi",
+      "energize",
+      "party",
       "raja ji",
-      "dance"
+      "shilpi raj",
+      "trending",
+      "upbeat"
     ],
     "image": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
+    "moodTags": [
+      "energize",
+      "party",
+      "trending",
+      "workout"
+    ]
   },
   {
     "id": "bhojpuri-7",
@@ -119,13 +190,26 @@ const CURATED_FULL_CATALOG = [
     "category": "bhojpuri",
     "tags": [
       "bhojpuri",
-      "pawan singh",
+      "bhojpuri hits",
+      "dance",
+      "desi",
+      "energize",
+      "hits",
       "kamariya",
-      "hits"
+      "party",
+      "pawan singh",
+      "trending",
+      "upbeat"
     ],
     "image": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3",
+    "moodTags": [
+      "energize",
+      "party",
+      "trending",
+      "workout"
+    ]
   },
   {
     "id": "bhojpuri-8",
@@ -135,13 +219,26 @@ const CURATED_FULL_CATALOG = [
     "duration": 240,
     "category": "bhojpuri",
     "tags": [
+      "bangliniya",
       "bhojpuri",
+      "bhojpuri hits",
+      "dance",
+      "desi",
+      "energize",
       "khesari",
-      "bangliniya"
+      "party",
+      "trending",
+      "upbeat"
     ],
     "image": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3",
+    "moodTags": [
+      "energize",
+      "party",
+      "trending",
+      "workout"
+    ]
   },
   {
     "id": "bhojpuri-9",
@@ -152,14 +249,26 @@ const CURATED_FULL_CATALOG = [
     "category": "bhojpuri",
     "tags": [
       "bhojpuri",
-      "pawan singh",
+      "bhojpuri hits",
       "chhalakata",
+      "dance",
+      "desi",
+      "energize",
       "hits",
-      "trending"
+      "party",
+      "pawan singh",
+      "trending",
+      "upbeat"
     ],
     "image": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    "moodTags": [
+      "energize",
+      "party",
+      "trending",
+      "workout"
+    ]
   },
   {
     "id": "bhojpuri-10",
@@ -170,14 +279,26 @@ const CURATED_FULL_CATALOG = [
     "category": "bhojpuri",
     "tags": [
       "bhojpuri",
+      "bhojpuri hits",
+      "dance",
+      "desi",
+      "energize",
       "khesari",
-      "shilpi raj",
       "lalka",
-      "trending"
+      "party",
+      "shilpi raj",
+      "trending",
+      "upbeat"
     ],
     "image": "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    "moodTags": [
+      "energize",
+      "party",
+      "trending",
+      "workout"
+    ]
   },
   {
     "id": "bollywood-1",
@@ -187,18 +308,28 @@ const CURATED_FULL_CATALOG = [
     "duration": 268,
     "category": "bollywood",
     "tags": [
-      "trending",
+      "arijit",
+      "arijit singh",
+      "bollywood",
+      "bollywood latest",
+      "chill",
       "hindi",
       "hits",
-      "bollywood",
-      "arijit singh",
       "kesariya",
+      "lofi",
       "love",
-      "romance"
+      "relax",
+      "romance",
+      "soft",
+      "trending"
     ],
     "image": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3",
+    "moodTags": [
+      "relax",
+      "romance"
+    ]
   },
   {
     "id": "bollywood-2",
@@ -208,17 +339,28 @@ const CURATED_FULL_CATALOG = [
     "duration": 261,
     "category": "bollywood",
     "tags": [
-      "trending",
+      "apna bana le",
+      "arijit",
+      "arijit singh",
+      "bollywood",
+      "bollywood latest",
+      "chill",
       "hindi",
       "hits",
-      "bollywood",
-      "arijit singh",
-      "apna bana le",
-      "love"
+      "lofi",
+      "love",
+      "relax",
+      "romance",
+      "soft",
+      "trending"
     ],
     "image": "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
+    "moodTags": [
+      "relax",
+      "romance"
+    ]
   },
   {
     "id": "bollywood-3",
@@ -228,17 +370,29 @@ const CURATED_FULL_CATALOG = [
     "duration": 200,
     "category": "bollywood",
     "tags": [
-      "trending",
+      "arijit",
+      "arijit singh",
+      "bollywood",
+      "bollywood latest",
+      "chaleya",
+      "chill",
       "hindi",
       "hits",
-      "bollywood",
-      "chaleya",
-      "arijit singh",
-      "srk"
+      "lofi",
+      "love",
+      "relax",
+      "romance",
+      "soft",
+      "srk",
+      "trending"
     ],
     "image": "https://images.unsplash.com/photo-1520523839898-507121c888d3?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1520523839898-507121c888d3?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
+    "moodTags": [
+      "relax",
+      "romance"
+    ]
   },
   {
     "id": "bollywood-4",
@@ -248,18 +402,29 @@ const CURATED_FULL_CATALOG = [
     "duration": 262,
     "category": "bollywood",
     "tags": [
-      "trending",
+      "arijit",
+      "arijit singh",
+      "bollywood",
+      "bollywood latest",
+      "chill",
       "hindi",
       "hits",
-      "bollywood",
-      "tum hi ho",
-      "arijit singh",
+      "lofi",
+      "love",
+      "relax",
+      "romance",
       "sad",
-      "love"
+      "soft",
+      "trending",
+      "tum hi ho"
     ],
     "image": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3",
+    "moodTags": [
+      "relax",
+      "romance"
+    ]
   },
   {
     "id": "bollywood-5",
@@ -269,17 +434,28 @@ const CURATED_FULL_CATALOG = [
     "duration": 230,
     "category": "bollywood",
     "tags": [
-      "trending",
+      "arijit",
+      "bollywood",
+      "bollywood latest",
+      "chill",
       "hindi",
       "hits",
-      "bollywood",
       "jubin nautiyal",
+      "lofi",
+      "love",
       "raataan lambiyan",
-      "love"
+      "relax",
+      "romance",
+      "soft",
+      "trending"
     ],
     "image": "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3",
+    "moodTags": [
+      "relax",
+      "romance"
+    ]
   },
   {
     "id": "bollywood-6",
@@ -289,17 +465,25 @@ const CURATED_FULL_CATALOG = [
     "duration": 250,
     "category": "bollywood",
     "tags": [
-      "trending",
+      "animal",
+      "bollywood",
+      "bollywood latest",
+      "dance",
+      "energize",
       "hindi",
       "hits",
-      "bollywood",
-      "animal",
-      "vishal mishra",
-      "pehle bhi main"
+      "party",
+      "pehle bhi main",
+      "trending",
+      "vishal mishra"
     ],
     "image": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    "moodTags": [
+      "energize",
+      "party"
+    ]
   },
   {
     "id": "bollywood-7",
@@ -309,17 +493,25 @@ const CURATED_FULL_CATALOG = [
     "duration": 235,
     "category": "bollywood",
     "tags": [
-      "trending",
+      "arijit singh",
+      "bollywood",
+      "bollywood latest",
+      "dance",
+      "dunki",
+      "energize",
       "hindi",
       "hits",
-      "bollywood",
-      "arijit singh",
-      "dunki",
-      "o maahi"
+      "o maahi",
+      "party",
+      "trending"
     ],
     "image": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+    "moodTags": [
+      "energize",
+      "party"
+    ]
   },
   {
     "id": "bollywood-8",
@@ -329,17 +521,24 @@ const CURATED_FULL_CATALOG = [
     "duration": 190,
     "category": "bollywood",
     "tags": [
-      "trending",
+      "bollywood",
+      "bollywood latest",
+      "dance",
+      "energize",
       "hindi",
       "hits",
-      "bollywood",
+      "party",
+      "romance",
       "tere vaaste",
-      "dance",
-      "romance"
+      "trending"
     ],
     "image": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+    "moodTags": [
+      "energize",
+      "party"
+    ]
   },
   {
     "id": "bollywood-9",
@@ -349,17 +548,25 @@ const CURATED_FULL_CATALOG = [
     "duration": 195,
     "category": "bollywood",
     "tags": [
-      "trending",
+      "arijit singh",
+      "bollywood",
+      "bollywood latest",
+      "dance",
+      "energize",
+      "heeriye",
       "hindi",
       "hits",
-      "bollywood",
-      "arijit singh",
-      "heeriye",
-      "love"
+      "love",
+      "party",
+      "trending"
     ],
     "image": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
+    "moodTags": [
+      "energize",
+      "party"
+    ]
   },
   {
     "id": "bollywood-10",
@@ -369,16 +576,24 @@ const CURATED_FULL_CATALOG = [
     "duration": 228,
     "category": "bollywood",
     "tags": [
-      "trending",
+      "bollywood",
+      "bollywood latest",
+      "dance",
+      "energize",
       "hindi",
       "hits",
-      "bollywood",
       "jubin nautiyal",
-      "lut gaye"
+      "lut gaye",
+      "party",
+      "trending"
     ],
     "image": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3",
+    "moodTags": [
+      "energize",
+      "party"
+    ]
   },
   {
     "id": "punjabi-1",
@@ -388,16 +603,28 @@ const CURATED_FULL_CATALOG = [
     "duration": 155,
     "category": "punjabi",
     "tags": [
+      "club",
+      "energize",
+      "gym",
+      "hits",
+      "karan aujla",
+      "party",
       "punjabi",
       "punjabi beats",
-      "karan aujla",
       "softly",
+      "swag",
       "trending",
-      "hits"
+      "workout"
     ],
     "image": "https://images.unsplash.com/photo-1526478806334-5fd488fcaabc?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1526478806334-5fd488fcaabc?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3",
+    "moodTags": [
+      "energize",
+      "party",
+      "trending",
+      "workout"
+    ]
   },
   {
     "id": "punjabi-2",
@@ -407,15 +634,28 @@ const CURATED_FULL_CATALOG = [
     "duration": 176,
     "category": "punjabi",
     "tags": [
-      "punjabi",
       "ap dhillon",
+      "club",
+      "energize",
       "excuses",
+      "gym",
+      "hits",
+      "party",
+      "punjabi",
+      "punjabi beats",
+      "swag",
       "trending",
-      "hits"
+      "workout"
     ],
     "image": "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3",
+    "moodTags": [
+      "energize",
+      "party",
+      "trending",
+      "workout"
+    ]
   },
   {
     "id": "punjabi-3",
@@ -425,15 +665,28 @@ const CURATED_FULL_CATALOG = [
     "duration": 232,
     "category": "punjabi",
     "tags": [
-      "punjabi",
       "amplifier",
-      "imran khan",
       "club",
-      "hits"
+      "energize",
+      "gym",
+      "hits",
+      "imran khan",
+      "party",
+      "punjabi",
+      "punjabi beats",
+      "swag",
+      "trending",
+      "workout"
     ],
     "image": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3",
+    "moodTags": [
+      "energize",
+      "party",
+      "trending",
+      "workout"
+    ]
   },
   {
     "id": "punjabi-4",
@@ -443,15 +696,28 @@ const CURATED_FULL_CATALOG = [
     "duration": 184,
     "category": "punjabi",
     "tags": [
-      "punjabi",
-      "shubh",
       "cheques",
+      "club",
+      "energize",
+      "gym",
+      "hits",
+      "party",
+      "punjabi",
+      "punjabi beats",
+      "shubh",
+      "swag",
       "trending",
-      "hits"
+      "workout"
     ],
     "image": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    "moodTags": [
+      "energize",
+      "party",
+      "trending",
+      "workout"
+    ]
   },
   {
     "id": "punjabi-5",
@@ -461,15 +727,27 @@ const CURATED_FULL_CATALOG = [
     "duration": 268,
     "category": "punjabi",
     "tags": [
-      "punjabi",
       "ap dhillon",
       "brown munde",
       "club",
-      "trending"
+      "energize",
+      "gym",
+      "party",
+      "punjabi",
+      "punjabi beats",
+      "swag",
+      "trending",
+      "workout"
     ],
     "image": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    "moodTags": [
+      "energize",
+      "party",
+      "trending",
+      "workout"
+    ]
   },
   {
     "id": "punjabi-6",
@@ -479,15 +757,28 @@ const CURATED_FULL_CATALOG = [
     "duration": 195,
     "category": "punjabi",
     "tags": [
-      "punjabi",
+      "club",
       "diljit dosanjh",
+      "energize",
+      "gym",
+      "hits",
       "lover",
+      "party",
+      "punjabi",
+      "punjabi beats",
+      "swag",
       "trending",
-      "hits"
+      "workout"
     ],
     "image": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    "moodTags": [
+      "energize",
+      "party",
+      "trending",
+      "workout"
+    ]
   },
   {
     "id": "punjabi-7",
@@ -497,15 +788,28 @@ const CURATED_FULL_CATALOG = [
     "duration": 270,
     "category": "punjabi",
     "tags": [
-      "punjabi",
-      "sidhu moose wala",
       "295",
+      "club",
+      "energize",
+      "gym",
       "hits",
-      "trending"
+      "party",
+      "punjabi",
+      "punjabi beats",
+      "sidhu moose wala",
+      "swag",
+      "trending",
+      "workout"
     ],
     "image": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+    "moodTags": [
+      "energize",
+      "party",
+      "trending",
+      "workout"
+    ]
   },
   {
     "id": "bhakti-1",
@@ -515,14 +819,25 @@ const CURATED_FULL_CATALOG = [
     "duration": 580,
     "category": "bhakti",
     "tags": [
+      "aarti",
+      "bhajan",
       "bhakti",
-      "hanuman chalisa",
+      "bhakti sagar",
+      "chalisa",
       "devotional",
-      "bhakti sagar"
+      "god",
+      "hanuman chalisa",
+      "peace",
+      "relax",
+      "spiritual"
     ],
     "image": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
+    "moodTags": [
+      "bhakti",
+      "relax"
+    ]
   },
   {
     "id": "bhakti-2",
@@ -532,16 +847,26 @@ const CURATED_FULL_CATALOG = [
     "duration": 340,
     "category": "bhakti",
     "tags": [
+      "aarti",
+      "bhajan",
       "bhakti",
-      "shiv tandav",
+      "chalisa",
+      "devotional",
+      "god",
+      "peace",
+      "relax",
       "shankar mahadevan",
-      "devotional"
+      "shiv tandav",
+      "spiritual"
     ],
     "image": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80",
     "artwork": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80",
-    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
+    "moodTags": [
+      "bhakti",
+      "relax"
+    ]
   }
 ];
-
 if (typeof window !== 'undefined') window.CURATED_FULL_CATALOG = CURATED_FULL_CATALOG;
 if (typeof globalThis !== 'undefined') globalThis.CURATED_FULL_CATALOG = CURATED_FULL_CATALOG;

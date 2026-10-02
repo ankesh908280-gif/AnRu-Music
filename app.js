@@ -101,7 +101,7 @@ function renderQuickPicks() {
     card.className = 'yt-quick-card';
     card.innerHTML = `
       <div class="yt-quick-art-box">
-        <img src="${song.artwork || song.image || "icon-512.png"}" alt="${song.title}" class="yt-quick-art" loading="lazy">
+        <img src="${song.artwork || song.image || "icon-512.png"}" alt="${song.title}" class="yt-quick-art" loading="lazy" onerror="this.onerror=null; this.src='icon-512.png';">
         <div class="yt-quick-play-overlay">
           <i class="fa-solid fa-play"></i>
         </div>
@@ -414,7 +414,7 @@ function renderMusicCard(song, container, queueContext) {
   card.className = 'music-card glass-card';
   card.innerHTML = `
     <div class="card-art-box">
-      <img src="${song.artwork || song.image || "icon-512.png"}" alt="${song.title}" class="card-art" loading="lazy">
+      <img src="${song.artwork || song.image || "icon-512.png"}" alt="${song.title}" class="card-art" loading="lazy" onerror="this.onerror=null; this.src='icon-512.png';">
       <button class="card-play-btn" aria-label="Play ${song.title}">
         <i class="fa-solid fa-play"></i>
       </button>
@@ -441,7 +441,7 @@ function renderSongItem(song, container, options = {}) {
 
   item.innerHTML = `
     <div class="song-art-box">
-      <img src="${song.artwork || song.image || "icon-512.png"}" alt="${song.title}" class="song-thumb" loading="lazy">
+      <img src="${song.artwork || song.image || "icon-512.png"}" alt="${song.title}" class="song-thumb" loading="lazy" onerror="this.onerror=null; this.src='icon-512.png';">
       <div class="song-play-overlay">
         <i class="fa-solid ${isCurrentlyPlaying && player.isPlaying ? 'fa-pause' : 'fa-play'}"></i>
       </div>
