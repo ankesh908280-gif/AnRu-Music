@@ -1,790 +1,407 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi" data-theme="aurora">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#0f0c29">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Anru Music - Pro Studio & Offline Player</title>
-  
+  <title>Anru Music Studio - Offline Pro</title>
+  <meta name="description" content="100% Offline High-Fidelity Music Studio Player with 5-Band Equalizer, Bass Boost & Spotify Queue">
+  <meta name="theme-color" content="#0d0b18">
+
+  <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="icon-512.png">
-  <link rel="apple-touch-icon" href="icon-512.png">
 
-  <!-- Immediate Cache Purge & Service Worker Reset to guarantee latest code executes on all devices -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(regs) {
-        for (var r of regs) { r.unregister(); }
-      });
-    }
-    if ('caches' in window) {
-      caches.keys().then(function(keys) {
-        for (var k of keys) { caches.delete(k); }
-      });
-    }
-  </script>
-
-  <!-- Google Fonts: Outfit -->
+  <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- FontAwesome 6 -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- Stylesheet -->
-    <!-- Modular CSS Architecture (Zero Collisions & Blazing Fast Parallel Loading) -->
-  <link rel="stylesheet" href="base.css?v=14.0">
-  <link rel="stylesheet" href="auth.css?v=14.0">
-  <link rel="stylesheet" href="home.css?v=14.0">
-  <link rel="stylesheet" href="search.css?v=14.0">
-  <link rel="stylesheet" href="player.css?v=14.0">
-  <link rel="stylesheet" href="profile.css?v=14.0">
-
-  <!-- Gatekeeper Script: Immediate Session Evaluation -->
-  <script>
-    try {
-      var sess = JSON.parse(localStorage.getItem('anru-music-user') || 'null');
-      if (sess && sess.email) {
-        document.documentElement.classList.add('user-authenticated');
-      } else {
-        document.documentElement.classList.remove('user-authenticated');
-      }
-    } catch(e) {}
-  </script>
-
-  <!-- Auth Controller loaded in head so login handlers are available immediately -->
-  <script src="auth.js?v=14.0"></script>
+  <!-- Modular Stylesheets -->
+  <link rel="stylesheet" href="base.css?v=15.0">
+  <link rel="stylesheet" href="home.css?v=15.0">
+  <link rel="stylesheet" href="search.css?v=15.0">
+  <link rel="stylesheet" href="player.css?v=15.0">
+  <link rel="stylesheet" href="profile.css?v=15.0">
 </head>
-<body class="theme-aurora">
+<body>
 
-  <!-- Ambient Glowing Orbs -->
-  <div class="ambient-orb orb-1"></div>
-  <div class="ambient-orb orb-2"></div>
-  <div class="ambient-orb orb-3"></div>
+  <!-- Hidden Native File Pickers -->
+  <input type="file" id="local-file-picker" multiple accept="audio/*" style="display:none;">
+  <input type="file" id="local-folder-picker" webkitdirectory directory multiple style="display:none;">
 
-  <!-- ========================================== -->
-  <!-- 1. ANRU FOCUS STYLE GATEKEEPER LOGIN SCREEN -->
-  <!-- ========================================== -->
-  <div class="screen" id="loginScreen">
-    <div class="auth-container">
-      
-      <!-- Hero Branding Header -->
-      <div class="auth-hero">
-        <div class="logo-ring">
-          <div class="logo-inner">
-            <img src="icon-512.png" onerror="this.onerror=null; this.src='icons/icon-512.png';" alt="Logo" class="auth-logo-img" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">
-          </div>
+  <div class="app-root">
+
+    <!-- Top Sticky Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-box">
+          <img src="icon-512.png" alt="Anru Logo" class="brand-logo" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%2300c6ff\'/><polygon points=\'40,30 70,50 40,70\' fill=\'%23ffffff\'/></svg>';">
         </div>
-        <h1 class="auth-title">Anru <span class="gradient-text">Music</span></h1>
-        <div class="auth-tagline-chip">STUDIO PRO • HI-FI AUDIO</div>
-        <p class="auth-sub">Stream 320kbps full songs, create playlists & save offline</p>
+        <div class="brand-text">
+          <span class="brand-name">Anru Studio</span>
+          <span class="brand-tagline">OFFLINE PRO</span>
+        </div>
       </div>
+      <div class="header-actions">
+        <button class="header-action-btn primary-glow" id="import-files-btn" title="Add Songs from Phone">
+          <i class="fa-solid fa-plus"></i>
+          <span>Add Songs</span>
+        </button>
+        <button class="header-icon-btn" id="import-folder-btn" title="Add Music Folder">
+          <i class="fa-solid fa-folder-open"></i>
+        </button>
+      </div>
+    </header>
 
-      <!-- Auth Card -->
-      <div class="auth-card">
+    <!-- Main Views Container -->
+    <main class="app-body">
+
+      <!-- 1. LIBRARY VIEW (Default) -->
+      <section class="tab-view active" id="view-library">
         
-        <!-- Continue with Google Button -->
-        <button class="google-auth-btn" id="login-google-btn" type="button" onclick="handleGoogleAuth(event)">
-          <svg class="google-svg-icon" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-          </svg>
-          <span>Continue with Google</span>
-        </button>
-
-        <div class="auth-divider">
-          <span>OR CONTINUE WITH EMAIL</span>
+        <!-- Search & Filter Bar -->
+        <div class="library-search-wrap">
+          <div class="search-input-box">
+            <i class="fa-solid fa-magnifying-glass search-ico"></i>
+            <input type="text" id="search-input" placeholder="Search songs, artists, albums..." autocomplete="off">
+            <button class="clear-btn hidden" id="clear-search-btn"><i class="fa-solid fa-xmark"></i></button>
+          </div>
         </div>
 
-        <div class="auth-tabs">
-          <button class="auth-tab active" id="login-tab-signin" type="button" onclick="switchAuthTab('signin')">Sign In</button>
-          <button class="auth-tab" id="login-tab-signup" type="button" onclick="switchAuthTab('signup')">Create Account</button>
+        <!-- Library Stats & Sort Controls -->
+        <div class="library-meta-row">
+          <div class="meta-badges">
+            <span class="meta-pill" id="library-count-badge">0 Songs</span>
+            <span class="meta-pill storage" id="library-storage-badge">0 MB</span>
+          </div>
+          <div class="sort-select-wrap">
+            <i class="fa-solid fa-arrow-down-short-wide sort-ico"></i>
+            <select id="library-sort-select" aria-label="Sort Songs">
+              <option value="date-new">Newest Added</option>
+              <option value="title-asc">Title (A-Z)</option>
+              <option value="title-desc">Title (Z-A)</option>
+              <option value="artist-asc">Artist (A-Z)</option>
+              <option value="date-old">Oldest First</option>
+            </select>
+          </div>
         </div>
 
-        <form class="auth-form" id="login-form" onsubmit="handleEmailAuth(event)">
-          <div class="input-group hidden" id="login-name-group">
-            <i class="fa-solid fa-user"></i>
-            <input type="text" id="login-name" placeholder="Your Full Name">
+        <!-- Empty State (When no songs yet) -->
+        <div class="empty-library-state hidden" id="library-empty-state">
+          <div class="empty-icon-wrap">
+            <i class="fa-solid fa-music"></i>
           </div>
-
-          <div class="input-group">
-            <i class="fa-solid fa-envelope"></i>
-            <input type="email" id="login-email" placeholder="Your Email Address" required>
-          </div>
-
-          <div class="input-group">
-            <i class="fa-solid fa-lock"></i>
-            <input type="password" id="login-password" placeholder="Password (minimum 6 characters)" minlength="6" required>
-            <button type="button" class="eye-toggle" id="login-toggle-pw" onclick="togglePasswordVisibility(event)"><i class="fa-solid fa-eye"></i></button>
-          </div>
-
-          <button type="submit" class="auth-submit-btn" id="login-submit-btn">
-            <span>Sign In with Email</span>
-            <i class="fa-solid fa-arrow-right"></i>
-          </button>
-        </form>
-
-        <div class="auth-footer-actions">
-          <button class="guest-skip-btn" id="login-guest-btn" type="button" onclick="handleGuestAuth(event)">
-            Listen as Guest Listener →
+          <h3>Your Library is Empty</h3>
+          <p>Import songs or an entire music folder from your phone storage to play offline.</p>
+          <button class="import-big-btn" id="empty-import-btn">
+            <i class="fa-solid fa-folder-plus"></i>
+            <span>Select Music Files</span>
           </button>
         </div>
 
-      </div>
-    </div>
-  </div>
-
-  <!-- Interactive Google Account Chooser Modal -->
-  <div class="modal-overlay hidden" id="google-picker-modal" style="display:none;">
-    <div class="modal-card glass-panel">
-      <div class="modal-header">
-        <div class="google-modal-badge">
-          <svg class="google-svg-icon" viewBox="0 0 24 24" style="width:20px;height:20px;">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-          </svg>
-          <h4>Choose a Google Account</h4>
-        </div>
-        <button class="modal-close-btn" id="google-picker-close" type="button" onclick="closeGooglePicker(event)"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <p class="modal-sub">to continue to Anru Music Studio Pro</p>
-
-      <div class="google-accounts-list">
-        <button class="google-acc-item" id="google-option-default" type="button" data-email="ankeshk908280@gmail.com" data-name="Ankesh Kumar" onclick="selectGoogleAccount('Ankesh Kumar', 'ankeshk908280@gmail.com')">
-          <div class="google-acc-avatar">A</div>
-          <div class="google-acc-text">
-            <span class="acc-name">Ankesh Kumar</span>
-            <span class="acc-email">ankeshk908280@gmail.com</span>
-          </div>
-          <i class="fa-solid fa-check acc-check"></i>
-        </button>
-
-        <div class="custom-acc-input-box">
-          <input type="email" id="google-custom-email" placeholder="Or enter another Gmail address...">
-          <button class="custom-acc-btn" id="google-custom-submit" type="button" onclick="handleCustomGoogleSubmit(event)">Sign In</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- 2. MAIN APPLICATION SCREEN (AFTER LOGIN)   -->
-  <!-- ========================================== -->
-  <div class="screen" id="appScreen">
-    <div class="app-container">
-
-      <!-- Top Header -->
-      <header class="app-header glass-panel">
-        <div class="header-brand" id="brand-home-btn">
-          <div class="logo-box" style="width:38px;height:38px;border-radius:12px;overflow:hidden;flex-shrink:0;">
-            <img src="icon-512.png" onerror="this.onerror=null; this.src='icons/icon-512.png';" alt="AR Logo" class="brand-logo-img" style="width:100%;height:100%;object-fit:cover;display:block;">
-          </div>
-          <div class="brand-text-col">
-            <span class="brand-title">Anru Music</span>
-            <span class="brand-badge">STUDIO PRO</span>
-          </div>
+        <!-- Songs List -->
+        <div class="songs-list-container" id="library-songs-list">
+          <!-- Populated dynamically -->
         </div>
 
-        <div class="header-actions">
-          <button class="install-pwa-btn hidden" id="pwa-install-btn" title="Install App">
-            <i class="fa-solid fa-download"></i>
+      </section>
+
+      <!-- 2. PLAYLISTS VIEW -->
+      <section class="tab-view" id="view-playlists">
+        <div class="playlists-header">
+          <h2>My Playlists</h2>
+          <button class="create-pl-btn" id="create-playlist-btn">
+            <i class="fa-solid fa-plus"></i> New Playlist
           </button>
+        </div>
 
-          <button class="glass-icon-btn" id="theme-toggle-btn" title="Color Themes">
-            <i class="fa-solid fa-palette"></i>
-          </button>
+        <div class="playlists-grid" id="playlists-grid">
+          <!-- Rendered dynamically -->
+        </div>
 
-          <!-- Modern Circular User Avatar -->
-          <button class="header-avatar-btn" id="header-profile-btn" title="View Profile">
-            <div class="header-avatar-circle" id="header-avatar-circle">
-              <span id="header-avatar-initial">A</span>
-              <img src="" alt="User" class="header-avatar-img hidden" id="header-avatar-img">
-              <span class="online-indicator-dot"></span>
+        <!-- Playlist Detail Overlay -->
+        <div class="playlist-detail-overlay hidden" id="playlist-detail-view">
+          <div class="pl-detail-header">
+            <button class="back-btn" id="pl-detail-back-btn"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="pl-detail-meta">
+              <h3 id="pl-detail-title">Playlist</h3>
+              <span id="pl-detail-count">0 Songs</span>
             </div>
-          </button>
-        </div>
-      </header>
-
-      <!-- Theme Dropdown Modal -->
-      <div class="theme-dropdown hidden" id="theme-dropdown">
-        <div class="dropdown-header">SELECT STUDIO THEME</div>
-        <div class="theme-options">
-          <button class="theme-opt" data-theme="theme-aurora"><span class="color-dot aurora"></span><span>Aurora Purple (Default)</span></button>
-          <button class="theme-opt" data-theme="theme-neon"><span class="color-dot neon"></span><span>Cyberpunk Cyan</span></button>
-          <button class="theme-opt" data-theme="theme-sunset"><span class="color-dot sunset"></span><span>Sunset Orange</span></button>
-          <button class="theme-opt" data-theme="theme-matrix"><span class="color-dot matrix"></span><span>Matrix Emerald</span></button>
-          <button class="theme-opt" data-theme="theme-midnight"><span class="color-dot midnight"></span><span>Midnight OLED Black</span></button>
-        </div>
-      </div>
-
-      <!-- Search Section (Visible on Home & Search) -->
-      <section class="search-section">
-        <div class="search-bar-wrap">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" id="search-input" placeholder="Search songs, artists, Hindi, Bhojpuri..." autocomplete="off">
-          <button class="clear-btn hidden" id="clear-search-btn" aria-label="Clear Search">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-
-        <!-- YouTube Music Style Mood & Activity Pills -->
-        <div class="chips-scroll" id="yt-chips-container">
-          <button class="chip active" data-mood="all"><i class="fa-solid fa-compass"></i> All</button>
-          <button class="chip" data-mood="trending"><i class="fa-solid fa-fire"></i> Trending</button>
-          <button class="chip" data-mood="energize"><i class="fa-solid fa-bolt"></i> Energize</button>
-          <button class="chip" data-mood="workout"><i class="fa-solid fa-dumbbell"></i> Workout</button>
-          <button class="chip" data-mood="relax"><i class="fa-solid fa-spa"></i> Relax</button>
-          <button class="chip" data-mood="party"><i class="fa-solid fa-champagne-glasses"></i> Party</button>
-          <button class="chip" data-mood="romance"><i class="fa-solid fa-heart"></i> Romance</button>
-          <button class="chip" data-mood="bhakti"><i class="fa-solid fa-om"></i> Bhakti</button>
-          <button class="chip" data-query="bhojpuri hits"><i class="fa-solid fa-guitar"></i> Bhojpuri Hits</button>
-          <button class="chip" data-query="bollywood latest"><i class="fa-solid fa-film"></i> Bollywood</button>
-          <button class="chip" data-query="punjabi beats"><i class="fa-solid fa-bolt-lightning"></i> Punjabi Beats</button>
+          </div>
+          <div class="songs-list-container" id="pl-detail-songs">
+            <!-- Playlist songs -->
+          </div>
         </div>
       </section>
 
-      <!-- Main Navigation Views Container -->
-      <main class="main-content" id="main-content">
-
-        <!-- 1. HOME VIEW (YOUTUBE MUSIC STYLE) -->
-        <div class="tab-view active" id="view-home">
-
-          <!-- Dynamic Mood Shelf (Shows when user clicks a Mood chip) -->
-          <div class="section-container hidden" id="yt-mood-shelf-container">
-            <div class="section-header">
-              <div class="section-title-wrap">
-                <i class="fa-solid fa-sparkles section-icon"></i>
-                <h3 id="yt-mood-shelf-title">VIBES</h3>
-              </div>
-            </div>
-            <div class="horizontal-scroll" id="yt-mood-shelf-cards"></div>
-          </div>
-
-          <!-- YouTube Music Quick Picks (2x2 Grid) -->
-          <div class="yt-quick-section">
-            <div class="section-header">
-              <div class="section-title-wrap">
-                <i class="fa-solid fa-sparkles section-icon"></i>
-                <h3>Fresh Hits & Quick Picks</h3>
-              </div>
-              <button class="yt-refresh-btn" id="refresh-home-btn" title="Get Fresh Songs from JioSaavn">
-                <i class="fa-solid fa-arrows-rotate"></i> New Songs
-              </button>
-            </div>
-            <div class="yt-quick-grid" id="yt-quick-grid">
-              <!-- Rendered dynamically -->
-            </div>
-          </div>
-
-          <!-- Hero Feature Banner -->
-          <div class="hero-banner glass-card">
-            <div class="hero-content">
-              <span class="hero-badge"><i class="fa-solid fa-certificate"></i> FULL LENGTH AUDIO ENGINE</span>
-              <h2>Unlimited Free Studio & Offline Play</h2>
-              <p>Listen to full 320kbps tracks without cuts. Download anytime.</p>
-              <button class="hero-play-btn" id="hero-explore-btn">
-                <i class="fa-solid fa-circle-play"></i>
-                <span>Explore Hits</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Section: Bhojpuri Superhits -->
-          <div class="section-container">
-            <div class="section-header">
-              <div class="section-title-wrap">
-                <i class="fa-solid fa-guitar section-icon"></i>
-                <h3>Bhojpuri Superhits</h3>
-              </div>
-              <span class="section-see-all" data-tag="bhojpuri hits">See All <i class="fa-solid fa-angle-right"></i></span>
-            </div>
-            <div class="horizontal-scroll" id="home-bhojpuri-cards"></div>
-          </div>
-
-          <!-- Section: Bollywood Top Hits -->
-          <div class="section-container">
-            <div class="section-header">
-              <div class="section-title-wrap">
-                <i class="fa-solid fa-film section-icon"></i>
-                <h3>Bollywood Top Charts</h3>
-              </div>
-              <span class="section-see-all" data-tag="bollywood latest">See All <i class="fa-solid fa-angle-right"></i></span>
-            </div>
-            <div class="horizontal-scroll" id="home-bollywood-cards"></div>
-          </div>
-
-          <!-- Section: Punjabi Beats -->
-          <div class="section-container">
-            <div class="section-header">
-              <div class="section-title-wrap">
-                <i class="fa-solid fa-bolt-lightning section-icon"></i>
-                <h3>Punjabi Club Beats</h3>
-              </div>
-              <span class="section-see-all" data-tag="punjabi beats">See All <i class="fa-solid fa-angle-right"></i></span>
-            </div>
-            <div class="horizontal-scroll" id="home-punjabi-cards"></div>
-          </div>
-
-          <!-- Section: Bhakti Sagar -->
-          <div class="section-container">
-            <div class="section-header">
-              <div class="section-title-wrap">
-                <i class="fa-solid fa-om section-icon"></i>
-                <h3>Bhakti Sagar & Devotional</h3>
-              </div>
-              <span class="section-see-all" data-tag="bhakti">See All <i class="fa-solid fa-angle-right"></i></span>
-            </div>
-            <div class="horizontal-scroll" id="home-bhakti-cards"></div>
-          </div>
-
+      <!-- 3. STUDIO TOOLS VIEW (Themes & Equalizer) -->
+      <section class="tab-view" id="view-studio">
+        <div class="studio-header">
+          <h2>Studio Tools</h2>
+          <p>Audio DSP & Personalization Settings</p>
         </div>
 
-        <!-- 2. SEARCH VIEW -->
-        <div class="tab-view" id="view-search">
-          <div class="results-header glass-card">
-            <div class="results-meta">
-              <h3 id="search-results-title">Search Results</h3>
-              <span id="results-count" class="count-pill">0 Tracks</span>
-            </div>
-            <span class="source-pill" id="search-source-pill">Direct 320k Stream</span>
-          </div>
-
-          <!-- Loader -->
-          <div class="loader-box hidden" id="search-loader">
-            <div class="neon-spinner"></div>
-            <p>Scanning high-fidelity audio streams...</p>
-          </div>
-
-          <!-- Songs List -->
-          <div class="songs-list" id="search-songs-list">
-            <div class="empty-state">
-              <i class="fa-solid fa-music empty-icon"></i>
-              <h4>Search Any Song or Artist</h4>
-              <p>Stream full songs with 100% offline download support.</p>
-            </div>
+        <div class="studio-section">
+          <h3>Themes</h3>
+          <div class="theme-chips-row">
+            <button class="theme-btn" data-theme="aurora"><i class="fa-solid fa-palette"></i> Aurora</button>
+            <button class="theme-btn" data-theme="amoled"><i class="fa-solid fa-moon"></i> AMOLED</button>
+            <button class="theme-btn" data-theme="cyber"><i class="fa-solid fa-bolt"></i> Cyber</button>
+            <button class="theme-btn" data-theme="emerald"><i class="fa-solid fa-leaf"></i> Emerald</button>
           </div>
         </div>
 
-        <!-- 3. PLAYLISTS VIEW -->
-        <div class="tab-view" id="view-playlists">
-          
-          <!-- Playlists Overview -->
-          <div id="playlists-overview">
-            <div class="library-header glass-panel">
-              <div class="library-meta">
-                <div class="library-title-row">
-                  <i class="fa-solid fa-list-ul header-ico purple"></i>
-                  <h3>Music Library</h3>
-                </div>
-                <p class="library-sub">Custom playlists, offline downloads & liked songs</p>
-              </div>
-              <button class="glow-pill-btn" id="create-playlist-btn">
-                <i class="fa-solid fa-plus"></i>
-                <span>New Playlist</span>
-              </button>
+        <div class="studio-section">
+          <h3>Offline Audio Engine</h3>
+          <div class="dsp-info-card glass-card">
+            <div class="dsp-info-row">
+              <span>Decoder</span>
+              <span class="highlight">Native AudioContext 320k</span>
             </div>
-
-            <!-- System Playlists Cards (Offline Downloads + Liked Songs) -->
-            <div class="system-playlists-row">
-              <div class="system-pl-card cyan-glow glass-card" id="card-playlist-offline">
-                <div class="sys-pl-icon-wrap cyan">
-                  <i class="fa-solid fa-circle-down"></i>
-                </div>
-                <div class="sys-pl-info">
-                  <h4>Offline Downloads</h4>
-                  <span class="sys-pl-sub" id="pl-offline-count">0 tracks</span>
-                </div>
-                <span class="sys-pl-badge"><i class="fa-solid fa-bolt"></i> 100% Offline</span>
-              </div>
-
-              <div class="system-pl-card pink-glow glass-card" id="card-playlist-liked">
-                <div class="sys-pl-icon-wrap pink">
-                  <i class="fa-solid fa-heart"></i>
-                </div>
-                <div class="sys-pl-info">
-                  <h4>Liked Songs</h4>
-                  <span class="sys-pl-sub" id="pl-liked-count">0 tracks</span>
-                </div>
-                <span class="sys-pl-badge"><i class="fa-solid fa-heart"></i> Favorites</span>
-              </div>
+            <div class="dsp-info-row">
+              <span>Equalizer</span>
+              <span class="highlight">5-Band Studio DSP</span>
             </div>
-
-            <!-- Custom Playlists Section -->
-            <div class="custom-pl-section">
-              <div class="section-header">
-                <div class="section-title-wrap">
-                  <i class="fa-solid fa-folder-music section-icon"></i>
-                  <h3>Custom Playlists</h3>
-                </div>
-              </div>
-              <div class="custom-playlists-grid" id="custom-playlists-grid">
-                <!-- Rendered dynamically -->
-              </div>
+            <div class="dsp-info-row">
+              <span>Storage</span>
+              <span class="highlight">IndexedDB Persistent Blob</span>
             </div>
           </div>
-
-          <!-- Playlist Detail View -->
-          <div id="playlist-detail-view" class="hidden">
-            <button class="detail-back-btn" id="detail-pl-back-btn">
-              <i class="fa-solid fa-arrow-left"></i>
-              <span>All Playlists</span>
-            </button>
-
-            <div class="playlist-hero glass-panel">
-              <div class="detail-hero-icon-box">
-                <i class="fa-solid fa-list-ul detail-hero-icon purple" id="detail-pl-icon"></i>
-              </div>
-              <div class="detail-hero-meta">
-                <h2 id="detail-pl-title">Playlist Title</h2>
-                <span class="detail-pl-sub" id="detail-pl-meta">0 tracks</span>
-                <div class="detail-hero-actions">
-                  <button class="hero-play-btn" id="detail-pl-play-all">
-                    <i class="fa-solid fa-play"></i> Play All
-                  </button>
-                  <button class="fs-circle-btn" id="detail-pl-shuffle" title="Shuffle">
-                    <i class="fa-solid fa-shuffle"></i>
-                  </button>
-                  <button class="fs-circle-btn del-btn hidden" id="detail-pl-del-btn" title="Delete Playlist">
-                    <i class="fa-solid fa-trash-can"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div class="songs-list" id="detail-pl-songs-list">
-              <!-- Dynamic songs in playlist -->
-            </div>
-          </div>
-
         </div>
+      </section>
 
-        <!-- 4. PROFILE TAB (NO LOGIN FORM - CLEAN DASHBOARD WITH LOGOUT) -->
-        <div class="tab-view" id="view-profile">
-          
-          <div class="profile-hero-card glass-panel">
-            <div class="profile-avatar-box">
-              <div class="profile-large-avatar" id="profile-avatar-initial">A</div>
-              <img src="" alt="Avatar" class="profile-avatar-img hidden" id="profile-avatar-img">
-              <span class="profile-online-badge"></span>
-            </div>
-            <div class="profile-hero-info">
-              <h2 id="profile-user-title">Ankesh Kumar</h2>
-              <span class="profile-plan-tag" id="profile-plan-tag"><i class="fa-solid fa-crown" style="color:#f59e0b"></i> Pro Studio Member</span>
-              <p id="profile-user-email">ankeshk908280@gmail.com</p>
-              <div class="profile-provider-pill" id="profile-provider-badge">
-                <i class="fa-solid fa-circle-check" style="color:#10b981"></i> Google Verified
-              </div>
-            </div>
+    </main>
+
+    <!-- Bottom Sticky Mini Player -->
+    <div class="mini-player glass-panel hidden" id="mini-player">
+      <div class="mini-progress-track">
+        <div class="mini-progress-fill" id="mini-progress-fill"></div>
+      </div>
+      <div class="mini-player-content" id="mini-player-content">
+        <div class="mini-art-box">
+          <img src="icon-512.png" alt="Cover" class="mini-thumb" id="mini-thumb">
+          <div class="mini-playing-indicator" id="mini-equalizer">
+            <span></span><span></span><span></span>
           </div>
-
-          <!-- Library Stats Row -->
-          <div class="profile-stats-grid">
-            <div class="stat-card glass-card">
-              <span class="stat-number" id="stat-playlists-count">0</span>
-              <span class="stat-label">Playlists</span>
-            </div>
-            <div class="stat-card glass-card">
-              <span class="stat-number" id="stat-downloads-count">0</span>
-              <span class="stat-label">Downloads</span>
-            </div>
-            <div class="stat-card glass-card">
-              <span class="stat-number" id="stat-favorites-count">0</span>
-              <span class="stat-label">Liked</span>
-            </div>
-          </div>
-
-          <!-- Settings Group -->
-          <div class="profile-settings-section">
-            <div class="settings-group-title"><i class="fa-solid fa-sliders"></i> AUDIO & APP SETTINGS</div>
-
-            <div class="setting-item glass-card">
-              <div class="setting-text">
-                <div class="setting-name">Audio Streaming Quality</div>
-                <div class="setting-desc">320kbps High Fidelity (Direct Studio Engine)</div>
-              </div>
-              <span class="setting-badge">Extreme HD</span>
-            </div>
-
-            <div class="setting-item glass-card">
-              <div class="setting-text">
-                <div class="setting-name">Color Theme</div>
-                <div class="setting-desc">Personalize neon ambient styles</div>
-              </div>
-              <button class="setting-btn-link" id="profile-change-theme-btn">Change Theme</button>
-            </div>
-
-            <div class="setting-item glass-card">
-              <div class="setting-text">
-                <div class="setting-name">Offline Storage Engine</div>
-                <div class="setting-desc" id="profile-storage-text">IndexedDB Local Cache Active</div>
-              </div>
-              <button class="clear-cache-btn" id="profile-clear-cache-btn">Clear Cache</button>
-            </div>
-          </div>
-
-          <!-- Clean Sign Out Button -->
-          <div class="profile-signout-box">
-            <button class="sign-out-btn" id="profile-signout-btn" type="button" onclick="handleLogout(event)">
-              <i class="fa-solid fa-right-from-bracket"></i>
-              <span>Log Out</span>
-            </button>
-          </div>
-
         </div>
-
-      </main>
-
-      <!-- Bottom Sticky Mini Player -->
-      <div class="mini-player glass-panel hidden" id="mini-player">
-        <div class="mini-progress-track">
-          <div class="mini-progress-fill" id="mini-progress-fill"></div>
+        <div class="mini-info">
+          <div class="mini-title" id="mini-title">Select a Song</div>
+          <div class="mini-artist" id="mini-artist">Artist</div>
         </div>
+        <div class="mini-controls">
+          <button class="mini-action-btn" id="mini-queue-btn" title="Queue"><i class="fa-solid fa-list-ol"></i></button>
+          <button class="mini-action-btn play-circle" id="mini-play-btn" title="Play/Pause"><i class="fa-solid fa-play" id="mini-play-icon"></i></button>
+          <button class="mini-action-btn" id="mini-next-btn" title="Next"><i class="fa-solid fa-forward-step"></i></button>
+        </div>
+      </div>
+    </div>
 
-        <div class="mini-player-content" id="mini-player-content">
-          <div class="mini-art-box">
-            <img src="icon-512.png" onerror="this.onerror=null; this.src='icons/icon-512.png';" alt="Track Art" class="mini-thumb" id="mini-thumb">
-            <div class="mini-playing-indicator" id="mini-equalizer">
-              <span></span><span></span><span></span>
-            </div>
-          </div>
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+      <button class="nav-tab active" id="nav-library" data-tab="library">
+        <i class="fa-solid fa-lines-leaning"></i>
+        <span>Library</span>
+      </button>
+      <button class="nav-tab" id="nav-playlists" data-tab="playlists">
+        <i class="fa-solid fa-list-ul"></i>
+        <span>Playlists</span>
+      </button>
+      <button class="nav-tab" id="nav-studio" data-tab="studio">
+        <i class="fa-solid fa-sliders"></i>
+        <span>Studio</span>
+      </button>
+    </nav>
 
-          <div class="mini-info">
-            <div class="mini-title" id="mini-title">Select a Song</div>
-            <div class="mini-artist" id="mini-artist">Artist</div>
-          </div>
-
-          <div class="mini-controls">
-            <button class="mini-action-btn" id="mini-queue-btn" title="View Queue">
-              <i class="fa-solid fa-list-ol"></i>
-            </button>
-            <button class="mini-action-btn play-circle" id="mini-play-btn" title="Play/Pause">
-              <i class="fa-solid fa-play" id="mini-play-icon"></i>
-            </button>
-            <button class="mini-action-btn" id="mini-next-btn" title="Next Track">
-              <i class="fa-solid fa-forward-step"></i>
-            </button>
-          </div>
+    <!-- IMMERSIVE FULLSCREEN STUDIO PLAYER -->
+    <div class="fullscreen-player hidden" id="fullscreen-player">
+      
+      <!-- Top Bar -->
+      <div class="fs-header">
+        <button class="fs-nav-btn" id="fs-close-btn" title="Minimize"><i class="fa-solid fa-chevron-down"></i></button>
+        <div class="fs-header-title">
+          <span class="fs-label">NOW PLAYING</span>
+          <span class="fs-album-name" id="fs-header-album">Local Studio</span>
+        </div>
+        <div class="fs-header-actions">
+          <button class="fs-nav-btn" id="fs-eq-btn" title="Equalizer"><i class="fa-solid fa-sliders"></i></button>
+          <button class="fs-nav-btn" id="fs-sleep-btn" title="Sleep Timer"><i class="fa-solid fa-moon"></i></button>
+          <button class="fs-nav-btn" id="fs-queue-btn" title="Queue"><i class="fa-solid fa-list-ol"></i></button>
         </div>
       </div>
 
-      <!-- Fullscreen Player Modal -->
-      <div class="fullscreen-player hidden" id="fullscreen-player">
-        <div class="fs-header">
-          <button class="fs-nav-btn" id="fs-close-btn" aria-label="Minimize">
-            <i class="fa-solid fa-chevron-down"></i>
-          </button>
-          <div class="fs-header-title">
-            <span class="fs-label">NOW PLAYING</span>
-            <span class="fs-album-name" id="fs-header-album">Anru Studio</span>
-          </div>
-          <button class="fs-nav-btn" id="fs-queue-btn" aria-label="Up Next Queue">
-            <i class="fa-solid fa-list-ol"></i>
-          </button>
+      <!-- Vinyl / Artwork Center Stage -->
+      <div class="fs-artwork-stage">
+        <div class="fs-vinyl-box" id="fs-vinyl-box">
+          <img src="icon-512.png" alt="Album Cover" class="fs-artwork-img" id="fs-artwork" onerror="this.src='icon-512.png'">
         </div>
+      </div>
 
-        <div class="fs-artwork-container">
-          <div class="fs-artwork-wrapper" id="artwork-wrapper">
-            <img src="icon-512.png" onerror="this.onerror=null; this.src='icons/icon-512.png';" alt="Artwork" class="fs-artwork-img" id="fs-artwork" style="width:100%;height:100%;object-fit:cover;display:block;">
-            <div class="vinyl-disc-glow"></div>
-          </div>
+      <!-- Track Metadata Row -->
+      <div class="fs-meta-row">
+        <div class="fs-track-info">
+          <h2 class="fs-title" id="fs-title">Song Title</h2>
+          <p class="fs-artist" id="fs-artist">Artist Name</p>
         </div>
+        <button class="fs-like-btn" id="fs-like-btn" title="Favorite"><i class="fa-regular fa-heart"></i></button>
+      </div>
 
-        <div class="fs-track-details">
-          <div class="fs-meta-col">
-            <h2 class="fs-song-title" id="fs-title">Song Title</h2>
-            <p class="fs-song-artist" id="fs-artist">Artist Name</p>
-          </div>
-          <div class="fs-track-actions">
-            <button class="fs-act-btn" id="fs-like-btn" title="Favorite">
-              <i class="fa-regular fa-heart"></i>
-            </button>
-            <button class="fs-act-btn" id="fs-download-btn" title="Download">
-              <i class="fa-solid fa-download"></i>
-            </button>
-            <button class="fs-act-btn" id="fs-menu-btn" title="More Options">
-              <i class="fa-solid fa-ellipsis-vertical"></i>
-            </button>
-          </div>
+      <!-- Seeker Bar -->
+      <div class="fs-seek-box">
+        <input type="range" id="fs-seek-slider" min="0" max="100" value="0" step="0.1">
+        <div class="fs-time-row">
+          <span id="fs-curr-time">0:00</span>
+          <span id="fs-duration">0:00</span>
         </div>
+      </div>
 
-        <div class="fs-progress-block">
-          <div class="fs-slider-wrap">
-            <input type="range" id="fs-seek-slider" min="0" max="100" value="0" step="0.1">
-          </div>
-          <div class="fs-time-row">
-            <span id="fs-curr-time">0:00</span>
-            <span id="fs-duration">0:00</span>
-          </div>
-        </div>
+      <!-- Main Playback Controls -->
+      <div class="fs-controls-row">
+        <button class="fs-ctrl-btn" id="fs-shuffle-btn" title="Shuffle"><i class="fa-solid fa-shuffle"></i></button>
+        <button class="fs-ctrl-btn" id="fs-prev-btn" title="Previous"><i class="fa-solid fa-backward-step"></i></button>
+        <button class="fs-play-btn primary-glow" id="fs-play-btn" title="Play/Pause"><i class="fa-solid fa-play" id="fs-play-icon"></i></button>
+        <button class="fs-ctrl-btn" id="fs-next-btn" title="Next"><i class="fa-solid fa-forward-step"></i></button>
+        <button class="fs-ctrl-btn active" id="fs-repeat-btn" title="Repeat"><i class="fa-solid fa-repeat"></i></button>
+      </div>
 
-        <div class="fs-main-controls">
-          <button class="fs-ctrl-btn" id="fs-shuffle-btn" title="Shuffle">
-            <i class="fa-solid fa-shuffle"></i>
-          </button>
-          <button class="fs-ctrl-btn" id="fs-prev-btn" title="Previous">
-            <i class="fa-solid fa-backward-step"></i>
-          </button>
-          <button class="fs-play-btn" id="fs-play-btn" title="Play/Pause">
-            <i class="fa-solid fa-play" id="fs-play-icon"></i>
-          </button>
-          <button class="fs-ctrl-btn" id="fs-next-btn" title="Next">
-            <i class="fa-solid fa-forward-step"></i>
-          </button>
-          <button class="fs-ctrl-btn" id="fs-repeat-btn" title="Repeat">
-            <i class="fa-solid fa-repeat"></i>
-          </button>
-        </div>
-
-        <div class="fs-volume-row">
+      <!-- Bottom Audio Utility Row (Speed & Volume) -->
+      <div class="fs-bottom-utility-row">
+        <button class="speed-pill-btn" id="fs-speed-btn" title="Playback Speed">1.0x</button>
+        <div class="vol-control-wrap">
           <i class="fa-solid fa-volume-low vol-ico"></i>
           <input type="range" id="fs-vol-slider" min="0" max="1" step="0.05" value="1">
           <i class="fa-solid fa-volume-high vol-ico"></i>
         </div>
-
-        <div class="fs-suggestions-section">
-          <div class="suggestions-header">
-            <i class="fa-solid fa-wand-magic-sparkles"></i>
-            <span>RECOMMENDED FOR YOU</span>
-          </div>
-          <div class="suggestions-list" id="fs-suggestions-list"></div>
-        </div>
       </div>
-
-      <!-- Up Next Queue Drawer (Spotify-Style) -->
-      <div class="queue-drawer hidden" id="queue-drawer">
-        <div class="queue-header">
-          <div class="queue-header-left">
-            <i class="fa-solid fa-list-ol queue-icon"></i>
-            <h3>Up Next Queue</h3>
-          </div>
-          <div class="queue-header-actions">
-            <button class="queue-clear-btn" id="clear-queue-btn">Clear</button>
-            <button class="queue-close-btn" id="close-queue-btn"><i class="fa-solid fa-xmark"></i></button>
-          </div>
-        </div>
-
-        <div class="queue-body">
-          <div class="queue-section-label">NOW PLAYING</div>
-          <div class="queue-now-playing-box glass-card" id="queue-now-playing"></div>
-
-          <div class="queue-section-label">NEXT IN QUEUE (REORDER)</div>
-          <div class="queue-items-list" id="queue-upcoming-list"></div>
-        </div>
-      </div>
-
-      <!-- Add to Custom Playlist Modal -->
-      <div class="modal-overlay hidden" id="playlist-picker-modal" style="display:none;">
-        <div class="modal-card glass-panel">
-          <div class="modal-header">
-            <h4 id="picker-song-title">Add to Playlist</h4>
-            <button class="modal-close-btn" id="playlist-picker-close"><i class="fa-solid fa-xmark"></i></button>
-          </div>
-          <div class="picker-playlists-list" id="playlist-picker-list"></div>
-          <button class="picker-create-btn" id="picker-create-new-pl">
-            <i class="fa-solid fa-plus"></i> Create New Playlist
-          </button>
-        </div>
-      </div>
-
-      <!-- Three-Dot (...) Action Modal -->
-      <div class="action-sheet-overlay hidden" id="action-sheet-overlay" style="display:none;">
-        <div class="action-sheet glass-panel" id="action-sheet">
-          <div class="sheet-song-preview">
-            <img src="icon-512.png" onerror="this.onerror=null; this.src='icons/icon-512.png';" alt="art" class="sheet-thumb" id="sheet-song-thumb">
-            <div class="sheet-song-info">
-              <h4 class="sheet-song-title" id="sheet-song-title">Song Title</h4>
-              <p class="sheet-song-artist" id="sheet-song-artist">Artist</p>
-            </div>
-            <button class="sheet-close-btn" id="sheet-close-btn"><i class="fa-solid fa-xmark"></i></button>
-          </div>
-
-          <div class="sheet-actions">
-            <button class="sheet-act-btn" id="sheet-play-next">
-              <i class="fa-solid fa-forward-step"></i>
-              <span>Play Next</span>
-            </button>
-
-            <button class="sheet-act-btn" id="sheet-add-queue">
-              <i class="fa-solid fa-list-check"></i>
-              <span>Add to Queue</span>
-            </button>
-
-            <button class="sheet-act-btn" id="sheet-add-custom-playlist">
-              <i class="fa-solid fa-folder-plus"></i>
-              <span>Add to Custom Playlist</span>
-            </button>
-
-            <button class="sheet-act-btn" id="sheet-download">
-              <i class="fa-solid fa-circle-down"></i>
-              <span>Download for Offline</span>
-            </button>
-
-            <button class="sheet-act-btn" id="sheet-like">
-              <i class="fa-solid fa-heart"></i>
-              <span>Save to Liked Songs</span>
-            </button>
-
-            <button class="sheet-act-btn" id="sheet-share">
-              <i class="fa-solid fa-share-nodes"></i>
-              <span>Share Track</span>
-            </button>
-          </div>
-
-          <button class="sheet-cancel-btn" id="sheet-cancel-btn">Cancel</button>
-        </div>
-      </div>
-
-      <!-- Bottom Navigation Bar (4 Clean Tabs: Home, Search, Playlists, Profile) -->
-      <nav class="bottom-nav glass-panel">
-        <button class="nav-tab active" data-tab="home" id="nav-home">
-          <i class="fa-solid fa-house"></i>
-          <span>Home</span>
-        </button>
-
-        <button class="nav-tab" data-tab="search" id="nav-search">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <span>Search</span>
-        </button>
-
-        <button class="nav-tab" data-tab="playlists" id="nav-playlists">
-          <div class="nav-badge-box">
-            <i class="fa-solid fa-list-ul"></i>
-            <span class="nav-count-badge hidden" id="playlists-badge">0</span>
-          </div>
-          <span>Playlists</span>
-        </button>
-
-        <button class="nav-tab" data-tab="profile" id="nav-profile">
-          <i class="fa-solid fa-user"></i>
-          <span>Profile</span>
-        </button>
-      </nav>
-
-      <!-- Floating Toast Notification -->
-      <div class="toast-card glass-panel hidden" id="toast-notification">
-        <i class="fa-solid fa-circle-info toast-icon"></i>
-        <span class="toast-text">Message</span>
-      </div>
-
-      <!-- Native Audio Element -->
-      <audio id="main-audio" preload="metadata"></audio>
 
     </div>
+
+    <!-- SPOTIFY-STYLE QUEUE DRAWER -->
+    <div class="queue-drawer hidden" id="queue-drawer">
+      <div class="queue-header">
+        <div class="queue-title-wrap">
+          <i class="fa-solid fa-list-ol"></i>
+          <h3>Play Queue</h3>
+        </div>
+        <div class="queue-header-actions">
+          <button class="clear-queue-btn" id="clear-queue-btn">Clear Upcoming</button>
+          <button class="close-drawer-btn" id="close-queue-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+      <div class="queue-section-title">NOW PLAYING</div>
+      <div class="queue-now-playing-box" id="queue-now-playing">
+        <!-- Current track -->
+      </div>
+      <div class="queue-section-title">UP NEXT (CUSTOM REORDER)</div>
+      <div class="queue-upcoming-list" id="queue-upcoming-list">
+        <!-- Reorderable list -->
+      </div>
+    </div>
+
+    <!-- 5-BAND STUDIO EQUALIZER MODAL -->
+    <div class="modal-overlay hidden" id="equalizer-modal">
+      <div class="modal-card glass-modal">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-sliders"></i> Studio Equalizer</h3>
+          <button class="modal-close-btn" id="close-eq-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <!-- Presets -->
+        <div class="eq-presets-wrap">
+          <button class="eq-preset-chip active" data-preset="flat">Flat</button>
+          <button class="eq-preset-chip" data-preset="bass_boost">Bass Boost</button>
+          <button class="eq-preset-chip" data-preset="dance">Dance/DJ</button>
+          <button class="eq-preset-chip" data-preset="vocal">Vocal</button>
+          <button class="eq-preset-chip" data-preset="rock">Rock</button>
+        </div>
+
+        <!-- 5 Frequency Sliders -->
+        <div class="eq-sliders-stage">
+          <div class="eq-band-col">
+            <span class="eq-gain-val" id="eq-val-0">0dB</span>
+            <input type="range" class="eq-vertical-slider" id="eq-band-0" min="-12" max="12" step="1" value="0">
+            <span class="eq-freq-label">60Hz</span>
+          </div>
+          <div class="eq-band-col">
+            <span class="eq-gain-val" id="eq-val-1">0dB</span>
+            <input type="range" class="eq-vertical-slider" id="eq-band-1" min="-12" max="12" step="1" value="0">
+            <span class="eq-freq-label">230Hz</span>
+          </div>
+          <div class="eq-band-col">
+            <span class="eq-gain-val" id="eq-val-2">0dB</span>
+            <input type="range" class="eq-vertical-slider" id="eq-band-2" min="-12" max="12" step="1" value="0">
+            <span class="eq-freq-label">910Hz</span>
+          </div>
+          <div class="eq-band-col">
+            <span class="eq-gain-val" id="eq-val-3">0dB</span>
+            <input type="range" class="eq-vertical-slider" id="eq-band-3" min="-12" max="12" step="1" value="0">
+            <span class="eq-freq-label">3.6kHz</span>
+          </div>
+          <div class="eq-band-col">
+            <span class="eq-gain-val" id="eq-val-4">0dB</span>
+            <input type="range" class="eq-vertical-slider" id="eq-band-4" min="-12" max="12" step="1" value="0">
+            <span class="eq-freq-label">14kHz</span>
+          </div>
+        </div>
+
+        <!-- Bass Boost Slider -->
+        <div class="bass-boost-box">
+          <div class="bass-title-row">
+            <span><i class="fa-solid fa-bolt"></i> Extra Bass Boost</span>
+            <span id="bass-val">0dB</span>
+          </div>
+          <input type="range" id="bass-boost-slider" min="0" max="15" step="1" value="0">
+        </div>
+      </div>
+    </div>
+
+    <!-- SLEEP TIMER MODAL -->
+    <div class="modal-overlay hidden" id="sleep-timer-modal">
+      <div class="modal-card glass-modal">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-moon"></i> Sleep Timer</h3>
+          <button class="modal-close-btn" id="close-st-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <p class="modal-sub-label" id="sleep-timer-status">Timer is off</p>
+        <div class="st-options-grid">
+          <button class="st-pill" data-mins="15">15 Minutes</button>
+          <button class="st-pill" data-mins="30">30 Minutes</button>
+          <button class="st-pill" data-mins="45">45 Minutes</button>
+          <button class="st-pill" data-mins="60">1 Hour</button>
+          <button class="st-pill" data-mins="end_of_song">End of Current Track</button>
+          <button class="st-pill turn-off" data-mins="0">Turn Off Timer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTION SHEET (3-DOTS MENU) -->
+    <div class="action-sheet-overlay hidden" id="action-sheet-overlay">
+      <div class="action-sheet-card glass-modal">
+        <div class="as-header">
+          <img src="icon-512.png" id="as-thumb" alt="cover" class="as-thumb">
+          <div class="as-info">
+            <div class="as-title" id="as-title">Song Title</div>
+            <div class="as-artist" id="as-artist">Artist</div>
+          </div>
+        </div>
+        <div class="as-actions-list">
+          <button class="as-action-item" id="as-play-next"><i class="fa-solid fa-play"></i> Play Next</button>
+          <button class="as-action-item" id="as-add-queue"><i class="fa-solid fa-list-ol"></i> Add to Queue</button>
+          <button class="as-action-item" id="as-add-playlist"><i class="fa-solid fa-plus"></i> Add to Playlist</button>
+          <button class="as-action-item danger" id="as-delete"><i class="fa-solid fa-trash-can"></i> Delete from Library</button>
+          <button class="as-action-item cancel" id="as-cancel-btn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- Modular Scripts: Catalog, Database, API, Player Engine, App Coordinator -->
-  <script src="catalog.js?v=14.0"></script>
-  <script src="db.js?v=14.0"></script>
-  <script src="api.js?v=14.0"></script>
-  <script src="player.js?v=14.0"></script>
-  <script src="app.js?v=14.0"></script>
+  <!-- Scripts -->
+  <script src="id3.js?v=15.0"></script>
+  <script src="db.js?v=15.0"></script>
+  <script src="player.js?v=15.0"></script>
+  <script src="app.js?v=15.0"></script>
 </body>
 </html>

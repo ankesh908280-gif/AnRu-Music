@@ -466,3 +466,244 @@
   color: #fff;
   transform: scale(1.04);
 }
+
+/* ==========================================================
+   OFFLINE STUDIO LIBRARY & IMPORT UI
+   ========================================================== */
+.library-search-wrap {
+  margin-bottom: 14px;
+}
+
+.search-input-box {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glassBorder);
+  border-radius: 14px;
+  padding: 10px 14px;
+  gap: 10px;
+}
+
+.search-ico {
+  color: var(--textMuted);
+  font-size: 15px;
+}
+
+.search-input-box input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.library-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.meta-badges {
+  display: flex;
+  gap: 8px;
+}
+
+.meta-pill {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glassBorder);
+  color: var(--accent);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.meta-pill.storage {
+  color: var(--textMuted);
+}
+
+.sort-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glassBorder);
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.sort-ico {
+  font-size: 12px;
+  color: var(--textMuted);
+}
+
+#library-sort-select {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+/* Empty State */
+.empty-library-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed var(--glassBorder);
+  border-radius: 20px;
+  margin-top: 20px;
+}
+
+.empty-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--gradAccent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: #fff;
+  margin-bottom: 18px;
+  box-shadow: 0 8px 30px var(--accentGlow);
+}
+
+.empty-library-state h3 {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.empty-library-state p {
+  font-size: 13px;
+  color: var(--textMuted);
+  max-width: 280px;
+  line-height: 1.5;
+  margin-bottom: 22px;
+}
+
+.import-big-btn {
+  background: var(--gradAccent);
+  border: none;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px var(--accentGlow);
+}
+
+/* Song Row */
+.songs-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 120px;
+}
+
+.song-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glassBorder);
+  border-radius: 14px;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.song-row:hover, .song-row:active {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent);
+}
+
+.row-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--textMuted);
+  width: 20px;
+  text-align: center;
+}
+
+.row-art-box {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #111;
+}
+
+.row-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.row-play-hover {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+}
+
+.song-row:hover .row-play-hover {
+  display: flex;
+}
+
+.row-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-title {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.row-artist {
+  font-size: 12px;
+  color: var(--textMuted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-action-btn {
+  background: transparent;
+  border: none;
+  color: var(--textMuted);
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}

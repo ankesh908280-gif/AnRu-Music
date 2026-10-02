@@ -330,3 +330,274 @@
 .nav-tab i { font-size: 17px; transition: transform 0.2s ease; }
 .nav-tab.active { color: var(--accent); }
 .nav-tab.active i { transform: translateY(-2px); }
+
+/* ==========================================================
+   STUDIO EQUALIZER & SLEEP TIMER MODALS
+   ========================================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 6000;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-overlay.hidden { display: none !important; }
+
+.modal-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(22, 17, 46, 0.95);
+  border: 1px solid var(--glassBorder);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.modal-header h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-close-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: var(--text);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.modal-sub-label {
+  font-size: 13px;
+  color: var(--textMuted);
+  margin-bottom: 18px;
+}
+
+/* Equalizer Presets */
+.eq-presets-wrap {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.eq-preset-chip {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glassBorder);
+  color: var(--textMuted);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.eq-preset-chip.active {
+  background: var(--gradAccent);
+  color: #fff;
+  border-color: transparent;
+}
+
+/* 5 Sliders Stage */
+.eq-sliders-stage {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 180px;
+  padding: 10px 0;
+  margin-bottom: 24px;
+}
+
+.eq-band-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+}
+
+.eq-gain-val {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.eq-vertical-slider {
+  writing-mode: bt-lr; /* IE */
+  -webkit-appearance: slider-vertical;
+  width: 8px;
+  height: 110px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.eq-freq-label {
+  font-size: 11px;
+  color: var(--textMuted);
+  font-weight: 600;
+}
+
+/* Bass Boost Box */
+.bass-boost-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glassBorder);
+  padding: 14px 16px;
+  border-radius: 16px;
+}
+
+.bass-title-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+#bass-boost-slider {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+/* Sleep Timer Grid */
+.st-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.st-pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glassBorder);
+  color: var(--text);
+  padding: 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.st-pill:hover, .st-pill.active {
+  background: var(--gradAccent);
+  color: #fff;
+  border-color: transparent;
+}
+
+.st-pill.turn-off {
+  grid-column: span 2;
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* Speed Pill Button in Player */
+.speed-pill-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glassBorder);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+/* Queue Reorder Action Buttons */
+.queue-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.queue-move-btn {
+  background: transparent;
+  border: none;
+  color: var(--textMuted);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.queue-move-btn:hover {
+  color: var(--text);
+}
+
+.fs-artwork-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.fs-vinyl-box {
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  border: 3px solid var(--glassBorder);
+}
+
+.fs-vinyl-box.rotating {
+  animation: spinVinyl 20s linear infinite;
+}
+
+@keyframes spinVinyl {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.fs-artwork-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Toast */
+.app-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(18, 14, 38, 0.95);
+  border: 1px solid var(--accent);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 9999;
+}
+
+.app-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}

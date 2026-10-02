@@ -1,29 +1,25 @@
-// Service Worker for Anru Music Studio Pro v13 Live
-const CACHE_NAME = 'anru-music-v14-live';
-const STATIC_SHELL = [
+// Service Worker for Anru Music Studio Offline Pro v15.0
+const CACHE_NAME = 'anru-music-v15-offline';
+const STATIC_ASSETS = [
   './',
   './index.html',
-  './base.css?v=14.0',
-  './auth.css?v=14.0',
-  './home.css?v=14.0',
-  './search.css?v=14.0',
-  './player.css?v=14.0',
-  './profile.css?v=14.0',
-  './style.css?v=14.0',
-  './catalog.js?v=14.0',
-  './db.js?v=14.0',
-  './api.js?v=14.0',
-  './player.js?v=14.0',
-  './auth.js?v=14.0',
-  './app.js?v=14.0',
+  './base.css?v=15.0',
+  './home.css?v=15.0',
+  './search.css?v=15.0',
+  './player.css?v=15.0',
+  './profile.css?v=15.0',
+  './id3.js?v=15.0',
+  './db.js?v=15.0',
+  './player.js?v=15.0',
+  './app.js?v=15.0',
   './manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Anru SW] Pre-caching v13 app shell');
-      return cache.addAll(STATIC_SHELL).catch(err => console.warn('Cache addAll notice:', err));
+      console.log('[Anru SW] Pre-caching v15 offline studio shell');
+      return cache.addAll(STATIC_ASSETS).catch(err => console.warn('Cache error:', err));
     })
   );
   self.skipWaiting();
@@ -46,35 +42,23 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  const reqUrl = new URL(event.request.url);
-
-  // Bypass cache for audio streams & external API endpoints
-  if (
-    reqUrl.origin !== self.location.origin ||
-    event.request.destination === 'audio' ||
-    reqUrl.pathname.includes('/api/') ||
-    reqUrl.pathname.includes('soundhelix')
-  ) {
-    return;
-  }
-
-  // Network-First strategy: Always fetch newest updates immediately, fallback to cache if offline
+  // Offline-first strategy for app shell
   event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      return fetch(event.request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
           const clone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
         return networkResponse;
-      })
-      .catch(() => {
-        return caches.match(event.request).then((cached) => {
-          if (cached) return cached;
-          if (event.request.mode === 'navigate') {
-            return caches.match('./index.html');
-          }
-        });
-      })
+      }).catch(() => {
+        if (event.request.mode === 'navigate') {
+          return caches.match('./index.html');
+        }
+      });
+    })
   );
 });
