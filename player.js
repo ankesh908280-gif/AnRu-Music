@@ -280,7 +280,7 @@ class PlayerController {
     if (fsDl) {
       fsDl.innerHTML = isDl
         ? '<i class="fa-solid fa-circle-check" style="color:#10b981"></i>'
-        : '<i class="fa-solid fa-arrow-down-to-bracket"></i>';
+        : '<i class="fa-solid fa-download"></i>';
       fsDl.title = isDl ? 'Downloaded' : 'Download Offline';
     }
   }

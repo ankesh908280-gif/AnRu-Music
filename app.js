@@ -122,6 +122,11 @@ function renderQuickPicks() {
 
 // YouTube Music Mood Filter
 function filterHomeByMood(mood, label) {
+  const currentActiveView = document.querySelector('.tab-view.active');
+  if (currentActiveView && currentActiveView.id === 'view-search') {
+    performSearch(label || mood);
+    return;
+  }
   const shelfContainer = document.getElementById('yt-mood-shelf-container');
   const shelfTitle = document.getElementById('yt-mood-shelf-title');
   const shelfCards = document.getElementById('yt-mood-shelf-cards');
