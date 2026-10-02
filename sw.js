@@ -1,5 +1,5 @@
-// Service Worker for Anru Music PWA
-const CACHE_NAME = 'anru-music-v3';
+// Service Worker for Anru Music PWA v5
+const CACHE_NAME = 'anru-music-v5';
 const STATIC_SHELL = [
   './',
   './index.html',
@@ -14,7 +14,7 @@ const STATIC_SHELL = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Anru SW] Pre-caching app shell');
+      console.log('[Anru SW] Pre-caching app shell v5');
       return cache.addAll(STATIC_SHELL).catch(err => console.warn('Cache addAll notice:', err));
     })
   );
@@ -51,23 +51,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache first for app shell
+  // Network-First for App Shell (HTML, CSS, JS) so updates are immediate
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request)
-        .then((response) => {
-          if (response && response.status === 200 && response.type === 'basic') {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          }
-          return response;
-        })
-        .catch(() => {
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        // If offline, serve from cache
+        return caches.match(event.request).then((cached) => {
+          if (cached) return cached;
           if (event.request.mode === 'navigate') {
             return caches.match('./index.html');
           }
         });
-    })
+      })
   );
 });

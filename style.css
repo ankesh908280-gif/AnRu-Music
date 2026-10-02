@@ -1110,8 +1110,10 @@ body {
 }
 
 .fullscreen-player.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
   transform: translateY(100%);
-  pointer-events: none;
 }
 
 .fs-header {
@@ -1415,8 +1417,10 @@ body {
 }
 
 .queue-drawer.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
   transform: translateY(100%);
-  pointer-events: none;
 }
 
 .queue-header {
@@ -2001,12 +2005,14 @@ body {
   left: 0;
   right: 0;
   height: var(--navHeight);
-  z-index: 70;
+  z-index: 1000;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  background: rgba(15, 12, 41, 0.92);
+  background: rgba(15, 12, 41, 0.96);
   border-top: 1px solid var(--glassBorder);
+  touch-action: manipulation;
+  pointer-events: auto;
 }
 
 .nav-tab {
@@ -2021,8 +2027,16 @@ body {
   justify-content: center;
   gap: 4px;
   cursor: pointer;
-  transition: color 0.15s;
+  transition: all 0.15s ease;
   font-family: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.nav-tab:active {
+  transform: scale(0.92);
+  color: #ffffff;
 }
 
 .nav-tab i {
@@ -2095,6 +2109,9 @@ body {
 }
 
 .toast-card.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
   opacity: 0;
   transform: translate(-50%, 15px);
 }
@@ -2189,4 +2206,15 @@ body {
 
 .auth-divider span {
   padding: 0 10px;
+}
+
+
+/* Global Touch & Click Responsiveness */
+button, input, .chip, .music-card, .song-item, .glass-icon-btn, .profile-pill-btn, .nav-tab {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chip:active, .hero-play-btn:active, .card-play-btn:active, .glass-icon-btn:active, .profile-pill-btn:active {
+  transform: scale(0.94);
 }
