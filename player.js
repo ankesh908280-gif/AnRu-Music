@@ -50,7 +50,7 @@ class PlayerController {
     }
   }
 
-  playSong(song, newQueue = null) {
+  async playSong(song, newQueue = null) {
     if (!song) return;
 
     if (newQueue && Array.isArray(newQueue)) {
@@ -70,14 +70,41 @@ class PlayerController {
       this.currentObjectUrl = null;
     }
 
-    this.audio.src = song.audioUrl;
-    if (this.audio && typeof this.audio.load === "function") this.audio.load();
+    // Immediately update UI so mini player & fullscreen player display track info
+    this.updateTrackUI();
+    this.updateMediaSession();
+    renderQueueDrawer();
 
-    const playPromise = (this.audio && typeof this.audio.play === "function") ? this.audio.play() : undefined;
-    if (playPromise !== undefined) {
-      playPromise.catch(err => {
-        console.warn('Auto-play notice:', err);
-      });
+    // Check if audioUrl is missing or is SoundHelix/30s preview
+    const needsFullStream = !song.audioUrl ||
+      song.audioUrl.includes('soundhelix') ||
+      song.audioUrl.includes('audio-ssl.itunes.apple.com');
+
+    if (needsFullStream && typeof window.resolveFullSongAudio === 'function') {
+      if (typeof showToast === 'function') {
+        showToast(`Loading "${song.title}" from JioSaavn HD... 🎵`);
+      }
+      try {
+        const fullStream = await window.resolveFullSongAudio(song.title, song.artist);
+        if (fullStream) {
+          song.audioUrl = fullStream;
+          console.log('[Anru Audio Engine] Resolved full stream from JioSaavn/YT:', fullStream);
+        }
+      } catch (err) {
+        console.warn('Real audio resolution error:', err);
+      }
+    }
+
+    if (song.audioUrl) {
+      this.audio.src = song.audioUrl;
+      if (this.audio && typeof this.audio.load === "function") this.audio.load();
+
+      const playPromise = (this.audio && typeof this.audio.play === "function") ? this.audio.play() : undefined;
+      if (playPromise !== undefined) {
+        playPromise.catch(err => {
+          console.warn('Auto-play notice:', err);
+        });
+      }
     }
 
     // Check offline storage
@@ -92,9 +119,6 @@ class PlayerController {
       }).catch(() => {});
     }
 
-    this.updateTrackUI();
-    this.updateMediaSession();
-    renderQueueDrawer();
     if (typeof generateSmartSuggestions === "function") generateSmartSuggestions(song);
   }
 
