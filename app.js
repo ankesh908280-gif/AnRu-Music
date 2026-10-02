@@ -39,6 +39,14 @@ function switchTab(tabName) {
       if (typeof updateAppUserUI === 'function') updateAppUserUI();
     } else if (tabName === 'home') {
       loadHomeFeatured();
+    // Home Refresh Button for New Songs
+    const homeRefreshBtn = document.getElementById('refresh-home-btn');
+    if (homeRefreshBtn) {
+      homeRefreshBtn.addEventListener('click', () => {
+        if (typeof showToast === 'function') showToast('Loading fresh songs from JioSaavn... 🔄');
+        loadHomeFeatured(true);
+      });
+    }
     }
   } catch (err) {
     console.warn('switchTab notice:', err);
@@ -46,54 +54,17 @@ function switchTab(tabName) {
 }
 
 // ==========================================
-// 2. YOUTUBE MUSIC STYLE HOME & QUICK PICKS
+// 2. YOUTUBE MUSIC STYLE HOME & LIVE JIOSAAVN SHELVES
 // ==========================================
-function loadHomeFeatured() {
-  try {
-    const bhojpuriCards = document.getElementById('home-bhojpuri-cards');
-    const bollywoodCards = document.getElementById('home-bollywood-cards');
-    const punjabiCards = document.getElementById('home-punjabi-cards');
-    const bhaktiCards = document.getElementById('home-bhakti-cards');
-
-    if (typeof CURATED_FULL_CATALOG === 'undefined') return;
-
-    // Render Quick Picks (2x2 Grid)
-    renderQuickPicks();
-
-    if (bhojpuriCards) {
-      const bhojpuriSongs = CURATED_FULL_CATALOG.filter(s => s.category === 'bhojpuri');
-      bhojpuriCards.innerHTML = '';
-      bhojpuriSongs.forEach(song => renderMusicCard(song, bhojpuriCards, bhojpuriSongs));
-    }
-
-    if (bollywoodCards) {
-      const bollywoodSongs = CURATED_FULL_CATALOG.filter(s => s.category === 'bollywood');
-      bollywoodCards.innerHTML = '';
-      bollywoodSongs.forEach(song => renderMusicCard(song, bollywoodCards, bollywoodSongs));
-    }
-
-    if (punjabiCards) {
-      const punjabiSongs = CURATED_FULL_CATALOG.filter(s => s.category === 'punjabi');
-      punjabiCards.innerHTML = '';
-      punjabiSongs.forEach(song => renderMusicCard(song, punjabiCards, punjabiSongs));
-    }
-
-    if (bhaktiCards) {
-      const bhaktiSongs = CURATED_FULL_CATALOG.filter(s => s.category === 'bhakti');
-      bhaktiCards.innerHTML = '';
-      bhaktiSongs.forEach(song => renderMusicCard(song, bhaktiCards, bhaktiSongs));
-    }
-  } catch (err) {
-    console.warn('loadHomeFeatured notice:', err);
-  }
-}
-
-// Render YouTube Music 2x2 Quick Picks Grid
-function renderQuickPicks() {
+function renderQuickPicks(customSongs = null) {
   const grid = document.getElementById('yt-quick-grid');
-  if (!grid || typeof CURATED_FULL_CATALOG === 'undefined') return;
+  if (!grid) return;
 
-  const picks = CURATED_FULL_CATALOG.slice(0, 4);
+  const picks = (customSongs && customSongs.length >= 4)
+    ? customSongs.slice(0, 4)
+    : (typeof CURATED_FULL_CATALOG !== 'undefined' ? CURATED_FULL_CATALOG.slice(0, 4) : []);
+
+  if (!picks || picks.length === 0) return;
   grid.innerHTML = '';
 
   picks.forEach(song => {
@@ -113,11 +84,141 @@ function renderQuickPicks() {
     `;
 
     card.addEventListener('click', () => {
-      player.playSong(song, CURATED_FULL_CATALOG);
+      player.playSong(song, picks);
     });
 
     grid.appendChild(card);
   });
+}
+
+// Fetch Real New Songs from JioSaavn API for Home Shelves
+async function fetchFreshHomeFromJioSaavn(forceRefresh = false) {
+  if (typeof fetchJioSaavnSongs !== 'function') return;
+
+  const bhojpuriCards = document.getElementById('home-bhojpuri-cards');
+  const bollywoodCards = document.getElementById('home-bollywood-cards');
+  const punjabiCards = document.getElementById('home-punjabi-cards');
+  const bhaktiCards = document.getElementById('home-bhakti-cards');
+
+  const cachedData = {};
+
+  const tasks = [
+    // 1. Quick Picks
+    fetchJioSaavnSongs('trending hindi hits', 4).then(songs => {
+      if (songs && songs.length >= 4) {
+        renderQuickPicks(songs);
+        cachedData.quickPicks = songs;
+      }
+    }),
+    // 2. Bhojpuri Superhits
+    fetchJioSaavnSongs('bhojpuri superhits pawan singh khesari', 10).then(songs => {
+      if (songs && songs.length > 0 && bhojpuriCards) {
+        bhojpuriCards.innerHTML = '';
+        songs.forEach(song => renderMusicCard(song, bhojpuriCards, songs));
+        cachedData.bhojpuri = songs;
+      }
+    }),
+    // 3. Bollywood Top Charts
+    fetchJioSaavnSongs('bollywood top hits arijit singh', 10).then(songs => {
+      if (songs && songs.length > 0 && bollywoodCards) {
+        bollywoodCards.innerHTML = '';
+        songs.forEach(song => renderMusicCard(song, bollywoodCards, songs));
+        cachedData.bollywood = songs;
+      }
+    }),
+    // 4. Punjabi Beats
+    fetchJioSaavnSongs('punjabi top hits diljit karan aujla', 10).then(songs => {
+      if (songs && songs.length > 0 && punjabiCards) {
+        punjabiCards.innerHTML = '';
+        songs.forEach(song => renderMusicCard(song, punjabiCards, songs));
+        cachedData.punjabi = songs;
+      }
+    }),
+    // 5. Bhakti Sagar
+    fetchJioSaavnSongs('bhakti bhajan aarti shiv hanuman', 10).then(songs => {
+      if (songs && songs.length > 0 && bhaktiCards) {
+        bhaktiCards.innerHTML = '';
+        songs.forEach(song => renderMusicCard(song, bhaktiCards, songs));
+        cachedData.bhakti = songs;
+      }
+    })
+  ];
+
+  await Promise.allSettled(tasks);
+
+  if (Object.keys(cachedData).length > 0) {
+    try {
+      localStorage.setItem('anru_live_home_shelves', JSON.stringify(cachedData));
+    } catch (e) {}
+  }
+}
+
+function loadHomeFeatured(forceRefresh = false) {
+  try {
+    const bhojpuriCards = document.getElementById('home-bhojpuri-cards');
+    const bollywoodCards = document.getElementById('home-bollywood-cards');
+    const punjabiCards = document.getElementById('home-punjabi-cards');
+    const bhaktiCards = document.getElementById('home-bhakti-cards');
+
+    // 1. Render from live cached JioSaavn data first
+    let hasLiveCache = false;
+    if (!forceRefresh) {
+      try {
+        const raw = localStorage.getItem('anru_live_home_shelves');
+        if (raw) {
+          const cached = JSON.parse(raw);
+          if (cached.quickPicks?.length) renderQuickPicks(cached.quickPicks);
+          if (cached.bhojpuri?.length && bhojpuriCards) {
+            bhojpuriCards.innerHTML = '';
+            cached.bhojpuri.forEach(s => renderMusicCard(s, bhojpuriCards, cached.bhojpuri));
+          }
+          if (cached.bollywood?.length && bollywoodCards) {
+            bollywoodCards.innerHTML = '';
+            cached.bollywood.forEach(s => renderMusicCard(s, bollywoodCards, cached.bollywood));
+          }
+          if (cached.punjabi?.length && punjabiCards) {
+            punjabiCards.innerHTML = '';
+            cached.punjabi.forEach(s => renderMusicCard(s, punjabiCards, cached.punjabi));
+          }
+          if (cached.bhakti?.length && bhaktiCards) {
+            bhaktiCards.innerHTML = '';
+            cached.bhakti.forEach(s => renderMusicCard(s, bhaktiCards, cached.bhakti));
+          }
+          hasLiveCache = true;
+        }
+      } catch (e) {}
+    }
+
+    // Fallback to local catalog if no live cache yet
+    if (!hasLiveCache && typeof CURATED_FULL_CATALOG !== 'undefined') {
+      renderQuickPicks();
+      if (bhojpuriCards) {
+        const bhojpuriSongs = CURATED_FULL_CATALOG.filter(s => s.category === 'bhojpuri');
+        bhojpuriCards.innerHTML = '';
+        bhojpuriSongs.forEach(song => renderMusicCard(song, bhojpuriCards, bhojpuriSongs));
+      }
+      if (bollywoodCards) {
+        const bollywoodSongs = CURATED_FULL_CATALOG.filter(s => s.category === 'bollywood');
+        bollywoodCards.innerHTML = '';
+        bollywoodSongs.forEach(song => renderMusicCard(song, bollywoodCards, bollywoodSongs));
+      }
+      if (punjabiCards) {
+        const punjabiSongs = CURATED_FULL_CATALOG.filter(s => s.category === 'punjabi');
+        punjabiCards.innerHTML = '';
+        punjabiSongs.forEach(song => renderMusicCard(song, punjabiCards, punjabiSongs));
+      }
+      if (bhaktiCards) {
+        const bhaktiSongs = CURATED_FULL_CATALOG.filter(s => s.category === 'bhakti');
+        bhaktiCards.innerHTML = '';
+        bhaktiSongs.forEach(song => renderMusicCard(song, bhaktiCards, bhaktiSongs));
+      }
+    }
+
+    // 2. Fetch fresh real songs from JioSaavn in background
+    fetchFreshHomeFromJioSaavn(forceRefresh);
+  } catch (err) {
+    console.warn('loadHomeFeatured notice:', err);
+  }
 }
 
 // YouTube Music Mood Filter
@@ -846,6 +947,14 @@ function initApp() {
 
     // 12. Load Initial Data
     loadHomeFeatured();
+    // Home Refresh Button for New Songs
+    const homeRefreshBtn = document.getElementById('refresh-home-btn');
+    if (homeRefreshBtn) {
+      homeRefreshBtn.addEventListener('click', () => {
+        if (typeof showToast === 'function') showToast('Loading fresh songs from JioSaavn... 🔄');
+        loadHomeFeatured(true);
+      });
+    }
 
     // 13. Initialize Sub-engines
     try { initThemeEngine(); } catch (e) { console.warn('Theme init notice:', e); }

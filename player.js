@@ -31,8 +31,12 @@ class PlayerController {
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
     });
     this.audio.addEventListener('error', (e) => {
-      console.warn('Audio stream fallback notice:', e);
-      setTimeout(() => this.next(), 1000);
+      console.warn('Audio stream error notice:', e);
+      this.isPlaying = false;
+      this.updatePlayPauseUI();
+      if (typeof showToast === 'function') {
+        showToast('⚠️ Song stream unavailable. Tap another track.');
+      }
     });
 
     if ('mediaSession' in navigator) {
@@ -95,16 +99,23 @@ class PlayerController {
       }
     }
 
-    if (song.audioUrl) {
-      this.audio.src = song.audioUrl;
-      if (this.audio && typeof this.audio.load === "function") this.audio.load();
-
-      const playPromise = (this.audio && typeof this.audio.play === "function") ? this.audio.play() : undefined;
-      if (playPromise !== undefined) {
-        playPromise.catch(err => {
-          console.warn('Auto-play notice:', err);
-        });
+    if (!song.audioUrl) {
+      this.isPlaying = false;
+      this.updatePlayPauseUI();
+      if (typeof showToast === 'function') {
+        showToast(`⚠️ Could not connect to audio for "${song.title}". Please tap another track.`);
       }
+      return;
+    }
+
+    this.audio.src = song.audioUrl;
+    if (this.audio && typeof this.audio.load === "function") this.audio.load();
+
+    const playPromise = (this.audio && typeof this.audio.play === "function") ? this.audio.play() : undefined;
+    if (playPromise !== undefined) {
+      playPromise.catch(err => {
+        console.warn('Auto-play notice:', err);
+      });
     }
 
     // Check offline storage

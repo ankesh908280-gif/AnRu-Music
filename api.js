@@ -1,8 +1,9 @@
 /**
- * ANRU MUSIC - FULL-LENGTH HIGH-DEFINITION AUDIO ENGINE (api.js)
- * 1. Primary: JioSaavn 320kbps / 160kbps Full Songs API (aac.saavncdn.com direct streams)
- * 2. Backup: YouTube Music Full Audio Streams (Piped / Invidious proxy itag=140)
- * ZERO 30s preview clips. ZERO SoundHelix fake tunes.
+ * ANRU MUSIC - HIGH-DEFINITION REAL AUDIO ENGINE (api.js)
+ * 1. Primary: JioSaavn 320kbps / 160kbps Full Song API (Direct aac.saavncdn.com CDN streams)
+ * 2. Backup: YouTube Music Full Audio Streams (Invidious / Piped proxy itag=140)
+ * 3. Dynamic Home Shelves Feed from JioSaavn
+ * ZERO 30s clips. ZERO SoundHelix fake tunes.
  */
 
 // Base64 runtime decoder
@@ -16,19 +17,19 @@ const _u = (b64) => {
 
 // 1. Primary: JioSaavn Full-Length HD Audio API Mirrors
 const SAAVN_MIRRORS = [
-  _u('aHR0cHM6Ly9zYWF2bi5kZXYvYXBpL3NlYXJjaC9zb25ncw=='),
-  _u('aHR0cHM6Ly9zYWF2bi5tZS9zZWFyY2gvc29uZ3M='),
+  _u('aHR0cHM6Ly9zYWF2bi5kZXYvYXBpL3NlYXJjaC9zb25ncw=='), // https://saavn.dev/api/search/songs
   _u('aHR0cHM6Ly9qaW9zYWF2bi1hcGktcHJpdmF0ZS1zaWdtYS52ZXJjZWwuYXBwL3NlYXJjaC9zb25ncw=='),
   _u('aHR0cHM6Ly9qaW9zYWF2bi1hcGktMi1oYXJzaC1wYXRlbC52ZXJjZWwuYXBwL3NlYXJjaC9zb25ncw=='),
-  _u('aHR0cHM6Ly9qaW8tc2Fhdm4tYXBpLnZlcmNlbC5hcHAvc2VhcmNoL3Nvbmdz')
+  _u('aHR0cHM6Ly9zYWF2bi1hcGkudmVyY2VsLmFwcC9zZWFyY2gvc29uZ3M='),
+  _u('aHR0cHM6Ly9qaW8tc2Fhdm4tYXBpLnZlcmNlbC5hcHAvc2VhcmNoL3Nvbmdz'),
+  _u('aHR0cHM6Ly9zYWF2bi5tZS9zZWFyY2gvc29uZ3M=')
 ].filter(Boolean);
 
-// 2. Backup: YouTube Music Audio Streams Mirrors (Full Songs via itag=140 AAC)
+// 2. Backup: YouTube Music Audio Mirrors (Full AAC itag=140 streams)
 const YOUTUBE_SEARCH_MIRRORS = [
-  'https://pipedapi.kavin.rocks/search',
-  'https://api.piped.yt/search',
   'https://inv.nadeko.net/api/v1/search',
-  'https://invidious.nerdvpn.de/api/v1/search'
+  'https://invidious.nerdvpn.de/api/v1/search',
+  'https://vid.puffyan.us/api/v1/search'
 ];
 
 function decodeHtml(html) {
@@ -54,7 +55,7 @@ function normalizeSaavnPayload(raw) {
     raw.primary_artists ||
     raw.artist ||
     (Array.isArray(raw.artists?.primary) ? raw.artists.primary.map(a => a.name).join(', ') : '') ||
-    'Anru Studio Artist'
+    'JioSaavn Artist'
   ).trim();
 
   const album = decodeHtml(raw.album?.name || raw.album || 'Single').trim();
@@ -78,11 +79,6 @@ function normalizeSaavnPayload(raw) {
     if (best320 && (best320.url || best320.link)) audioUrl = best320.url || best320.link;
   } else if (raw.media_url) {
     audioUrl = raw.media_url;
-  } else if (raw.media_preview_url) {
-    audioUrl = raw.media_preview_url
-      .replace('preview.saavncdn.com', 'aac.saavncdn.com')
-      .replace('_96_p.mp4', '_320.mp4')
-      .replace('_96_p.m4a', '_320.m4a');
   }
 
   if (!audioUrl) return null;
@@ -100,25 +96,25 @@ function normalizeSaavnPayload(raw) {
   };
 }
 
-// Normalize Song Payload from YouTube Music (Full-Length Audio Stream)
+// Normalize Song Payload from YouTube Music (Invidious Full Audio Stream)
 function normalizeYoutubePayload(item) {
   if (!item) return null;
-  const videoId = (item.url ? item.url.replace('/watch?v=', '') : item.videoId) || '';
+  const videoId = item.videoId || (item.url ? item.url.replace('/watch?v=', '') : '') || '';
   if (!videoId || videoId.length < 5) return null;
 
   const title = (item.title || 'YouTube Music Track').replace(/\s*\(Official.*?\)/gi, '').trim();
-  const artist = item.uploaderName || item.author || 'YouTube Artist';
-  const artwork = item.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+  const artist = item.author || item.uploaderName || 'YouTube Artist';
+  const artwork = (item.videoThumbnails && item.videoThumbnails[0]?.url) || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
   
-  // High-efficiency full audio stream
-  const audioUrl = `https://pipedproxy.kavin.rocks/videoplayback?id=${videoId}&itag=140`;
+  // Real full audio stream from Invidious proxy (native itag=140 AAC audio)
+  const audioUrl = `https://inv.nadeko.net/latest_version?id=${videoId}&itag=140`;
 
   return {
     id: `yt-${videoId}`,
     title: title,
     artist: artist,
     album: 'YouTube Audio',
-    duration: parseInt(item.duration || 210, 10),
+    duration: parseInt(item.lengthSeconds || item.duration || 210, 10),
     image: artwork,
     artwork: artwork,
     audioUrl: audioUrl,
@@ -127,7 +123,7 @@ function normalizeYoutubePayload(item) {
 }
 
 async function fetchWithTimeout(resource, options = {}) {
-  const { timeout = 7500 } = options;
+  const { timeout = 6000 } = options;
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
   try {
@@ -140,62 +136,70 @@ async function fetchWithTimeout(resource, options = {}) {
   }
 }
 
-// Resolve real full audio on the fly for any song
-async function resolveFullSongAudio(title, artist) {
-  if (!title) return null;
-  const query = `${title} ${artist || ''}`.trim();
+// Fetch Songs list from JioSaavn API (Used for Home Shelves and search)
+async function fetchJioSaavnSongs(query, limit = 10) {
+  if (!query) return [];
 
-  // 1. Try JioSaavn Mirrors first
+  // Try direct saavn mirrors
   for (const mirror of SAAVN_MIRRORS) {
     try {
-      const res = await fetchWithTimeout(`${mirror}?query=${encodeURIComponent(query)}&limit=5`, {
+      const res = await fetchWithTimeout(`${mirror}?query=${encodeURIComponent(query)}&limit=${limit}`, {
         headers: { 'Accept': 'application/json' },
         timeout: 4500
       });
       if (res.ok) {
         const json = await res.json();
-        let rawList = [];
-        if (json.data && Array.isArray(json.data.results)) rawList = json.data.results;
-        else if (json.data && Array.isArray(json.data)) rawList = json.data;
-        else if (Array.isArray(json.results)) rawList = json.results;
+        let list = [];
+        if (json.data && Array.isArray(json.data.results)) list = json.data.results;
+        else if (json.data && Array.isArray(json.data)) list = json.data;
+        else if (Array.isArray(json.results)) list = json.results;
+        else if (Array.isArray(json)) list = json;
 
-        for (const raw of rawList) {
-          const parsed = normalizeSaavnPayload(raw);
-          if (parsed && parsed.audioUrl) return parsed.audioUrl;
-        }
+        const parsed = list.map(normalizeSaavnPayload).filter(s => s && s.audioUrl);
+        if (parsed.length > 0) return parsed;
       }
     } catch (e) {}
   }
 
-  // 2. Try Direct JioSaavn via CORS Proxy
+  // Fallback to CORS proxy with official JioSaavn
   try {
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://www.jiosaavn.com/api.php?__call=search.getResults&_format=json&n=5&p=1&_marker=0&ctx=android&q=' + encodeURIComponent(query))}`;
+    const saavnUrl = `https://www.jiosaavn.com/api.php?__call=search.getResults&_format=json&n=${limit}&p=1&_marker=0&ctx=android&q=${encodeURIComponent(query)}`;
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(saavnUrl)}`;
     const res = await fetchWithTimeout(proxyUrl, { timeout: 4500 });
     if (res.ok) {
       const json = await res.json();
       if (json && Array.isArray(json.results)) {
-        for (const raw of json.results) {
-          const parsed = normalizeSaavnPayload(raw);
-          if (parsed && parsed.audioUrl) return parsed.audioUrl;
-        }
+        const parsed = json.results.map(normalizeSaavnPayload).filter(s => s && s.audioUrl);
+        if (parsed.length > 0) return parsed;
       }
     }
   } catch (e) {}
 
-  // 3. Backup: YouTube Music Audio Stream
+  return [];
+}
+
+// Resolve real full audio on the fly for any song
+async function resolveFullSongAudio(title, artist) {
+  if (!title) return null;
+  const cleanTitle = title.replace(/\s*\(.*?\)/g, '').trim();
+  const query = `${cleanTitle} ${artist || ''}`.trim();
+
+  // 1. Try JioSaavn Mirrors first
+  const saavnResults = await fetchJioSaavnSongs(query, 5);
+  if (saavnResults.length > 0 && saavnResults[0].audioUrl) {
+    return saavnResults[0].audioUrl;
+  }
+
+  // 2. Backup: YouTube Music Audio Stream (Invidious)
   for (const mirror of YOUTUBE_SEARCH_MIRRORS) {
     try {
-      const ytUrl = mirror.includes('invidious') || mirror.includes('inv.nadeko.net')
-        ? `${mirror}?q=${encodeURIComponent(query)}&type=video`
-        : `${mirror}?q=${encodeURIComponent(query)}&filter=music_songs`;
-
+      const ytUrl = `${mirror}?q=${encodeURIComponent(query + ' song')}&type=video`;
       const res = await fetchWithTimeout(ytUrl, {
         headers: { 'Accept': 'application/json' },
         timeout: 4500
       });
       if (res.ok) {
-        const json = await res.json();
-        const items = json?.items || json;
+        const items = await res.json();
         if (Array.isArray(items) && items.length > 0) {
           const parsed = normalizeYoutubePayload(items[0]);
           if (parsed && parsed.audioUrl) return parsed.audioUrl;
@@ -243,7 +247,7 @@ async function searchMusic(query) {
     onlinePromises.push(
       fetchWithTimeout(`${mirror}?query=${encodeURIComponent(query)}&limit=25`, {
         headers: { 'Accept': 'application/json' },
-        timeout: 6500
+        timeout: 6000
       })
       .then(res => res.ok ? res.json() : null)
       .then(json => {
@@ -259,30 +263,14 @@ async function searchMusic(query) {
     );
   }
 
-  // B. Direct JioSaavn via CORS Proxy
+  // B. YouTube Music API Backup
   onlinePromises.push(
-    fetchWithTimeout(`https://api.allorigins.win/raw?url=${encodeURIComponent('https://www.jiosaavn.com/api.php?__call=search.getResults&_format=json&n=25&p=1&_marker=0&ctx=android&q=' + encodeURIComponent(query))}`, {
-      timeout: 6500
-    })
-    .then(res => res.ok ? res.json() : null)
-    .then(json => {
-      if (json && Array.isArray(json.results)) {
-        return json.results.map(normalizeSaavnPayload).filter(Boolean);
-      }
-      return [];
-    })
-    .catch(() => [])
-  );
-
-  // C. YouTube Music API Backup
-  onlinePromises.push(
-    fetchWithTimeout(`https://pipedapi.kavin.rocks/search?q=${encodeURIComponent(query)}&filter=music_songs`, {
+    fetchWithTimeout(`https://inv.nadeko.net/api/v1/search?q=${encodeURIComponent(query + ' song')}&type=video`, {
       headers: { 'Accept': 'application/json' },
-      timeout: 6000
+      timeout: 5500
     })
     .then(res => res.ok ? res.json() : null)
-    .then(json => {
-      const items = json?.items || json;
+    .then(items => {
       if (Array.isArray(items) && items.length > 0) {
         return items.slice(0, 15).map(normalizeYoutubePayload).filter(Boolean);
       }
@@ -324,10 +312,12 @@ if (typeof window !== 'undefined') {
   window.normalizeSaavnPayload = normalizeSaavnPayload; 
   window.normalizeYoutubePayload = normalizeYoutubePayload;
   window.resolveFullSongAudio = resolveFullSongAudio;
+  window.fetchJioSaavnSongs = fetchJioSaavnSongs;
 }
 if (typeof globalThis !== 'undefined') { 
   globalThis.searchMusic = searchMusic; 
   globalThis.normalizeSaavnPayload = normalizeSaavnPayload; 
   globalThis.normalizeYoutubePayload = normalizeYoutubePayload;
   globalThis.resolveFullSongAudio = resolveFullSongAudio;
+  globalThis.fetchJioSaavnSongs = fetchJioSaavnSongs;
 }

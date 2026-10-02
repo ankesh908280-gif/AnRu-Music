@@ -445,3 +445,24 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Quick Picks Refresh Button */
+.yt-refresh-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glassBorder);
+  color: var(--accent);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.yt-refresh-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  transform: scale(1.04);
+}

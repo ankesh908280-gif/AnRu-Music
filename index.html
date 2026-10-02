@@ -36,12 +36,12 @@
 
   <!-- Stylesheet -->
     <!-- Modular CSS Architecture (Zero Collisions & Blazing Fast Parallel Loading) -->
-  <link rel="stylesheet" href="base.css?v=13.0">
-  <link rel="stylesheet" href="auth.css?v=13.0">
-  <link rel="stylesheet" href="home.css?v=13.0">
-  <link rel="stylesheet" href="search.css?v=13.0">
-  <link rel="stylesheet" href="player.css?v=13.0">
-  <link rel="stylesheet" href="profile.css?v=13.0">
+  <link rel="stylesheet" href="base.css?v=13.1">
+  <link rel="stylesheet" href="auth.css?v=13.1">
+  <link rel="stylesheet" href="home.css?v=13.1">
+  <link rel="stylesheet" href="search.css?v=13.1">
+  <link rel="stylesheet" href="player.css?v=13.1">
+  <link rel="stylesheet" href="profile.css?v=13.1">
 
   <!-- Gatekeeper Script: Immediate Session Evaluation -->
   <script>
@@ -56,7 +56,7 @@
   </script>
 
   <!-- Auth Controller loaded in head so login handlers are available immediately -->
-  <script src="auth.js?v=13.0"></script>
+  <script src="auth.js?v=13.1"></script>
 </head>
 <body class="theme-aurora">
 
@@ -272,10 +272,12 @@
           <div class="yt-quick-section">
             <div class="section-header">
               <div class="section-title-wrap">
-                <i class="fa-solid fa-forward-step section-icon"></i>
-                <h3>Quick Picks</h3>
+                <i class="fa-solid fa-sparkles section-icon"></i>
+                <h3>Fresh Hits & Quick Picks</h3>
               </div>
-              <span class="yt-sub-label">START RADIO</span>
+              <button class="yt-refresh-btn" id="refresh-home-btn" title="Get Fresh Songs from JioSaavn">
+                <i class="fa-solid fa-arrows-rotate"></i> New Songs
+              </button>
             </div>
             <div class="yt-quick-grid" id="yt-quick-grid">
               <!-- Rendered dynamically -->
@@ -779,10 +781,10 @@
   </div>
 
   <!-- Modular Scripts: Catalog, Database, API, Player Engine, App Coordinator -->
-  <script src="catalog.js?v=13.0"></script>
-  <script src="db.js?v=13.0"></script>
-  <script src="api.js?v=13.0"></script>
-  <script src="player.js?v=13.0"></script>
-  <script src="app.js?v=13.0"></script>
+  <script src="catalog.js?v=13.1"></script>
+  <script src="db.js?v=13.1"></script>
+  <script src="api.js?v=13.1"></script>
+  <script src="player.js?v=13.1"></script>
+  <script src="app.js?v=13.1"></script>
 </body>
 </html>

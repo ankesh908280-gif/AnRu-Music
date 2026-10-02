@@ -1,0 +1,39 @@
+================================================================================
+ANRU MUSIC STUDIO PRO - UPDATE INSTRUCTIONS (v13.1 LIVE JIOSAAVN)
+================================================================================
+
+1. WHAT WAS FIXED:
+--------------------------------------------------------------------------------
+- Fix #1: Automatic Next-Next Skipping Loop
+  In player.js, the error event listener had an automatic next() trigger that 
+  caused an infinite skipping loop when a song stream had an issue. This has been
+  completely removed and replaced with a safe status check and clear user toast.
+
+- Fix #2: Live JioSaavn Home Feed (Real & Fresh Songs Every Time)
+  In app.js and api.js, the Home tab now dynamically fetches real trending songs 
+  directly from JioSaavn API for Quick Picks, Bhojpuri Superhits, Bollywood Top 
+  Charts, Punjabi Beats, and Bhakti Sagar. A "New Songs" refresh button has also 
+  been added to the Home tab.
+
+- Fix #3: Direct 320kbps / 160kbps Audio Streams
+  All songs now stream directly from JioSaavn CDN (aac.saavncdn.com) with Invidious
+  YouTube audio as backup. 30-second clips and SoundHelix tunes are 100% removed.
+
+2. HOW TO APPLY THE UPDATE:
+--------------------------------------------------------------------------------
+OPTION A: Update Entire Repository (Recommended)
+1. Download the Anru_Music_Studio_Pro_v13_Ultimate_Modular.zip from Google Drive.
+2. Unzip all files on your computer or phone.
+3. Upload and replace all files in your GitHub repository.
+4. Click "Commit changes".
+
+OPTION B: Update Only Changed Files
+If you prefer updating individual files, replace only these files in your repository:
+- player.js (Fixes the automatic next-next skipping bug)
+- app.js    (Adds dynamic JioSaavn Home feed & New Songs button)
+- api.js    (Fetches live 320kbps audio from JioSaavn & YouTube backup)
+- home.css  (Styles the New Songs refresh button)
+- index.html (Includes the New Songs button & cache-busting v13.1)
+- sw.js     (Service worker cache bump to v13.1)
+
+================================================================================
