@@ -18,6 +18,7 @@ const CURATED_FULL_CATALOG = [
       "hits"
     ],
     "image": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
   },
   {
@@ -36,6 +37,7 @@ const CURATED_FULL_CATALOG = [
       "hits"
     ],
     "image": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
   },
   {
@@ -52,6 +54,7 @@ const CURATED_FULL_CATALOG = [
       "trending"
     ],
     "image": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
   },
   {
@@ -70,6 +73,7 @@ const CURATED_FULL_CATALOG = [
       "hits"
     ],
     "image": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
   },
   {
@@ -86,6 +90,7 @@ const CURATED_FULL_CATALOG = [
       "trending"
     ],
     "image": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
   },
   {
@@ -102,6 +107,7 @@ const CURATED_FULL_CATALOG = [
       "dance"
     ],
     "image": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
   },
   {
@@ -118,6 +124,7 @@ const CURATED_FULL_CATALOG = [
       "hits"
     ],
     "image": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"
   },
   {
@@ -133,6 +140,7 @@ const CURATED_FULL_CATALOG = [
       "bangliniya"
     ],
     "image": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
   },
   {
@@ -150,6 +158,7 @@ const CURATED_FULL_CATALOG = [
       "trending"
     ],
     "image": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
   },
   {
@@ -167,6 +176,7 @@ const CURATED_FULL_CATALOG = [
       "trending"
     ],
     "image": "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
   },
   {
@@ -187,6 +197,7 @@ const CURATED_FULL_CATALOG = [
       "romance"
     ],
     "image": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
   },
   {
@@ -206,6 +217,7 @@ const CURATED_FULL_CATALOG = [
       "love"
     ],
     "image": "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
   },
   {
@@ -225,6 +237,7 @@ const CURATED_FULL_CATALOG = [
       "srk"
     ],
     "image": "https://images.unsplash.com/photo-1520523839898-507121c888d3?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1520523839898-507121c888d3?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
   },
   {
@@ -245,6 +258,7 @@ const CURATED_FULL_CATALOG = [
       "love"
     ],
     "image": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
   },
   {
@@ -264,6 +278,7 @@ const CURATED_FULL_CATALOG = [
       "love"
     ],
     "image": "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
   },
   {
@@ -283,6 +298,7 @@ const CURATED_FULL_CATALOG = [
       "pehle bhi main"
     ],
     "image": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
   },
   {
@@ -302,6 +318,7 @@ const CURATED_FULL_CATALOG = [
       "o maahi"
     ],
     "image": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
   },
   {
@@ -321,6 +338,7 @@ const CURATED_FULL_CATALOG = [
       "romance"
     ],
     "image": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
   },
   {
@@ -340,6 +358,7 @@ const CURATED_FULL_CATALOG = [
       "love"
     ],
     "image": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
   },
   {
@@ -358,6 +377,7 @@ const CURATED_FULL_CATALOG = [
       "lut gaye"
     ],
     "image": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
   },
   {
@@ -376,6 +396,7 @@ const CURATED_FULL_CATALOG = [
       "hits"
     ],
     "image": "https://images.unsplash.com/photo-1526478806334-5fd488fcaabc?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1526478806334-5fd488fcaabc?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
   },
   {
@@ -393,6 +414,7 @@ const CURATED_FULL_CATALOG = [
       "hits"
     ],
     "image": "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3"
   },
   {
@@ -410,6 +432,7 @@ const CURATED_FULL_CATALOG = [
       "hits"
     ],
     "image": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3"
   },
   {
@@ -427,6 +450,7 @@ const CURATED_FULL_CATALOG = [
       "hits"
     ],
     "image": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
   },
   {
@@ -444,6 +468,7 @@ const CURATED_FULL_CATALOG = [
       "trending"
     ],
     "image": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
   },
   {
@@ -461,6 +486,7 @@ const CURATED_FULL_CATALOG = [
       "hits"
     ],
     "image": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
   },
   {
@@ -478,6 +504,7 @@ const CURATED_FULL_CATALOG = [
       "trending"
     ],
     "image": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
   },
   {
@@ -494,6 +521,7 @@ const CURATED_FULL_CATALOG = [
       "bhakti sagar"
     ],
     "image": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
   },
   {
@@ -510,6 +538,7 @@ const CURATED_FULL_CATALOG = [
       "devotional"
     ],
     "image": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80",
+    "artwork": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80",
     "audioUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
   }
 ];

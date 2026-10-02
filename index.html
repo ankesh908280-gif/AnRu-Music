@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#0f0c29">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -11,6 +11,20 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="icon-512.png">
   <link rel="apple-touch-icon" href="icon-512.png">
+
+  <!-- Immediate Cache Purge & Service Worker Reset to guarantee latest code executes on all devices -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        for (var r of regs) { r.unregister(); }
+      });
+    }
+    if ('caches' in window) {
+      caches.keys().then(function(keys) {
+        for (var k of keys) { caches.delete(k); }
+      });
+    }
+  </script>
 
   <!-- Google Fonts: Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,7 +35,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=8.0">
+  <link rel="stylesheet" href="style.css?v=10.0">
 
   <!-- Gatekeeper Script: Immediate Session Evaluation -->
   <script>
@@ -35,9 +49,8 @@
     } catch(e) {}
   </script>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <!-- Auth Controller loaded in head so login handlers are available immediately -->
+  <script src="auth.js?v=10.0"></script>
 </head>
 <body class="theme-aurora">
 
@@ -68,7 +81,7 @@
       <div class="auth-card glass-panel">
         
         <!-- Continue with Google Button -->
-        <button class="google-auth-btn" id="login-google-btn" type="button">
+        <button class="google-auth-btn" id="login-google-btn" type="button" onclick="handleGoogleAuth(event)">
           <svg class="google-svg-icon" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -83,11 +96,11 @@
         </div>
 
         <div class="auth-tabs">
-          <button class="auth-tab active" id="login-tab-signin" type="button">Sign In</button>
-          <button class="auth-tab" id="login-tab-signup" type="button">Create Account</button>
+          <button class="auth-tab active" id="login-tab-signin" type="button" onclick="switchAuthTab('signin')">Sign In</button>
+          <button class="auth-tab" id="login-tab-signup" type="button" onclick="switchAuthTab('signup')">Create Account</button>
         </div>
 
-        <form class="auth-form" id="login-form">
+        <form class="auth-form" id="login-form" onsubmit="handleEmailAuth(event)">
           <div class="input-group hidden" id="login-name-group">
             <i class="fa-solid fa-user"></i>
             <input type="text" id="login-name" placeholder="Your Full Name">
@@ -101,7 +114,7 @@
           <div class="input-group">
             <i class="fa-solid fa-lock"></i>
             <input type="password" id="login-password" placeholder="Password (minimum 6 characters)" minlength="6" required>
-            <button type="button" class="eye-toggle" id="login-toggle-pw"><i class="fa-solid fa-eye"></i></button>
+            <button type="button" class="eye-toggle" id="login-toggle-pw" onclick="togglePasswordVisibility(event)"><i class="fa-solid fa-eye"></i></button>
           </div>
 
           <button type="submit" class="auth-submit-btn" id="login-submit-btn">
@@ -111,7 +124,7 @@
         </form>
 
         <div class="auth-footer-actions">
-          <button class="guest-skip-btn" id="login-guest-btn" type="button">
+          <button class="guest-skip-btn" id="login-guest-btn" type="button" onclick="handleGuestAuth(event)">
             Listen as Guest Listener →
           </button>
         </div>
@@ -121,7 +134,7 @@
   </div>
 
   <!-- Interactive Google Account Chooser Modal -->
-  <div class="modal-overlay hidden" id="google-picker-modal">
+  <div class="modal-overlay hidden" id="google-picker-modal" style="display:none;">
     <div class="modal-card glass-panel">
       <div class="modal-header">
         <div class="google-modal-badge">
@@ -133,13 +146,13 @@
           </svg>
           <h4>Choose a Google Account</h4>
         </div>
-        <button class="modal-close-btn" id="google-picker-close"><i class="fa-solid fa-xmark"></i></button>
+        <button class="modal-close-btn" id="google-picker-close" type="button" onclick="closeGooglePicker(event)"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <p class="modal-sub">to continue to Anru Music Studio Pro</p>
 
       <div class="google-accounts-list">
-        <button class="google-acc-item" id="google-option-default" data-email="ankeshk908280@gmail.com" data-name="Ankesh Kumar">
+        <button class="google-acc-item" id="google-option-default" type="button" data-email="ankeshk908280@gmail.com" data-name="Ankesh Kumar" onclick="selectGoogleAccount('Ankesh Kumar', 'ankeshk908280@gmail.com')">
           <div class="google-acc-avatar">A</div>
           <div class="google-acc-text">
             <span class="acc-name">Ankesh Kumar</span>
@@ -150,7 +163,7 @@
 
         <div class="custom-acc-input-box">
           <input type="email" id="google-custom-email" placeholder="Or enter another Gmail address...">
-          <button class="custom-acc-btn" id="google-custom-submit">Sign In</button>
+          <button class="custom-acc-btn" id="google-custom-submit" type="button" onclick="handleCustomGoogleSubmit(event)">Sign In</button>
         </div>
       </div>
     </div>
@@ -183,7 +196,7 @@
             <i class="fa-solid fa-palette"></i>
           </button>
 
-          <!-- Modern Circular User Avatar (No raw long gmail username!) -->
+          <!-- Modern Circular User Avatar -->
           <button class="header-avatar-btn" id="header-profile-btn" title="View Profile">
             <div class="header-avatar-circle" id="header-avatar-circle">
               <span id="header-avatar-initial">A</span>
@@ -352,7 +365,7 @@
           </div>
         </div>
 
-        <!-- 3. PLAYLISTS VIEW (Replaces Offline & Liked) -->
+        <!-- 3. PLAYLISTS VIEW -->
         <div class="tab-view" id="view-playlists">
           
           <!-- Playlists Overview -->
@@ -410,7 +423,7 @@
             </div>
           </div>
 
-          <!-- Playlist Detail View (Sub-view for Offline, Liked or Custom) -->
+          <!-- Playlist Detail View -->
           <div id="playlist-detail-view" class="hidden">
             <button class="detail-back-btn" id="detail-pl-back-btn">
               <i class="fa-solid fa-arrow-left"></i>
@@ -511,7 +524,7 @@
 
           <!-- Clean Sign Out Button -->
           <div class="profile-signout-box">
-            <button class="sign-out-btn" id="profile-signout-btn">
+            <button class="sign-out-btn" id="profile-signout-btn" type="button" onclick="handleLogout(event)">
               <i class="fa-solid fa-right-from-bracket"></i>
               <span>Log Out</span>
             </button>
@@ -660,7 +673,7 @@
       </div>
 
       <!-- Add to Custom Playlist Modal -->
-      <div class="modal-overlay hidden" id="playlist-picker-modal">
+      <div class="modal-overlay hidden" id="playlist-picker-modal" style="display:none;">
         <div class="modal-card glass-panel">
           <div class="modal-header">
             <h4 id="picker-song-title">Add to Playlist</h4>
@@ -674,7 +687,7 @@
       </div>
 
       <!-- Three-Dot (...) Action Modal -->
-      <div class="action-sheet-overlay hidden" id="action-sheet-overlay">
+      <div class="action-sheet-overlay hidden" id="action-sheet-overlay" style="display:none;">
         <div class="action-sheet glass-panel" id="action-sheet">
           <div class="sheet-song-preview">
             <img src="icon-512.png" onerror="this.onerror=null; this.src='icons/icon-512.png';" alt="art" class="sheet-thumb" id="sheet-song-thumb">
@@ -759,12 +772,11 @@
     </div>
   </div>
 
-  <!-- Modular Architecture (Catalog, Storage, API, Player, Auth, App) -->
-  <script src="catalog.js?v=8.0"></script>
-  <script src="db.js?v=8.0"></script>
-  <script src="api.js?v=8.0"></script>
-  <script src="player.js?v=8.0"></script>
-  <script src="auth.js?v=8.0"></script>
-  <script src="app.js?v=8.0"></script>
+  <!-- Modular Scripts: Catalog, Database, API, Player Engine, App Coordinator -->
+  <script src="catalog.js?v=10.0"></script>
+  <script src="db.js?v=10.0"></script>
+  <script src="api.js?v=10.0"></script>
+  <script src="player.js?v=10.0"></script>
+  <script src="app.js?v=10.0"></script>
 </body>
 </html>

@@ -483,7 +483,7 @@ body {
 /* Main Content Views */
 .main-content {
   flex: 1;
-  padding: 8px 18px;
+  padding: 8px 18px 180px 18px; /* 160px bottom padding ensures no content or logout button is hidden under bottom nav/player */
 }
 
 .tab-view {
@@ -2251,16 +2251,25 @@ button, input, .chip, .music-card, .song-item, .glass-icon-btn, .profile-pill-bt
    ========================================== */
 #loginScreen {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   min-height: 100vh;
-  padding: 24px 18px;
+  min-height: 100dvh;
+  padding: 32px 18px 56px;
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: var(--bg);
+  background: var(--bgGrad);
   background-attachment: fixed;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 420px;
+  margin: auto; /* Vertically centered, but fully scrollable on short mobile screens */
+  position: relative;
+  z-index: 10;
 }
 
 #appScreen {
@@ -2432,7 +2441,7 @@ html.user-authenticated #appScreen {
 
 .input-group input {
   width: 100%;
-  padding: 13px 40px 13px 40px;
+  padding: 14px 48px 14px 44px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--glassBorder);
   border-radius: 14px;
@@ -2451,7 +2460,9 @@ html.user-authenticated #appScreen {
 
 .eye-toggle {
   position: absolute;
-  right: 12px;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   color: var(--textMuted);
@@ -2507,6 +2518,12 @@ html.user-authenticated #appScreen {
 /* ==========================================
    GOOGLE ACCOUNT PICKER MODAL
    ========================================== */
+.modal-overlay.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;

@@ -1,22 +1,22 @@
-// Service Worker for Anru Music PWA v6
-const CACHE_NAME = 'anru-music-v8-final';
+// Service Worker for Anru Music Studio Pro v10 Live
+const CACHE_NAME = 'anru-music-v10-live';
 const STATIC_SHELL = [
   './',
   './index.html',
-  './style.css',
-  './catalog.js',
-  './db.js',
-  './api.js',
-  './player.js',
-  './auth.js',
-  './app.js',
+  './style.css?v=10.0',
+  './catalog.js?v=10.0',
+  './db.js?v=10.0',
+  './api.js?v=10.0',
+  './player.js?v=10.0',
+  './auth.js?v=10.0',
+  './app.js?v=10.0',
   './manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Anru SW] Pre-caching app shell v8');
+      console.log('[Anru SW] Pre-caching v10 app shell');
       return cache.addAll(STATIC_SHELL).catch(err => console.warn('Cache addAll notice:', err));
     })
   );
@@ -42,7 +42,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const reqUrl = new URL(event.request.url);
 
-  // Bypass cache for audio streams & API endpoints
+  // Bypass cache for audio streams & external API endpoints
   if (
     reqUrl.origin !== self.location.origin ||
     event.request.destination === 'audio' ||
@@ -52,7 +52,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Network-First for App Shell (HTML, CSS, JS) so updates are immediate
+  // Network-First strategy: Always fetch newest updates immediately, fallback to cache if offline
   event.respondWith(
     fetch(event.request)
       .then((networkResponse) => {

@@ -382,7 +382,7 @@ function renderSongItem(song, container, options = {}) {
   }
 
   item.innerHTML = `
-    <img src="${song.image}" alt="art" class="song-item-thumb" loading="lazy" onerror="this.src='icon-512.png'">
+    <img src="${song.image || song.artwork || "icon-512.png"}" alt="art" class="song-item-thumb" loading="lazy" onerror="this.src='icon-512.png'">
     <div class="song-item-info">
       <div class="song-item-title">${song.title}</div>
       <div class="song-item-artist">${song.artist} • ${formatTime(song.duration)}</div>
@@ -448,7 +448,7 @@ function renderMusicCard(song, container, queue) {
   card.dataset.id = song.id;
   card.innerHTML = `
     <div class="card-img-wrapper">
-      <img src="${song.image}" alt="art" class="card-img" loading="lazy" onerror="this.src='icon-512.png'">
+      <img src="${song.image || song.artwork || "icon-512.png"}" alt="art" class="card-img" loading="lazy" onerror="this.src='icon-512.png'">
       <button class="card-play-btn" aria-label="Play">
         <i class="fa-solid fa-play"></i>
       </button>
@@ -608,7 +608,7 @@ function renderQueueDrawer() {
     const item = document.createElement('div');
     item.className = 'queue-item';
     item.innerHTML = `
-      <img src="${song.image}" alt="art" class="queue-item-thumb" onerror="this.src='icon-512.png'">
+      <img src="${song.image || song.artwork || "icon-512.png"}" alt="art" class="queue-item-thumb" onerror="this.src='icon-512.png'">
       <div class="queue-item-info">
         <div class="queue-item-title">${song.title}</div>
         <div class="queue-item-artist">${song.artist}</div>
@@ -668,7 +668,7 @@ function generateSmartSuggestions(currentSong) {
     const row = document.createElement('div');
     row.className = 'song-item';
     row.innerHTML = `
-      <img src="${song.image}" alt="art" class="song-item-thumb" onerror="this.src='icon-512.png'">
+      <img src="${song.image || song.artwork || "icon-512.png"}" alt="art" class="song-item-thumb" onerror="this.src='icon-512.png'">
       <div class="song-item-info">
         <div class="song-item-title">${song.title}</div>
         <div class="song-item-artist">${song.artist}</div>
