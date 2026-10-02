@@ -1,5 +1,5 @@
 // Service Worker for Anru Music PWA v6
-const CACHE_NAME = 'anru-music-v6';
+const CACHE_NAME = 'anru-music-v8-final';
 const STATIC_SHELL = [
   './',
   './index.html',
@@ -16,7 +16,7 @@ const STATIC_SHELL = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Anru SW] Pre-caching app shell v6');
+      console.log('[Anru SW] Pre-caching app shell v8');
       return cache.addAll(STATIC_SHELL).catch(err => console.warn('Cache addAll notice:', err));
     })
   );

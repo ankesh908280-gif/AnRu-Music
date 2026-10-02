@@ -71,9 +71,9 @@ class PlayerController {
     }
 
     this.audio.src = song.audioUrl;
-    this.audio.load();
+    if (this.audio && typeof this.audio.load === "function") this.audio.load();
 
-    const playPromise = this.audio.play();
+    const playPromise = (this.audio && typeof this.audio.play === "function") ? this.audio.play() : undefined;
     if (playPromise !== undefined) {
       playPromise.catch(err => {
         console.warn('Auto-play notice:', err);
@@ -110,7 +110,7 @@ class PlayerController {
     if (this.audio.paused) {
       this.audio.play().catch(() => {});
     } else {
-      this.audio.pause();
+      if (this.audio && typeof this.audio.pause === "function") this.audio.pause();
     }
   }
 
@@ -349,9 +349,14 @@ const player = new PlayerController();
 
 // UI Helpers
 function formatTime(seconds) {
+  if (!seconds || isNaN(seconds)) return '0:00';
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+}
+
+function formatDuration(seconds) {
+  return formatTime(seconds);
 }
 
 let toastTimer = null;
@@ -717,4 +722,19 @@ if (typeof globalThis !== 'undefined') {
   globalThis.closeActionSheet = closeActionSheet;
   globalThis.renderQueueDrawer = renderQueueDrawer;
   globalThis.generateSmartSuggestions = generateSmartSuggestions;
+}
+
+if (typeof window !== 'undefined') {
+  window.player = player;
+  window.formatTime = formatTime;
+  window.formatDuration = formatDuration;
+  window.showToast = showToast;
+  window.renderQueueDrawer = renderQueueDrawer;
+}
+if (typeof globalThis !== 'undefined') {
+  globalThis.player = player;
+  globalThis.formatTime = formatTime;
+  globalThis.formatDuration = formatDuration;
+  globalThis.showToast = showToast;
+  globalThis.renderQueueDrawer = renderQueueDrawer;
 }
