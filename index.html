@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Anru Music Studio - Offline Pro</title>
-  <meta name="description" content="100% Offline High-Fidelity Music Studio Player with 7-Band Equalizer, 3D Virtualizer, Waveform Seekbar & Music Wrapped">
-  <meta name="theme-color" content="#0d0b18">
+  <meta name="description" content="100% Offline High-Fidelity Music Studio Player with 3D Virtualizer, Normalizer, Waveform Seekbar & Music Wrapped">
+  <meta name="theme-color" content="#0a0814">
 
-  <!-- PWA Manifest -->
+  <!-- PWA Manifest & App Icons -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="icon-512.png">
 
@@ -19,8 +19,12 @@
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- Consolidated Master Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=17.0">
+  <!-- Modular CSS Architecture for Ultra-Premium Modern Look -->
+  <link rel="stylesheet" href="css/variables.css?v=18.0">
+  <link rel="stylesheet" href="css/base.css?v=18.0">
+  <link rel="stylesheet" href="css/components.css?v=18.0">
+  <link rel="stylesheet" href="css/views.css?v=18.0">
+  <link rel="stylesheet" href="css/player.css?v=18.0">
 </head>
 <body>
 
@@ -43,7 +47,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="header-action-btn primary-glow" id="import-files-btn" title="Add Songs from Phone">
+        <button class="header-action-btn primary-glow" id="import-files-btn" title="Add Songs from Device">
           <i class="fa-solid fa-plus"></i>
           <span>Add Songs</span>
         </button>
@@ -111,7 +115,7 @@
 
       </section>
 
-      <!-- 2. PLAYLISTS VIEW (CUSTOM & SMART PLAYLISTS) -->
+      <!-- 2. PLAYLISTS VIEW (SMART & CUSTOM PLAYLISTS) -->
       <section class="tab-view" id="view-playlists">
         <div class="playlists-header">
           <h2>My Playlists</h2>
@@ -183,7 +187,7 @@
           <i class="fa-solid fa-chevron-right chevron-ico"></i>
         </button>
 
-        <!-- Music Activity Report Graph (Like Anru Focus) -->
+        <!-- Music Activity Report Graph (Anru Focus Style) -->
         <div class="studio-section">
           <div class="stats-header-row">
             <h3><i class="fa-solid fa-chart-simple"></i> Listening Activity Graph</h3>
@@ -326,7 +330,7 @@
       </div>
     </div>
 
-    <!-- Bottom Sticky Mini Player (WITH SWIPE GESTURES: SWIPE LEFT NEXT / SWIPE RIGHT PREV) -->
+    <!-- Bottom Sticky Floating Mini Player (WITH TOUCH SWIPE: SWIPE LEFT NEXT / SWIPE RIGHT PREV) -->
     <div class="mini-player glass-panel hidden" id="mini-player">
       <div class="mini-progress-track">
         <div class="mini-progress-fill" id="mini-progress-fill"></div>
@@ -366,7 +370,7 @@
       </button>
     </nav>
 
-    <!-- IMMERSIVE FULLSCREEN STUDIO PLAYER (WITH INTERACTIVE WAVEFORM & SWIPE DOWN) -->
+    <!-- IMMERSIVE FULLSCREEN STUDIO PLAYER (WITH 3D/NORM PILLS, WAVEFORM & SWIPE DOWN) -->
     <div class="fullscreen-player hidden" id="fullscreen-player">
       
       <!-- Top Bar -->
@@ -399,10 +403,20 @@
         <button class="fs-like-btn" id="fs-like-btn" title="Favorite"><i class="fa-regular fa-heart"></i></button>
       </div>
 
+      <!-- Audio Enhancement Quick-Pill Bar (Direct 3D & Normalizer Toggles in Fullscreen Player) -->
+      <div class="fs-enhancement-row">
+        <button class="fs-enhancement-pill" id="fs-3d-toggle-btn" title="Toggle 3D Spatial Virtualizer">
+          <i class="fa-solid fa-headphones"></i> <span>3D Audio</span>
+        </button>
+        <button class="fs-enhancement-pill" id="fs-norm-toggle-btn" title="Toggle Auto Volume Normalizer">
+          <i class="fa-solid fa-volume-high"></i> <span>Normalize</span>
+        </button>
+      </div>
+
       <!-- INTERACTIVE WAVEFORM SEEKBAR -->
       <div class="fs-seek-box">
         <div class="waveform-container">
-          <canvas id="fs-waveform-canvas" class="fs-waveform-canvas" width="340" height="48"></canvas>
+          <canvas id="fs-waveform-canvas" class="fs-waveform-canvas" width="340" height="52"></canvas>
         </div>
         <div class="fs-time-row">
           <span id="fs-curr-time">0:00</span>
@@ -634,7 +648,6 @@
           <button class="modal-close-btn" id="close-wrapped-btn"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="wrapped-poster" id="wrapped-poster">
-          <div class="wp-gradient-glow"></div>
           <div class="wp-user-row">
             <img src="icon-512.png" id="wrapped-avatar" alt="Avatar" class="wp-avatar" onerror="this.src='icons/icon-512.png'">
             <div>
@@ -670,9 +683,9 @@
   </div>
 
   <!-- Master Offline Scripts -->
-  <script src="id3.js?v=17.0"></script>
-  <script src="db.js?v=17.0"></script>
-  <script src="player.js?v=17.0"></script>
-  <script src="app.js?v=17.0"></script>
+  <script src="id3.js?v=18.0"></script>
+  <script src="db.js?v=18.0"></script>
+  <script src="player.js?v=18.0"></script>
+  <script src="app.js?v=18.0"></script>
 </body>
 </html>

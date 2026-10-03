@@ -41,7 +41,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   await restoreSavedPlaybackSession();
 });
 
-// Suppress web browser behaviors (pull-to-refresh, callouts, context menus)
+// Suppress unwanted desktop/browser behaviors (context menu, image drag)
+// NOTE: Pull-to-refresh is handled natively via CSS overscroll-behavior-y: contain,
+// ensuring 100% natural, fluid 60fps scrolling without touch gesture locking!
 function initNativeAppFeel() {
   document.addEventListener('contextmenu', (e) => {
     if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
@@ -54,22 +56,6 @@ function initNativeAppFeel() {
       e.preventDefault();
     }
   });
-
-  // Prevent Mobile Chrome Pull-to-Refresh reload
-  let startTouchY = 0;
-  window.addEventListener('touchstart', (e) => {
-    if (e.touches.length === 1) startTouchY = e.touches[0].clientY;
-  }, { passive: false });
-
-  window.addEventListener('touchmove', (e) => {
-    const currentY = e.touches[0].clientY;
-    const diff = currentY - startTouchY;
-    if (window.scrollY <= 0 && diff > 0) {
-      if (!e.target.closest('.playlist-detail-overlay, .queue-drawer, .modal-card, .songs-list-container')) {
-        e.preventDefault();
-      }
-    }
-  }, { passive: false });
 }
 
 // Android Hardware Back Button Handling via History API
@@ -916,27 +902,49 @@ function initEqualizerUI() {
     });
   }
 
-  // 3D Spatial Virtualizer & Auto Volume Normalizer Toggles
+  // 3D Spatial Virtualizer & Auto Volume Normalizer Toggles (Both in Studio & Fullscreen Player)
   const virtToggle = document.getElementById('toggle-virtualizer');
   const normToggle = document.getElementById('toggle-normalizer');
+  const fs3dBtn = document.getElementById('fs-3d-toggle-btn');
+  const fsNormBtn = document.getElementById('fs-norm-toggle-btn');
+
+  function updateDSPSyncUI() {
+    if (virtToggle) virtToggle.checked = !!player.isVirtualizerOn;
+    if (fs3dBtn) fs3dBtn.classList.toggle('active', !!player.isVirtualizerOn);
+
+    if (normToggle) normToggle.checked = !!player.isNormalizerOn;
+    if (fsNormBtn) fsNormBtn.classList.toggle('active', !!player.isNormalizerOn);
+  }
 
   // Load saved states
   db.getSetting('virtualizer_enabled', false).then(val => {
-    if (virtToggle) virtToggle.checked = !!val;
     player.isVirtualizerOn = !!val;
+    updateDSPSyncUI();
   });
 
   db.getSetting('normalizer_enabled', false).then(val => {
-    if (normToggle) normToggle.checked = !!val;
     player.isNormalizerOn = !!val;
+    updateDSPSyncUI();
   });
 
   virtToggle?.addEventListener('change', (e) => {
     player.toggleVirtualizer(e.target.checked);
+    updateDSPSyncUI();
   });
 
   normToggle?.addEventListener('change', (e) => {
     player.toggleNormalizer(e.target.checked);
+    updateDSPSyncUI();
+  });
+
+  fs3dBtn?.addEventListener('click', () => {
+    player.toggleVirtualizer(!player.isVirtualizerOn);
+    updateDSPSyncUI();
+  });
+
+  fsNormBtn?.addEventListener('click', () => {
+    player.toggleNormalizer(!player.isNormalizerOn);
+    updateDSPSyncUI();
   });
 
   // EQ Presets

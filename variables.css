@@ -1,0 +1,105 @@
+/* ==========================================================
+   ANRU MUSIC STUDIO PRO v18 - DESIGN SYSTEM & VARIABLES
+   css/variables.css
+   ========================================================== */
+
+:root {
+  /* Color Palette - Aurora Theme (Default) */
+  --bg: #0a0814;
+  --bgSurface: rgba(18, 14, 32, 0.7);
+  --bgSurfaceHover: rgba(30, 22, 54, 0.85);
+  --bgCard: rgba(22, 17, 40, 0.65);
+  --bgModal: rgba(14, 11, 26, 0.94);
+  --bgGrad: radial-gradient(circle at 15% 10%, rgba(168, 85, 247, 0.16) 0%, transparent 45%),
+            radial-gradient(circle at 85% 55%, rgba(236, 72, 153, 0.14) 0%, transparent 45%),
+            radial-gradient(circle at 50% 90%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
+            #0a0814;
+
+  /* Accent & Gradients */
+  --accent: #a855f7;
+  --accentPink: #ec4899;
+  --accentCyan: #06b6d4;
+  --accentAmber: #f59e0b;
+  --accentGreen: #10b981;
+  --gradAccent: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+  --gradAccentHover: linear-gradient(135deg, #f43f5e 0%, #9333ea 100%);
+  --gradCyan: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+  --gradAmber: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  --accentGlow: rgba(168, 85, 247, 0.45);
+  --accentPinkGlow: rgba(236, 72, 153, 0.45);
+
+  /* Typography */
+  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --text: #ffffff;
+  --textSub: #cbd5e1;
+  --textMuted: #94a3b8;
+  --textDim: #64748b;
+
+  /* Glassmorphism Borders & Shadows */
+  --glassBorder: rgba(255, 255, 255, 0.1);
+  --glassBorderBright: rgba(255, 255, 255, 0.2);
+  --glassBorderAccent: rgba(168, 85, 247, 0.4);
+  --glassInnerGlow: inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  --shadowCard: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  --shadowFloating: 0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 20px rgba(168, 85, 247, 0.2);
+  --shadowGlow: 0 0 25px var(--accentGlow);
+
+  /* Dimensions */
+  --header-height: 64px;
+  --bottom-nav-height: 68px;
+  --mini-player-height: 66px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Theme 2: Pure AMOLED */
+[data-theme="amoled"] {
+  --bg: #000000;
+  --bgSurface: rgba(18, 18, 20, 0.85);
+  --bgSurfaceHover: rgba(30, 30, 35, 0.95);
+  --bgCard: rgba(15, 15, 18, 0.8);
+  --bgModal: rgba(10, 10, 12, 0.98);
+  --bgGrad: radial-gradient(circle at 20% 10%, rgba(168, 85, 247, 0.12) 0%, transparent 40%),
+            #000000;
+  --glassBorder: rgba(255, 255, 255, 0.08);
+  --glassBorderBright: rgba(255, 255, 255, 0.16);
+}
+
+/* Theme 3: Cyberpunk Cyan */
+[data-theme="cyber"] {
+  --bg: #070d18;
+  --bgSurface: rgba(12, 22, 38, 0.75);
+  --bgSurfaceHover: rgba(20, 36, 62, 0.85);
+  --bgCard: rgba(14, 25, 45, 0.65);
+  --bgModal: rgba(8, 16, 30, 0.96);
+  --bgGrad: radial-gradient(circle at 15% 10%, rgba(6, 182, 212, 0.2) 0%, transparent 45%),
+            radial-gradient(circle at 85% 60%, rgba(59, 130, 246, 0.16) 0%, transparent 45%),
+            #070d18;
+  --accent: #06b6d4;
+  --accentPink: #3b82f6;
+  --gradAccent: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+  --accentGlow: rgba(6, 182, 212, 0.45);
+}
+
+/* Theme 4: Emerald Green */
+[data-theme="emerald"] {
+  --bg: #06120d;
+  --bgSurface: rgba(10, 28, 20, 0.75);
+  --bgSurfaceHover: rgba(16, 44, 32, 0.85);
+  --bgCard: rgba(12, 32, 23, 0.65);
+  --bgModal: rgba(6, 20, 14, 0.96);
+  --bgGrad: radial-gradient(circle at 15% 10%, rgba(16, 185, 129, 0.2) 0%, transparent 45%),
+            radial-gradient(circle at 85% 60%, rgba(5, 150, 105, 0.16) 0%, transparent 45%),
+            #06120d;
+  --accent: #10b981;
+  --accentPink: #059669;
+  --gradAccent: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --accentGlow: rgba(16, 185, 129, 0.45);
+}
