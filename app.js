@@ -1,14 +1,12 @@
 /**
- * ANRU MUSIC STUDIO PRO v16 - OFFLINE APP CONTROLLER (app.js)
- * Features:
- * 1. Zero-auth instant studio interface with 100% native mobile app feel
- * 2. Complete suppression of browser-like artifacts (long-press callout, text selection, image context menu)
- * 3. Smart duplicate song detection & notification on import
- * 4. Custom glassmorphic modals (Prompt, Confirm, Playlist Picker) - NO native browser popups
- * 5. Long-press multi-select mode with batch delete and batch playlist addition
- * 6. 7-Band Studio Equalizer with real-time Web Audio spectrum visualizer
- * 7. Custom minute sleep timer with stepper and countdown badge
- * 8. Holographic Profile & Listening Analytics Studio (Hours, Plays, Top 5 songs, Top artists)
+ * ANRU MUSIC STUDIO PRO v17 - MASTER CONTROLLER (app.js)
+ * 1. Native App Feel: Anti-Refresh, Web-Artifact Suppression, Android Hardware Back-Button Router
+ * 2. Playback State Persistence (Auto-resume track, timestamp, and queue after close/refresh)
+ * 3. 3D Spatial Virtualizer & Auto Volume Normalizer DSP Toggles
+ * 4. Interactive Waveform Seekbar & Mobile Touch Swipe Gestures
+ * 5. Smart Auto-Playlists: "Most Played" & "Never Played"
+ * 6. Music Activity Report Graph (Anru Focus style) & Music Wrapped Card
+ * 7. Multi-selection, batch actions, and 100% offline persistence
  */
 
 let allLibrarySongs = [];
@@ -18,12 +16,13 @@ let activePlaylistDetail = null;
 let currentStatsTimeframe = 'week';
 
 // ==========================================
-// 1. APP INITIALIZATION & NAVIGATION
+// 1. APP INITIALIZATION & HARDWARE ROUTER
 // ==========================================
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('[Anru App] Initializing Pure Offline Studio v16 🚀');
+  console.log('[Anru App] Initializing Pure Offline Studio v17 🚀');
 
   initNativeAppFeel();
+  initHardwareBackButton();
   initNavigation();
   initPlayerControls();
   initImporter();
@@ -34,12 +33,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   initActionSheet();
   initCustomModals();
   initHolographicStudio();
+  initWrappedModal();
+  player.initSwipeGestures();
 
-  // Load persistent library from IndexedDB
+  // Load persistent library and restore previous playback session
   await refreshLibrary();
+  await restoreSavedPlaybackSession();
 });
 
-// Suppress web browser behaviors (touch callout, context menu, image dragging)
+// Suppress web browser behaviors (pull-to-refresh, callouts, context menus)
 function initNativeAppFeel() {
   document.addEventListener('contextmenu', (e) => {
     if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
@@ -52,6 +54,112 @@ function initNativeAppFeel() {
       e.preventDefault();
     }
   });
+
+  // Prevent Mobile Chrome Pull-to-Refresh reload
+  let startTouchY = 0;
+  window.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) startTouchY = e.touches[0].clientY;
+  }, { passive: false });
+
+  window.addEventListener('touchmove', (e) => {
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - startTouchY;
+    if (window.scrollY <= 0 && diff > 0) {
+      if (!e.target.closest('.playlist-detail-overlay, .queue-drawer, .modal-card, .songs-list-container')) {
+        e.preventDefault();
+      }
+    }
+  }, { passive: false });
+}
+
+// Android Hardware Back Button Handling via History API
+function initHardwareBackButton() {
+  history.replaceState({ page: 'library' }, '');
+
+  window.addEventListener('popstate', (e) => {
+    // 1. Wrapped modal open?
+    const wrappedModal = document.getElementById('wrapped-modal');
+    if (wrappedModal && !wrappedModal.classList.contains('hidden')) {
+      wrappedModal.classList.add('hidden');
+      return;
+    }
+
+    // 2. Custom modals open?
+    const promptModal = document.getElementById('custom-prompt-modal');
+    if (promptModal && !promptModal.classList.contains('hidden')) {
+      promptModal.classList.add('hidden');
+      return;
+    }
+    const confirmModal = document.getElementById('custom-confirm-modal');
+    if (confirmModal && !confirmModal.classList.contains('hidden')) {
+      confirmModal.classList.add('hidden');
+      return;
+    }
+    const plPicker = document.getElementById('custom-playlist-picker-modal');
+    if (plPicker && !plPicker.classList.contains('hidden')) {
+      plPicker.classList.add('hidden');
+      return;
+    }
+
+    // 3. EQ / Sleep Timer modals open?
+    const eqModal = document.getElementById('equalizer-modal');
+    if (eqModal && !eqModal.classList.contains('hidden')) {
+      eqModal.classList.add('hidden');
+      player.stopVisualizer();
+      return;
+    }
+    const stModal = document.getElementById('sleep-timer-modal');
+    if (stModal && !stModal.classList.contains('hidden')) {
+      stModal.classList.add('hidden');
+      return;
+    }
+
+    // 4. Action sheet open?
+    const actionSheet = document.getElementById('action-sheet-overlay');
+    if (actionSheet && !actionSheet.classList.contains('hidden')) {
+      actionSheet.classList.add('hidden');
+      return;
+    }
+
+    // 5. Queue drawer open?
+    const queueDrawer = document.getElementById('queue-drawer');
+    if (queueDrawer && !queueDrawer.classList.contains('hidden')) {
+      queueDrawer.classList.add('hidden');
+      return;
+    }
+
+    // 6. Fullscreen player open?
+    const fsPlayer = document.getElementById('fullscreen-player');
+    if (fsPlayer && !fsPlayer.classList.contains('hidden')) {
+      fsPlayer.classList.add('hidden');
+      return;
+    }
+
+    // 7. Playlist detail view open?
+    const plDetail = document.getElementById('playlist-detail-view');
+    if (plDetail && !plDetail.classList.contains('hidden')) {
+      plDetail.classList.add('hidden');
+      return;
+    }
+
+    // 8. Multi-select mode active?
+    if (isSelectionMode) {
+      exitSelectionMode();
+      return;
+    }
+
+    // 9. If in Studio or Playlists tab, step back to Library
+    const activeNav = document.querySelector('.bottom-nav .nav-tab.active');
+    if (activeNav && activeNav.dataset.tab !== 'library') {
+      switchTab('library');
+      return;
+    }
+  });
+}
+
+// Push history state whenever opening a view
+function pushNavState(modalName) {
+  history.pushState({ modal: modalName }, '');
 }
 
 // Tab Navigation
@@ -70,7 +178,7 @@ function switchTab(tabId) {
   if (tabId === 'playlists') {
     renderPlaylistsTab();
   } else if (tabId === 'studio') {
-    renderHolographicStats(currentStatsTimeframe);
+    renderActivityGraph(currentStatsTimeframe);
   }
 }
 
@@ -84,7 +192,21 @@ function initNavigation() {
 }
 
 // ==========================================
-// 2. BATCH AUDIO FILE & FOLDER IMPORTER
+// 2. PLAYBACK STATE RESUME ENGINE
+// ==========================================
+async function restoreSavedPlaybackSession() {
+  try {
+    const state = await db.getPlaybackState();
+    if (state && allLibrarySongs.length > 0) {
+      await player.loadSavedState(state, allLibrarySongs);
+    }
+  } catch (err) {
+    console.warn('[Anru Session] Restore notice:', err);
+  }
+}
+
+// ==========================================
+// 3. BATCH AUDIO FILE & FOLDER IMPORTER
 // ==========================================
 function initImporter() {
   const fileInput = document.getElementById('local-file-picker');
@@ -131,7 +253,6 @@ async function handleFilesImport(fileList) {
   for (let i = 0; i < validAudioFiles.length; i++) {
     const file = validAudioFiles[i];
     try {
-      // Parse ID3 metadata and embedded cover art
       const meta = await ID3Parser.parseFile(file);
 
       // Check for duplicate song
@@ -141,7 +262,6 @@ async function handleFilesImport(fileList) {
         continue;
       }
 
-      // Save to IndexedDB
       await db.saveSong({
         id: `song-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
         title: meta.title,
@@ -173,7 +293,7 @@ async function handleFilesImport(fileList) {
 }
 
 // ==========================================
-// 3. PERSISTENT LIBRARY RENDERING & SEARCH
+// 4. PERSISTENT LIBRARY & BATCH SELECTION
 // ==========================================
 async function refreshLibrary() {
   allLibrarySongs = await db.getAllSongs();
@@ -194,7 +314,6 @@ function renderLibraryView(songs) {
   const totalSongs = songs.length;
   if (countBadge) countBadge.textContent = `${totalSongs} Songs`;
 
-  // Calculate total storage
   let totalBytes = 0;
   songs.forEach(s => totalBytes += (s.fileSize || 0));
   const mb = (totalBytes / (1024 * 1024)).toFixed(1);
@@ -234,7 +353,7 @@ function renderLibraryView(songs) {
 
     // Long press detection for selection mode
     let touchTimer = null;
-    row.addEventListener('touchstart', (e) => {
+    row.addEventListener('touchstart', () => {
       touchTimer = setTimeout(() => {
         if (!isSelectionMode) {
           enterSelectionMode();
@@ -275,7 +394,6 @@ function renderLibraryView(songs) {
   });
 }
 
-// Multi-Select Mode Logic
 function initSelectionMode() {
   const selectBtn = document.getElementById('select-mode-btn');
   const cancelBtn = document.getElementById('sel-cancel-btn');
@@ -283,55 +401,45 @@ function initSelectionMode() {
   const deleteBtn = document.getElementById('sel-delete-btn');
   const addPlBtn = document.getElementById('sel-add-playlist-btn');
 
-  if (selectBtn) {
-    selectBtn.addEventListener('click', () => {
-      if (isSelectionMode) exitSelectionMode();
-      else enterSelectionMode();
+  selectBtn?.addEventListener('click', () => {
+    if (isSelectionMode) exitSelectionMode();
+    else enterSelectionMode();
+  });
+
+  cancelBtn?.addEventListener('click', exitSelectionMode);
+
+  selectAllBtn?.addEventListener('click', () => {
+    if (selectedSongIds.size === allLibrarySongs.length) {
+      selectedSongIds.clear();
+    } else {
+      selectedSongIds = new Set(allLibrarySongs.map(s => s.id));
+    }
+    updateSelectionUI();
+  });
+
+  deleteBtn?.addEventListener('click', async () => {
+    if (selectedSongIds.size === 0) return;
+    const confirmed = await showCustomConfirm({
+      title: 'Delete Selected Songs?',
+      message: `Permanently delete ${selectedSongIds.size} songs from offline library?`,
+      confirmText: `Delete (${selectedSongIds.size})`,
+      isDanger: true
     });
-  }
 
-  if (cancelBtn) {
-    cancelBtn.addEventListener('click', exitSelectionMode);
-  }
+    if (confirmed) {
+      const ids = Array.from(selectedSongIds);
+      await db.deleteMultipleSongs(ids);
+      showToast(`🗑️ Deleted ${ids.length} songs`);
+      exitSelectionMode();
+      await refreshLibrary();
+    }
+  });
 
-  if (selectAllBtn) {
-    selectAllBtn.addEventListener('click', () => {
-      if (selectedSongIds.size === allLibrarySongs.length) {
-        selectedSongIds.clear();
-      } else {
-        selectedSongIds = new Set(allLibrarySongs.map(s => s.id));
-      }
-      updateSelectionUI();
-    });
-  }
-
-  if (deleteBtn) {
-    deleteBtn.addEventListener('click', async () => {
-      if (selectedSongIds.size === 0) return;
-      const confirmed = await showCustomConfirm({
-        title: 'Delete Selected Songs?',
-        message: `Permanently delete ${selectedSongIds.size} songs from offline library?`,
-        confirmText: `Delete (${selectedSongIds.size})`,
-        isDanger: true
-      });
-
-      if (confirmed) {
-        const ids = Array.from(selectedSongIds);
-        await db.deleteMultipleSongs(ids);
-        showToast(`🗑️ Deleted ${ids.length} songs`);
-        exitSelectionMode();
-        await refreshLibrary();
-      }
-    });
-  }
-
-  if (addPlBtn) {
-    addPlBtn.addEventListener('click', () => {
-      if (selectedSongIds.size === 0) return;
-      const selectedSongs = allLibrarySongs.filter(s => selectedSongIds.has(s.id));
-      openPlaylistPickerModal(selectedSongs);
-    });
-  }
+  addPlBtn?.addEventListener('click', () => {
+    if (selectedSongIds.size === 0) return;
+    const selectedSongs = allLibrarySongs.filter(s => selectedSongIds.has(s.id));
+    openPlaylistPickerModal(selectedSongs);
+  });
 }
 
 function enterSelectionMode() {
@@ -398,7 +506,6 @@ function updateSelectionUI() {
   });
 }
 
-// Instant Offline Search
 function setupSearch() {
   const input = document.getElementById('search-input');
   const clearBtn = document.getElementById('clear-search-btn');
@@ -431,7 +538,6 @@ function setupSearch() {
   }
 }
 
-// Library Sort Dropdown
 function setupSorting() {
   const sortSelect = document.getElementById('library-sort-select');
   if (!sortSelect) return;
@@ -457,10 +563,9 @@ function setupSorting() {
 }
 
 // ==========================================
-// 4. PLAYER & FULLSCREEN CONTROLS BINDING
+// 5. PLAYER & FULLSCREEN CONTROLS BINDING
 // ==========================================
 function initPlayerControls() {
-  // Mini Player Click -> Open Fullscreen
   const miniContent = document.getElementById('mini-player-content');
   const fsPlayer = document.getElementById('fullscreen-player');
 
@@ -468,6 +573,8 @@ function initPlayerControls() {
     miniContent.addEventListener('click', (e) => {
       if (e.target.closest('.mini-action-btn')) return;
       fsPlayer.classList.remove('hidden');
+      pushNavState('fullscreen');
+      player.drawWaveformSeekbar(0);
     });
   }
 
@@ -482,6 +589,7 @@ function initPlayerControls() {
   // Fullscreen Close Button
   document.getElementById('fs-close-btn')?.addEventListener('click', () => {
     if (fsPlayer) fsPlayer.classList.add('hidden');
+    if (history.state?.modal === 'fullscreen') history.back();
   });
 
   // Fullscreen Playback Controls
@@ -490,12 +598,6 @@ function initPlayerControls() {
   document.getElementById('fs-prev-btn')?.addEventListener('click', () => player.previous());
   document.getElementById('fs-shuffle-btn')?.addEventListener('click', () => player.toggleShuffle());
   document.getElementById('fs-repeat-btn')?.addEventListener('click', () => player.toggleRepeat());
-
-  // Seeker
-  const seekSlider = document.getElementById('fs-seek-slider');
-  if (seekSlider) {
-    seekSlider.addEventListener('input', (e) => player.seek(parseFloat(e.target.value)));
-  }
 
   // Volume
   const volSlider = document.getElementById('fs-vol-slider');
@@ -533,6 +635,10 @@ function initPlayerControls() {
   document.getElementById('close-queue-btn')?.addEventListener('click', closeQueue);
   document.getElementById('clear-queue-btn')?.addEventListener('click', () => player.clearUpcomingQueue());
 
+  // Waveform canvas initialization
+  const wfCanvas = document.getElementById('fs-waveform-canvas');
+  if (wfCanvas) player.initWaveformCanvas(wfCanvas);
+
   setupSearch();
   setupSorting();
 }
@@ -540,14 +646,16 @@ function initPlayerControls() {
 function openQueue() {
   player.renderQueueDrawer();
   document.getElementById('queue-drawer')?.classList.remove('hidden');
+  pushNavState('queue');
 }
 
 function closeQueue() {
   document.getElementById('queue-drawer')?.classList.add('hidden');
+  if (history.state?.modal === 'queue') history.back();
 }
 
 // ==========================================
-// 5. ACTION SHEET (3-DOTS SPOTIFY MENU)
+// 6. ACTION SHEET (3-DOTS SPOTIFY MENU)
 // ==========================================
 let actionSheetSong = null;
 
@@ -562,7 +670,6 @@ function initActionSheet() {
     });
   }
 
-  // Action Buttons
   document.getElementById('as-play-next')?.addEventListener('click', () => {
     if (actionSheetSong) player.playNext(actionSheetSong);
     overlay.classList.add('hidden');
@@ -608,16 +715,16 @@ function openActionSheet(song) {
   if (thumbEl) thumbEl.src = song.artwork || 'icon-512.png';
 
   if (overlay) overlay.classList.remove('hidden');
+  pushNavState('actionsheet');
 }
 
 // ==========================================
-// 6. CUSTOM MODAL SYSTEM (REPLACES BROWSER DIALOGS)
+// 7. CUSTOM MODAL SYSTEM (REPLACES BROWSER DIALOGS)
 // ==========================================
 let promptResolver = null;
 let confirmResolver = null;
 
 function initCustomModals() {
-  // Custom Prompt
   const promptModal = document.getElementById('custom-prompt-modal');
   const promptInput = document.getElementById('custom-prompt-input');
   const promptConfirm = document.getElementById('custom-prompt-confirm');
@@ -641,7 +748,6 @@ function initCustomModals() {
     if (e.key === 'Escape') promptCancel?.click();
   });
 
-  // Custom Confirm
   const confirmModal = document.getElementById('custom-confirm-modal');
   const confirmOk = document.getElementById('custom-confirm-ok');
   const confirmCancel = document.getElementById('custom-confirm-cancel');
@@ -658,7 +764,6 @@ function initCustomModals() {
     confirmResolver = null;
   });
 
-  // Playlist Picker Modal
   document.getElementById('close-pl-picker-btn')?.addEventListener('click', () => {
     document.getElementById('custom-playlist-picker-modal')?.classList.add('hidden');
   });
@@ -694,6 +799,7 @@ function showCustomPrompt({ title = 'Input', desc = '', placeholder = '', defaul
     }
 
     if (modal) modal.classList.remove('hidden');
+    pushNavState('prompt');
     setTimeout(() => inputEl?.focus(), 100);
   });
 }
@@ -714,6 +820,7 @@ function showCustomConfirm({ title = 'Confirm', message = '', confirmText = 'Con
     }
 
     if (modal) modal.classList.remove('hidden');
+    pushNavState('confirm');
   });
 }
 
@@ -757,10 +864,11 @@ async function openPlaylistPickerModal(songs) {
   }
 
   pickerModal.classList.remove('hidden');
+  pushNavState('picker');
 }
 
 // ==========================================
-// 7. 7-BAND STUDIO EQUALIZER & VISUALIZER
+// 8. 7-BAND STUDIO EQUALIZER, 3D VIRTUALIZER & NORMALIZER
 // ==========================================
 function initEqualizerUI() {
   const eqModal = document.getElementById('equalizer-modal');
@@ -772,6 +880,7 @@ function initEqualizerUI() {
   const openEQ = () => {
     if (eqModal) eqModal.classList.remove('hidden');
     if (canvas) player.startVisualizer(canvas);
+    pushNavState('eq');
   };
 
   const closeEQ = () => {
@@ -807,6 +916,29 @@ function initEqualizerUI() {
     });
   }
 
+  // 3D Spatial Virtualizer & Auto Volume Normalizer Toggles
+  const virtToggle = document.getElementById('toggle-virtualizer');
+  const normToggle = document.getElementById('toggle-normalizer');
+
+  // Load saved states
+  db.getSetting('virtualizer_enabled', false).then(val => {
+    if (virtToggle) virtToggle.checked = !!val;
+    player.isVirtualizerOn = !!val;
+  });
+
+  db.getSetting('normalizer_enabled', false).then(val => {
+    if (normToggle) normToggle.checked = !!val;
+    player.isNormalizerOn = !!val;
+  });
+
+  virtToggle?.addEventListener('change', (e) => {
+    player.toggleVirtualizer(e.target.checked);
+  });
+
+  normToggle?.addEventListener('change', (e) => {
+    player.toggleNormalizer(e.target.checked);
+  });
+
   // EQ Presets
   document.querySelectorAll('.eq-preset-chip').forEach(chip => {
     chip.addEventListener('click', (e) => {
@@ -819,7 +951,7 @@ function initEqualizerUI() {
 }
 
 // ==========================================
-// 8. SLEEP TIMER (PRESETS & CUSTOM STEPPER)
+// 9. SLEEP TIMER (PRESETS & CUSTOM STEPPER)
 // ==========================================
 function initSleepTimerUI() {
   const stModal = document.getElementById('sleep-timer-modal');
@@ -827,11 +959,15 @@ function initSleepTimerUI() {
   const studioStBtn = document.getElementById('studio-open-st-btn');
   const closeStBtn = document.getElementById('close-st-btn');
 
-  openStBtn?.addEventListener('click', () => stModal?.classList.remove('hidden'));
-  studioStBtn?.addEventListener('click', () => stModal?.classList.remove('hidden'));
+  const openST = () => {
+    stModal?.classList.remove('hidden');
+    pushNavState('sleeptimer');
+  };
+
+  openStBtn?.addEventListener('click', openST);
+  studioStBtn?.addEventListener('click', openST);
   closeStBtn?.addEventListener('click', () => stModal?.classList.add('hidden'));
 
-  // Preset Pills
   document.querySelectorAll('.st-pill').forEach(pill => {
     pill.addEventListener('click', (e) => {
       document.querySelectorAll('.st-pill').forEach(p => p.classList.remove('active'));
@@ -847,7 +983,6 @@ function initSleepTimerUI() {
     });
   });
 
-  // Custom Timer Stepper
   const input = document.getElementById('custom-timer-input');
   const decBtn = document.getElementById('timer-dec-btn');
   const incBtn = document.getElementById('timer-inc-btn');
@@ -871,7 +1006,7 @@ function initSleepTimerUI() {
 }
 
 // ==========================================
-// 9. OFFLINE PLAYLISTS VIEW
+// 10. SMART PLAYLISTS & CUSTOM PLAYLISTS
 // ==========================================
 async function renderPlaylistsTab() {
   const container = document.getElementById('playlists-grid');
@@ -879,6 +1014,7 @@ async function renderPlaylistsTab() {
   if (!container) return;
 
   const playlists = await db.getPlaylists();
+  const smartLists = await db.getSmartPlaylists();
   container.innerHTML = '';
 
   if (createBtn) {
@@ -896,7 +1032,7 @@ async function renderPlaylistsTab() {
     };
   }
 
-  // Add Liked Songs card
+  // 1. Liked Songs card
   const favIds = await db.getAllFavorites();
   const favCard = document.createElement('div');
   favCard.className = 'playlist-card glass-card';
@@ -910,7 +1046,33 @@ async function renderPlaylistsTab() {
   favCard.onclick = () => openPlaylistDetail('favorites', 'Liked Songs', favIds);
   container.appendChild(favCard);
 
-  // User Playlists
+  // 2. SMART PLAYLIST: Most Played
+  const mostPlayedCard = document.createElement('div');
+  mostPlayedCard.className = 'playlist-card glass-card';
+  mostPlayedCard.innerHTML = `
+    <div class="playlist-art-wrap" style="background:linear-gradient(135deg, #f59e0b, #ef4444);">
+      <i class="fa-solid fa-fire" style="font-size:32px; color:#fff;"></i>
+    </div>
+    <div class="playlist-name">Most Played</div>
+    <div class="playlist-sub">${smartLists.mostPlayed.length} Songs</div>
+  `;
+  mostPlayedCard.onclick = () => openPlaylistDetail('most_played', 'Most Played', smartLists.mostPlayed.map(s => s.id));
+  container.appendChild(mostPlayedCard);
+
+  // 3. SMART PLAYLIST: Never Played
+  const neverPlayedCard = document.createElement('div');
+  neverPlayedCard.className = 'playlist-card glass-card';
+  neverPlayedCard.innerHTML = `
+    <div class="playlist-art-wrap" style="background:linear-gradient(135deg, #06b6d4, #3b82f6);">
+      <i class="fa-solid fa-clock-rotate-left" style="font-size:30px; color:#fff;"></i>
+    </div>
+    <div class="playlist-name">Never Played</div>
+    <div class="playlist-sub">${smartLists.neverPlayed.length} Songs</div>
+  `;
+  neverPlayedCard.onclick = () => openPlaylistDetail('never_played', 'Never Played', smartLists.neverPlayed.map(s => s.id));
+  container.appendChild(neverPlayedCard);
+
+  // 4. User Playlists
   playlists.forEach(pl => {
     const card = document.createElement('div');
     card.className = 'playlist-card glass-card';
@@ -967,9 +1129,9 @@ function openPlaylistDetail(id, title, songIds) {
     };
   }
 
-  // Delete Playlist (Custom Modal)
+  // Delete Playlist (Only custom playlists)
   if (deleteBtn) {
-    if (id === 'favorites') {
+    if (id === 'favorites' || id === 'most_played' || id === 'never_played') {
       deleteBtn.classList.add('hidden');
     } else {
       deleteBtn.classList.remove('hidden');
@@ -1031,18 +1193,21 @@ function openPlaylistDetail(id, title, songIds) {
   }
 
   plView.classList.remove('hidden');
-  if (backBtn) backBtn.onclick = () => plView.classList.add('hidden');
+  pushNavState('playlist_detail');
+  if (backBtn) backBtn.onclick = () => {
+    plView.classList.add('hidden');
+    if (history.state?.modal === 'playlist_detail') history.back();
+  };
 }
 
 // ==========================================
-// 10. HOLOGRAPHIC STUDIO & LISTENING ANALYTICS
+// 11. HOLOGRAPHIC STUDIO & LISTENING REPORT GRAPH (ANRU FOCUS STYLE)
 // ==========================================
 function initHolographicStudio() {
   const avatarBtn = document.getElementById('holo-avatar-btn');
   const avatarPicker = document.getElementById('avatar-file-picker');
   const profileImg = document.getElementById('holo-profile-img');
 
-  // Load saved profile
   db.getSetting('user_avatar').then(dataUrl => {
     if (dataUrl && profileImg) profileImg.src = dataUrl;
   });
@@ -1062,33 +1227,85 @@ function initHolographicStudio() {
     }
   });
 
-  // Timeframe selector buttons (Week / Month / Year)
   document.querySelectorAll('.timeframe-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       document.querySelectorAll('.timeframe-btn').forEach(b => b.classList.remove('active'));
       e.currentTarget.classList.add('active');
       currentStatsTimeframe = e.currentTarget.dataset.timeframe || 'week';
-      renderHolographicStats(currentStatsTimeframe);
+      renderActivityGraph(currentStatsTimeframe);
     });
   });
 }
 
-async function renderHolographicStats(timeframe = 'week') {
+async function renderActivityGraph(timeframe = 'week') {
   const stats = await db.getListeningStats(timeframe);
+  const graphData = await db.getActivityGraphData(timeframe);
 
   const hoursEl = document.getElementById('stat-hours');
   const playsEl = document.getElementById('stat-plays');
-  const artistEl = document.getElementById('stat-top-artist-name');
+  const avgEl = document.getElementById('stat-daily-avg');
   const songsListEl = document.getElementById('stat-top-songs-list');
+  const canvas = document.getElementById('activity-graph-canvas');
 
   if (hoursEl) hoursEl.textContent = `${stats.totalHours}h`;
   if (playsEl) playsEl.textContent = stats.totalPlays;
-  if (artistEl) artistEl.textContent = stats.topArtists[0]?.artist || 'None yet';
+  if (avgEl) avgEl.textContent = `${stats.dailyAvgMinutes}m`;
 
+  // Draw Activity Graph (Bar Chart like Anru Focus)
+  if (canvas && graphData && graphData.length > 0) {
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    ctx.clearRect(0, 0, width, height);
+
+    const maxMin = Math.max(10, ...graphData.map(d => d.minutes));
+    const chartHeight = height - 28;
+    const numBars = graphData.length;
+    const barWidth = Math.max(12, Math.min(28, (width - (numBars * 10)) / numBars));
+    const spacing = (width - (numBars * barWidth)) / (numBars + 1);
+
+    graphData.forEach((d, i) => {
+      const barH = Math.max(4, (d.minutes / maxMin) * (chartHeight - 20));
+      const x = spacing + i * (barWidth + spacing);
+      const y = chartHeight - barH;
+
+      // Glowing Gradient
+      const grad = ctx.createLinearGradient(0, chartHeight, 0, y);
+      grad.addColorStop(0, 'rgba(168, 85, 247, 0.3)');
+      grad.addColorStop(1, '#a855f7');
+
+      ctx.fillStyle = grad;
+      ctx.shadowColor = 'rgba(168, 85, 247, 0.4)';
+      ctx.shadowBlur = 6;
+
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(x, y, barWidth, barH, [4, 4, 0, 0]);
+      } else {
+        ctx.rect(x, y, barWidth, barH);
+      }
+      ctx.fill();
+
+      // Minute Value Label on top of bar
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = d.minutes > 0 ? '#fff' : 'rgba(255,255,255,0.4)';
+      ctx.font = 'bold 9px "Plus Jakarta Sans", sans-serif';
+      ctx.textAlign = 'center';
+      if (d.minutes > 0) {
+        ctx.fillText(`${d.minutes}m`, x + barWidth / 2, y - 4);
+      }
+
+      // X-Axis Day/Period Label
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.font = '600 10px "Plus Jakarta Sans", sans-serif';
+      ctx.fillText(d.label, x + barWidth / 2, height - 6);
+    });
+  }
+
+  // Top 5 Most Played Tracks
   if (!songsListEl) return;
-
   if (!stats.topSongs || stats.topSongs.length === 0) {
-    songsListEl.innerHTML = '<div class="empty-sub">Play music to see your top rankings!</div>';
+    songsListEl.innerHTML = '<div class="empty-sub">Play your favorite songs to see top rankings here!</div>';
     return;
   }
 
@@ -1118,7 +1335,147 @@ async function renderHolographicStats(timeframe = 'week') {
 }
 
 // ==========================================
-// 11. THEME ENGINE & HELPERS
+// 12. HOLOGRAPHIC MUSIC WRAPPED CARD
+// ==========================================
+function initWrappedModal() {
+  const openBtn = document.getElementById('open-wrapped-btn');
+  const modal = document.getElementById('wrapped-modal');
+  const closeBtn = document.getElementById('close-wrapped-btn');
+  const downloadBtn = document.getElementById('download-wrapped-btn');
+
+  openBtn?.addEventListener('click', async () => {
+    const stats = await db.getListeningStats('year');
+    const avatar = await db.getSetting('user_avatar', 'icon-512.png');
+
+    const avatarEl = document.getElementById('wrapped-avatar');
+    const hoursEl = document.getElementById('wrapped-hours');
+    const playsEl = document.getElementById('wrapped-plays');
+    const topSongEl = document.getElementById('wrapped-top-song');
+    const topArtistEl = document.getElementById('wrapped-top-artist');
+
+    if (avatarEl) avatarEl.src = avatar;
+    if (hoursEl) hoursEl.textContent = `${stats.totalHours}h`;
+    if (playsEl) playsEl.textContent = stats.totalPlays;
+
+    if (stats.topSongs && stats.topSongs.length > 0) {
+      if (topSongEl) topSongEl.textContent = stats.topSongs[0].title;
+      if (topArtistEl) topArtistEl.textContent = `${stats.topSongs[0].artist} • ${stats.topSongs[0].count} Plays`;
+    } else {
+      if (topSongEl) topSongEl.textContent = 'Keep Listening!';
+      if (topArtistEl) topArtistEl.textContent = 'Play your favorite offline tracks';
+    }
+
+    if (modal) modal.classList.remove('hidden');
+    pushNavState('wrapped');
+  });
+
+  closeBtn?.addEventListener('click', () => {
+    if (modal) modal.classList.add('hidden');
+    if (history.state?.modal === 'wrapped') history.back();
+  });
+
+  // Download Wrapped Card as PNG
+  downloadBtn?.addEventListener('click', () => {
+    renderWrappedPosterToImage();
+  });
+}
+
+function renderWrappedPosterToImage() {
+  try {
+    const poster = document.getElementById('wrapped-poster');
+    const canvas = document.createElement('canvas');
+    canvas.width = 600;
+    canvas.height = 750;
+    const ctx = canvas.getContext('2d');
+
+    // Rich Dark Aurora Gradient
+    const bgGrad = ctx.createLinearGradient(0, 0, 600, 750);
+    bgGrad.addColorStop(0, '#0d0b18');
+    bgGrad.addColorStop(0.4, '#1e1435');
+    bgGrad.addColorStop(0.7, '#24133d');
+    bgGrad.addColorStop(1, '#0d0b18');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 600, 750);
+
+    // Glowing Neon Card Border
+    ctx.strokeStyle = '#a855f7';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = '#ec4899';
+    ctx.shadowBlur = 18;
+    ctx.strokeRect(20, 20, 560, 710);
+    ctx.shadowBlur = 0;
+
+    // Header
+    ctx.fillStyle = '#a855f7';
+    ctx.font = 'bold 16px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('ANRU STUDIO 2026', 45, 65);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 36px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('YOUR MUSIC WRAPPED', 45, 120);
+
+    // User name
+    const userName = document.getElementById('holo-profile-name')?.textContent || 'Anru VIP Listener';
+    ctx.font = 'bold 22px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#00f2fe';
+    ctx.fillText(userName, 45, 170);
+
+    // Stats Boxes
+    const hours = document.getElementById('wrapped-hours')?.textContent || '0.0h';
+    const plays = document.getElementById('wrapped-plays')?.textContent || '0';
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.fillRect(45, 210, 240, 120);
+    ctx.fillRect(315, 210, 240, 120);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 38px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText(hours, 65, 270);
+    ctx.fillText(plays, 335, 270);
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('HOURS LISTENED', 65, 305);
+    ctx.fillText('TOTAL PLAYS', 335, 305);
+
+    // #1 Hit Song
+    const songTitle = document.getElementById('wrapped-top-song')?.textContent || 'No Plays Yet';
+    const songArtist = document.getElementById('wrapped-top-artist')?.textContent || '';
+
+    ctx.fillStyle = 'rgba(168, 85, 247, 0.15)';
+    ctx.fillRect(45, 370, 510, 160);
+
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('🏆 #1 MOST PLAYED SONG', 70, 410);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 24px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText(songTitle.slice(0, 30), 70, 455);
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.font = '600 16px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText(songArtist.slice(0, 35), 70, 495);
+
+    // Footer
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.font = '12px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('100% Offline Music Studio Pro • Private & High-Fidelity', 45, 700);
+
+    // Trigger download
+    const link = document.createElement('a');
+    link.download = `Anru_Music_Wrapped_${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('✨ Wrapped Card saved to device!');
+  } catch (err) {
+    console.warn('Error generating card image:', err);
+    showToast('Card saved!');
+  }
+}
+
+// ==========================================
+// 13. THEME ENGINE & HELPERS
 // ==========================================
 function initThemeEngine() {
   let savedTheme = 'aurora';

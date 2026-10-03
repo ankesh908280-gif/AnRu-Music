@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Anru Music Studio - Offline Pro</title>
-  <meta name="description" content="100% Offline High-Fidelity Music Studio Player with 7-Band Equalizer, Bass Boost, Spotify Queue & Holographic Analytics">
+  <meta name="description" content="100% Offline High-Fidelity Music Studio Player with 7-Band Equalizer, 3D Virtualizer, Waveform Seekbar & Music Wrapped">
   <meta name="theme-color" content="#0d0b18">
 
   <!-- PWA Manifest -->
@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <!-- Consolidated Master Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=16.0">
+  <link rel="stylesheet" href="style.css?v=17.0">
 </head>
 <body>
 
@@ -111,7 +111,7 @@
 
       </section>
 
-      <!-- 2. PLAYLISTS VIEW -->
+      <!-- 2. PLAYLISTS VIEW (CUSTOM & SMART PLAYLISTS) -->
       <section class="tab-view" id="view-playlists">
         <div class="playlists-header">
           <h2>My Playlists</h2>
@@ -120,6 +120,7 @@
           </button>
         </div>
 
+        <!-- Smart & Custom Playlists Grid -->
         <div class="playlists-grid" id="playlists-grid">
           <!-- Rendered dynamically -->
         </div>
@@ -153,7 +154,7 @@
         </div>
       </section>
 
-      <!-- 3. STUDIO TOOLS VIEW (Holograph Profile, Listening Stats & DSP) -->
+      <!-- 3. STUDIO TOOLS VIEW (Holograph Profile, Listening Graph & DSP) -->
       <section class="tab-view" id="view-studio">
         
         <!-- Holograph Profile Card -->
@@ -170,10 +171,22 @@
           </div>
         </div>
 
-        <!-- Holograph Listening Analytics Section -->
+        <!-- Music Wrapped Trigger Banner -->
+        <button class="wrapped-trigger-banner primary-glow" id="open-wrapped-btn">
+          <div class="wt-left">
+            <div class="wt-icon-wrap"><i class="fa-solid fa-sparkles"></i></div>
+            <div class="wt-text">
+              <h4>Anru Music Wrapped</h4>
+              <p>View your personalized listening celebration card</p>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right chevron-ico"></i>
+        </button>
+
+        <!-- Music Activity Report Graph (Like Anru Focus) -->
         <div class="studio-section">
           <div class="stats-header-row">
-            <h3><i class="fa-solid fa-chart-simple"></i> Listening Analytics</h3>
+            <h3><i class="fa-solid fa-chart-simple"></i> Listening Activity Graph</h3>
             <div class="stats-timeframe-selector">
               <button class="timeframe-btn active" data-timeframe="week">Week</button>
               <button class="timeframe-btn" data-timeframe="month">Month</button>
@@ -181,22 +194,26 @@
             </div>
           </div>
 
-          <!-- Holographic Stats Grid -->
-          <div class="holo-stats-grid">
-            <div class="holo-stat-card">
-              <i class="fa-solid fa-headphones holo-stat-icon cyan"></i>
-              <div class="holo-stat-val" id="stat-hours">0.0h</div>
-              <div class="holo-stat-label">Hours Listened</div>
+          <!-- Activity Graph Card -->
+          <div class="activity-graph-card glass-card">
+            <div class="graph-metrics-row">
+              <div class="gm-item">
+                <span class="gm-label">Total Time</span>
+                <span class="gm-val" id="stat-hours">0.0h</span>
+              </div>
+              <div class="gm-item">
+                <span class="gm-label">Total Plays</span>
+                <span class="gm-val" id="stat-plays">0</span>
+              </div>
+              <div class="gm-item">
+                <span class="gm-label">Daily Average</span>
+                <span class="gm-val" id="stat-daily-avg">0m</span>
+              </div>
             </div>
-            <div class="holo-stat-card">
-              <i class="fa-solid fa-play holo-stat-icon pink"></i>
-              <div class="holo-stat-val" id="stat-plays">0</div>
-              <div class="holo-stat-label">Total Plays</div>
-            </div>
-            <div class="holo-stat-card">
-              <i class="fa-solid fa-microphone holo-stat-icon purple"></i>
-              <div class="holo-stat-val" id="stat-top-artist-name">--</div>
-              <div class="holo-stat-label">Top Artist</div>
+
+            <!-- Canvas Bar Chart -->
+            <div class="graph-canvas-container">
+              <canvas id="activity-graph-canvas" width="340" height="135"></canvas>
             </div>
           </div>
 
@@ -209,9 +226,36 @@
           </div>
         </div>
 
-        <!-- Audio Enhancements Section -->
+        <!-- Audio Enhancements Section (EQ, 3D Virtualizer, Normalizer) -->
         <div class="studio-section">
           <h3><i class="fa-solid fa-sliders"></i> Audio Enhancements</h3>
+          
+          <!-- Master DSP Toggles -->
+          <div class="dsp-toggles-grid">
+            <div class="dsp-toggle-card glass-card">
+              <div class="dt-info">
+                <div class="dt-title"><i class="fa-solid fa-headphones" style="color:#00f2fe;"></i> 3D Spatial Virtualizer</div>
+                <div class="dt-sub">Immersive 3D binaural room surround sound</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggle-virtualizer">
+                <span class="slider round"></span>
+              </label>
+            </div>
+
+            <div class="dsp-toggle-card glass-card">
+              <div class="dt-info">
+                <div class="dt-title"><i class="fa-solid fa-volume-high" style="color:#10b981;"></i> Auto Volume Normalizer</div>
+                <div class="dt-sub">Keeps all tracks at balanced listening volume</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggle-normalizer">
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Tools Grid -->
           <div class="studio-tools-grid">
             <button class="studio-tool-card glass-card" id="studio-open-eq-btn">
               <div class="tool-icon-wrap cyan"><i class="fa-solid fa-sliders"></i></div>
@@ -252,8 +296,8 @@
               <span class="highlight">Native AudioContext 320k</span>
             </div>
             <div class="dsp-info-row">
-              <span>Equalizer</span>
-              <span class="highlight">7-Band DSP + Live Analyser</span>
+              <span>DSP Suite</span>
+              <span class="highlight">7-Band EQ + 3D Virtualizer + Normalizer</span>
             </div>
             <div class="dsp-info-row">
               <span>Storage</span>
@@ -282,7 +326,7 @@
       </div>
     </div>
 
-    <!-- Bottom Sticky Mini Player -->
+    <!-- Bottom Sticky Mini Player (WITH SWIPE GESTURES: SWIPE LEFT NEXT / SWIPE RIGHT PREV) -->
     <div class="mini-player glass-panel hidden" id="mini-player">
       <div class="mini-progress-track">
         <div class="mini-progress-fill" id="mini-progress-fill"></div>
@@ -322,12 +366,12 @@
       </button>
     </nav>
 
-    <!-- IMMERSIVE FULLSCREEN STUDIO PLAYER -->
+    <!-- IMMERSIVE FULLSCREEN STUDIO PLAYER (WITH INTERACTIVE WAVEFORM & SWIPE DOWN) -->
     <div class="fullscreen-player hidden" id="fullscreen-player">
       
       <!-- Top Bar -->
       <div class="fs-header">
-        <button class="fs-nav-btn" id="fs-close-btn" title="Minimize"><i class="fa-solid fa-chevron-down"></i></button>
+        <button class="fs-nav-btn" id="fs-close-btn" title="Minimize (Swipe down)"><i class="fa-solid fa-chevron-down"></i></button>
         <div class="fs-header-title">
           <span class="fs-label">NOW PLAYING</span>
           <span class="fs-album-name" id="fs-header-album">Local Studio</span>
@@ -355,9 +399,11 @@
         <button class="fs-like-btn" id="fs-like-btn" title="Favorite"><i class="fa-regular fa-heart"></i></button>
       </div>
 
-      <!-- Seeker Bar -->
+      <!-- INTERACTIVE WAVEFORM SEEKBAR -->
       <div class="fs-seek-box">
-        <input type="range" id="fs-seek-slider" min="0" max="100" value="0" step="0.1">
+        <div class="waveform-container">
+          <canvas id="fs-waveform-canvas" class="fs-waveform-canvas" width="340" height="48"></canvas>
+        </div>
         <div class="fs-time-row">
           <span id="fs-curr-time">0:00</span>
           <span id="fs-duration">0:00</span>
@@ -580,12 +626,53 @@
       </div>
     </div>
 
+    <!-- HOLOGRAPHIC MUSIC WRAPPED CARD MODAL -->
+    <div class="modal-overlay hidden" id="wrapped-modal">
+      <div class="modal-card glass-modal wrapped-card">
+        <div class="wrapped-header">
+          <span class="wrapped-tag">ANRU STUDIO 2026</span>
+          <button class="modal-close-btn" id="close-wrapped-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="wrapped-poster" id="wrapped-poster">
+          <div class="wp-gradient-glow"></div>
+          <div class="wp-user-row">
+            <img src="icon-512.png" id="wrapped-avatar" alt="Avatar" class="wp-avatar" onerror="this.src='icons/icon-512.png'">
+            <div>
+              <div class="wp-user-name" id="wrapped-user-name">Anru VIP Listener</div>
+              <div class="wp-user-badge">VIP Audiophile Pro</div>
+            </div>
+          </div>
+          <h2 class="wp-headline">YOUR OFFLINE VIBE</h2>
+          <div class="wp-stats-grid">
+            <div class="wp-stat-box">
+              <span class="wp-stat-num" id="wrapped-hours">0.0h</span>
+              <span class="wp-stat-lbl">Listened</span>
+            </div>
+            <div class="wp-stat-box">
+              <span class="wp-stat-num" id="wrapped-plays">0</span>
+              <span class="wp-stat-lbl">Total Plays</span>
+            </div>
+          </div>
+          <div class="wp-top-hit-box">
+            <span class="wp-hit-tag">#1 MOST PLAYED TRACK</span>
+            <div class="wp-hit-title" id="wrapped-top-song">--</div>
+            <div class="wp-hit-artist" id="wrapped-top-artist">No plays recorded yet</div>
+          </div>
+        </div>
+        <div class="wrapped-action-row">
+          <button class="wrapped-action-btn primary-glow" id="download-wrapped-btn">
+            <i class="fa-solid fa-download"></i> Save Wrapped Card
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- Master Offline Scripts -->
-  <script src="id3.js?v=16.0"></script>
-  <script src="db.js?v=16.0"></script>
-  <script src="player.js?v=16.0"></script>
-  <script src="app.js?v=16.0"></script>
+  <script src="id3.js?v=17.0"></script>
+  <script src="db.js?v=17.0"></script>
+  <script src="player.js?v=17.0"></script>
+  <script src="app.js?v=17.0"></script>
 </body>
 </html>

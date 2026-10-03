@@ -1,13 +1,16 @@
 /**
- * ANRU MUSIC STUDIO PRO v16 - PERSISTENT OFFLINE STORAGE ENGINE (db.js)
- * IndexedDB storage for songs, audio blobs, custom playlists, listening history, and user profile.
- * Retains all files permanently. Works 100% offline.
+ * ANRU MUSIC STUDIO PRO v17 - PERSISTENT OFFLINE STORAGE & ANALYTICS ENGINE (db.js)
+ * 1. Persistent Storage for Songs, Blobs, Custom Playlists & Favorites
+ * 2. Playback State Persistence (Resume track, position, and queue after app reload/close)
+ * 3. Daily / Weekly / Monthly Activity Graph Aggregator (Like Anru Focus)
+ * 4. Smart Auto-Playlists: Most Played & Never Played
+ * 5. Duplicate song prevention
  */
 
 class MusicDatabase {
   constructor() {
     this.dbName = 'AnruLocalMusicDB';
-    this.dbVersion = 2; // Incremented for playHistory & analytics
+    this.dbVersion = 3; // Incremented for activity graph & smart playlists
     this.db = null;
     this.mem = {
       songs: [],
@@ -48,7 +51,7 @@ class MusicDatabase {
             const histStore = db.createObjectStore('playHistory', { keyPath: 'id', autoIncrement: true });
             histStore.createIndex('timestamp', 'timestamp', { unique: false });
             histStore.createIndex('songId', 'songId', { unique: false });
-            histStore.createIndex('artist', 'artist', { unique: false });
+            histStore.createIndex('dateStr', 'dateStr', { unique: false });
           }
           if (!db.objectStoreNames.contains('settings')) {
             db.createObjectStore('settings', { keyPath: 'key' });
@@ -57,7 +60,7 @@ class MusicDatabase {
 
         request.onsuccess = (e) => {
           this.db = e.target.result;
-          console.log('[Anru DB] IndexedDB Storage Ready v16 ⚡');
+          console.log('[Anru DB] IndexedDB Storage Ready v17 ⚡');
           resolve(this.db);
         };
 
@@ -72,9 +75,7 @@ class MusicDatabase {
     });
   }
 
-  /**
-   * Check if a song already exists in the database to prevent duplicates.
-   */
+  // Duplicate Check
   async findDuplicate(meta, fileSize = 0, fileName = '') {
     await this.initPromise;
     const songs = await this.getAllSongs();
@@ -87,15 +88,12 @@ class MusicDatabase {
       const sArtist = (s.artist || '').toLowerCase().trim();
       const sName = (s.fileName || '').toLowerCase().trim();
 
-      // Check by title and artist match
       if (cleanTitle && sTitle === cleanTitle && cleanArtist !== 'local artist' && sArtist === cleanArtist) {
         return true;
       }
-      // Check by exact file size match AND filename match
       if (fileSize > 0 && s.fileSize === fileSize && (cleanFilename && sName === cleanFilename)) {
         return true;
       }
-      // Check by identical title and same file size
       if (cleanTitle && sTitle === cleanTitle && fileSize > 0 && s.fileSize === fileSize) {
         return true;
       }
@@ -214,6 +212,7 @@ class MusicDatabase {
     });
   }
 
+  // Favorites
   async toggleFavorite(id) {
     await this.initPromise;
     const isFav = await this.isFavorite(id);
@@ -262,6 +261,7 @@ class MusicDatabase {
     });
   }
 
+  // Playlists
   async createPlaylist(name) {
     await this.initPromise;
     const pl = {
@@ -368,18 +368,70 @@ class MusicDatabase {
   }
 
   // ==========================================
-  // LISTENING HISTORY & HOLOGRAPHIC ANALYTICS
+  // PLAYBACK STATE PERSISTENCE (RESUME ACROSS RELOAD)
+  // ==========================================
+
+  async savePlaybackState(state) {
+    await this.initPromise;
+    await this.setSetting('last_playback_state', {
+      songId: state.songId,
+      currentTime: state.currentTime || 0,
+      queueSongIds: state.queueSongIds || [],
+      isShuffle: !!state.isShuffle,
+      repeatMode: state.repeatMode || 'all',
+      savedAt: Date.now()
+    });
+  }
+
+  async getPlaybackState() {
+    await this.initPromise;
+    return await this.getSetting('last_playback_state', null);
+  }
+
+  // ==========================================
+  // SMART PLAYLISTS: MOST PLAYED & NEVER PLAYED
+  // ==========================================
+
+  async getSmartPlaylists() {
+    await this.initPromise;
+    const allSongs = await this.getAllSongs();
+    const history = await this.getAllPlayHistory();
+
+    const playCountMap = {};
+    history.forEach(h => {
+      playCountMap[h.songId] = (playCountMap[h.songId] || 0) + 1;
+    });
+
+    // Most Played: at least 1 play, sorted by plays descending
+    const mostPlayed = allSongs
+      .filter(s => (playCountMap[s.id] || 0) > 0)
+      .sort((a, b) => (playCountMap[b.id] || 0) - (playCountMap[a.id] || 0));
+
+    // Never Played: exactly 0 plays
+    const neverPlayed = allSongs.filter(s => (playCountMap[s.id] || 0) === 0);
+
+    return {
+      mostPlayed,
+      neverPlayed
+    };
+  }
+
+  // ==========================================
+  // LISTENING HISTORY & MUSIC REPORT GRAPH (ANRU FOCUS STYLE)
   // ==========================================
 
   async logPlayEvent(song, secondsListened = 30) {
     if (!song) return;
     await this.initPromise;
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10); // 'YYYY-MM-DD'
     const event = {
       songId: song.id,
       title: song.title,
       artist: song.artist,
       duration: secondsListened,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      dateStr: dateStr
     };
 
     if (!this.db) {
@@ -395,38 +447,106 @@ class MusicDatabase {
     }
   }
 
-  async getListeningStats(timeframe = 'week') {
+  async getAllPlayHistory() {
     await this.initPromise;
-    let events = [];
+    if (!this.db) return [...this.mem.playHistory];
 
-    if (!this.db) {
-      events = [...this.mem.playHistory];
-    } else {
-      events = await new Promise((resolve) => {
-        const tx = this.db.transaction(['playHistory'], 'readonly');
-        const store = tx.objectStore('playHistory');
-        const req = store.getAll();
-        req.onsuccess = () => resolve(req.result || []);
-        req.onerror = () => resolve([]);
+    return new Promise((resolve) => {
+      const tx = this.db.transaction(['playHistory'], 'readonly');
+      const store = tx.objectStore('playHistory');
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => resolve([]);
+    });
+  }
+
+  /**
+   * Generates graph activity data (bar chart buckets like Anru Focus)
+   * Week: Past 7 days with day labels (Mon, Tue, etc.)
+   * Month: Past 4 weeks (W1, W2, W3, W4)
+   * Year: 12 months (Jan..Dec)
+   */
+  async getActivityGraphData(timeframe = 'week') {
+    const history = await this.getAllPlayHistory();
+    const now = new Date();
+
+    if (timeframe === 'week') {
+      // Last 7 days
+      const days = [];
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(now.getDate() - i);
+        const dateStr = d.toISOString().slice(0, 10);
+        days.push({
+          label: i === 0 ? 'Today' : dayNames[d.getDay()],
+          dateStr: dateStr,
+          seconds: 0
+        });
+      }
+
+      history.forEach(h => {
+        const match = days.find(d => d.dateStr === h.dateStr);
+        if (match) {
+          match.seconds += (h.duration || 30);
+        }
       });
-    }
 
-    // Filter by timeframe
+      return days.map(d => ({
+        label: d.label,
+        minutes: Math.round(d.seconds / 60)
+      }));
+    } else if (timeframe === 'month') {
+      // Past 4 weeks
+      const weeks = [
+        { label: 'W-3', minutes: 0 },
+        { label: 'W-2', minutes: 0 },
+        { label: 'W-1', minutes: 0 },
+        { label: 'This Wk', minutes: 0 }
+      ];
+      const nowTs = Date.now();
+      const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+
+      history.forEach(h => {
+        const age = nowTs - h.timestamp;
+        if (age < oneWeekMs) weeks[3].minutes += Math.round((h.duration || 30) / 60);
+        else if (age < oneWeekMs * 2) weeks[2].minutes += Math.round((h.duration || 30) / 60);
+        else if (age < oneWeekMs * 3) weeks[1].minutes += Math.round((h.duration || 30) / 60);
+        else if (age < oneWeekMs * 4) weeks[0].minutes += Math.round((h.duration || 30) / 60);
+      });
+
+      return weeks;
+    } else {
+      // 12 Months
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(m => ({
+        label: m,
+        minutes: 0
+      }));
+
+      const currentYear = now.getFullYear();
+      history.forEach(h => {
+        const d = new Date(h.timestamp);
+        if (d.getFullYear() === currentYear) {
+          months[d.getMonth()].minutes += Math.round((h.duration || 30) / 60);
+        }
+      });
+
+      return months;
+    }
+  }
+
+  async getListeningStats(timeframe = 'week') {
+    const events = await this.getAllPlayHistory();
     const now = Date.now();
     let cutoff = 0;
-    if (timeframe === 'week') {
-      cutoff = now - (7 * 24 * 60 * 60 * 1000);
-    } else if (timeframe === 'month') {
-      cutoff = now - (30 * 24 * 60 * 60 * 1000);
-    } else { // 'year' / all time
-      cutoff = now - (365 * 24 * 60 * 60 * 1000);
-    }
+    if (timeframe === 'week') cutoff = now - (7 * 24 * 60 * 60 * 1000);
+    else if (timeframe === 'month') cutoff = now - (30 * 24 * 60 * 60 * 1000);
+    else cutoff = now - (365 * 24 * 60 * 60 * 1000);
 
     const filtered = events.filter(e => (e.timestamp || 0) >= cutoff);
 
     let totalSeconds = 0;
     const songCountMap = {};
-    const artistCountMap = {};
 
     filtered.forEach(e => {
       totalSeconds += (e.duration || 30);
@@ -440,30 +560,23 @@ class MusicDatabase {
         };
       }
       songCountMap[sKey].count++;
-
-      const aKey = (e.artist || 'Local Artist').trim();
-      artistCountMap[aKey] = (artistCountMap[aKey] || 0) + 1;
     });
 
     const topSongs = Object.values(songCountMap)
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
-    const topArtists = Object.entries(artistCountMap)
-      .map(([artist, count]) => ({ artist, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-
     const totalHours = (totalSeconds / 3600).toFixed(1);
     const totalMinutes = Math.round(totalSeconds / 60);
+    const dailyAvgMinutes = Math.round(totalMinutes / (timeframe === 'week' ? 7 : (timeframe === 'month' ? 30 : 365)));
 
     return {
       timeframe,
       totalHours,
       totalMinutes,
+      dailyAvgMinutes,
       totalPlays: filtered.length,
-      topSongs,
-      topArtists
+      topSongs
     };
   }
 
