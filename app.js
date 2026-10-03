@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initCustomModals();
   initHolographicStudio();
   initWrappedModal();
+  initOnlineTabListeners();
   player.initSwipeGestures();
 
   // Load persistent library and restore previous playback session
@@ -160,6 +161,17 @@ function switchTab(tabId) {
 
   if (targetView) targetView.classList.add('active');
   if (targetNav) targetNav.classList.add('active');
+
+  const modeBtn = document.getElementById('header-mode-toggle');
+  const modeText = document.getElementById('header-mode-label');
+  if (tabId === 'online') {
+    if (modeBtn) modeBtn.classList.add('active');
+    if (modeText) modeText.textContent = 'Offline Mode';
+    initOnlineTabView();
+  } else {
+    if (modeBtn) modeBtn.classList.remove('active');
+    if (modeText) modeText.textContent = 'Online Mode';
+  }
 
   if (tabId === 'playlists') {
     renderPlaylistsTab();
@@ -1530,4 +1542,189 @@ if (typeof window !== 'undefined') {
   window.showToast = showToast;
   window.showCustomPrompt = showCustomPrompt;
   window.showCustomConfirm = showCustomConfirm;
+}
+
+
+// ==========================================
+// 14. ONLINE MUSIC STREAMING & UNLIMITED SEARCH
+// ==========================================
+let hasInitializedOnlineTab = false;
+
+function initOnlineTabListeners() {
+  const searchInput = document.getElementById('online-search-input');
+  const searchBtn = document.getElementById('online-search-btn');
+  const clearBtn = document.getElementById('clear-online-search-btn');
+  const loadMoreBtn = document.getElementById('online-load-more-btn');
+  const modeToggle = document.getElementById('header-mode-toggle');
+
+  modeToggle?.addEventListener('click', () => {
+    const isOnline = document.getElementById('view-online')?.classList.contains('active');
+    switchTab(isOnline ? 'library' : 'online');
+  });
+
+  searchBtn?.addEventListener('click', () => {
+    const q = searchInput?.value?.trim();
+    if (q) performOnlineSearch(q, false);
+  });
+
+  searchInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const q = searchInput.value.trim();
+      if (q) performOnlineSearch(q, false);
+    }
+  });
+
+  searchInput?.addEventListener('input', (e) => {
+    if (clearBtn) clearBtn.classList.toggle('hidden', e.target.value.length === 0);
+  });
+
+  clearBtn?.addEventListener('click', () => {
+    if (searchInput) searchInput.value = '';
+    clearBtn.classList.add('hidden');
+    searchInput?.focus();
+  });
+
+  // Quick Chips
+  document.querySelectorAll('.online-chip').forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      document.querySelectorAll('.online-chip').forEach(c => c.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      const q = e.currentTarget.dataset.query;
+      if (searchInput) searchInput.value = q;
+      if (clearBtn) clearBtn.classList.remove('hidden');
+      performOnlineSearch(q, false);
+    });
+  });
+
+  loadMoreBtn?.addEventListener('click', () => {
+    if (onlineMusic.currentQuery && !onlineMusic.isLoading) {
+      performOnlineSearch(onlineMusic.currentQuery, true);
+    }
+  });
+}
+
+function initOnlineTabView() {
+  if (!hasInitializedOnlineTab) {
+    hasInitializedOnlineTab = true;
+    initOnlineTabListeners();
+    // Auto load first trending category
+    performOnlineSearch('Latest Hindi Hits 2026', false);
+  }
+}
+
+async function performOnlineSearch(query, isAppend = false) {
+  const container = document.getElementById('online-songs-list');
+  const loadMoreBtn = document.getElementById('online-load-more-btn');
+  const titleEl = document.getElementById('online-results-title');
+  const countBadge = document.getElementById('online-results-count');
+
+  if (!container) return;
+
+  const targetPage = isAppend ? (onlineMusic.currentPage + 1) : 1;
+
+  if (!isAppend) {
+    container.innerHTML = `
+      <div class="empty-sub" style="padding:40px 10px;">
+        <i class="fa-solid fa-arrows-rotate fa-spin" style="font-size:28px; color:var(--accentCyan); margin-bottom:12px; display:block;"></i>
+        Searching unlimited music catalog for "${query}"...
+      </div>
+    `;
+    if (loadMoreBtn) loadMoreBtn.classList.add('hidden');
+    if (titleEl) titleEl.textContent = `Results for "${query}"`;
+    if (countBadge) countBadge.textContent = 'Searching...';
+  } else {
+    if (loadMoreBtn) {
+      loadMoreBtn.disabled = true;
+      loadMoreBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate fa-spin"></i> Loading More Songs...';
+    }
+  }
+
+  const results = await onlineMusic.searchSongs(query, targetPage);
+
+  if (!isAppend) {
+    onlineMusic.currentResults = results;
+    container.innerHTML = '';
+  } else {
+    onlineMusic.currentResults = [...onlineMusic.currentResults, ...results];
+    if (loadMoreBtn) {
+      loadMoreBtn.disabled = false;
+      loadMoreBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Load More Songs...';
+    }
+  }
+
+  if (onlineMusic.currentResults.length === 0) {
+    container.innerHTML = `
+      <div class="empty-sub" style="padding:40px 20px;">
+        <i class="fa-solid fa-globe" style="font-size:32px; color:var(--textDim); margin-bottom:10px; display:block;"></i>
+        No online tracks found for "${query}".<br>Check spelling or tap one of the quick trending chips above!
+      </div>
+    `;
+    if (loadMoreBtn) loadMoreBtn.classList.add('hidden');
+    if (countBadge) countBadge.textContent = '0 Songs';
+    return;
+  }
+
+  if (countBadge) countBadge.textContent = `${onlineMusic.currentResults.length}+ Songs Available`;
+  if (loadMoreBtn) loadMoreBtn.classList.remove('hidden');
+
+  // Render items (if append, only render the newly fetched items)
+  const itemsToRender = isAppend ? results : onlineMusic.currentResults;
+
+  itemsToRender.forEach(song => {
+    const row = document.createElement('div');
+    row.className = 'online-song-row';
+    row.innerHTML = `
+      <div class="online-thumb-box">
+        <img src="${song.artwork || 'icon-512.png'}" alt="cover" class="online-thumb" loading="lazy" onerror="this.src='icon-512.png'">
+      </div>
+      <div class="online-row-meta">
+        <div class="online-row-title">${song.title}</div>
+        <div class="online-row-artist">${song.artist} • <span style="color:var(--accentCyan);">${song.bitrate || '320k HD'}</span></div>
+      </div>
+      <div class="online-actions-wrap">
+        <button class="online-play-btn" title="Play Now" data-action="play">
+          <i class="fa-solid fa-play"></i>
+        </button>
+        <button class="online-save-btn" title="Save to Offline Library" data-action="save">
+          <i class="fa-solid fa-cloud-arrow-down"></i>
+        </button>
+        <button class="row-action-btn menu-trigger" title="More Options" data-action="menu">
+          <i class="fa-solid fa-ellipsis-vertical"></i>
+        </button>
+      </div>
+    `;
+
+    row.querySelector('[data-action="play"]')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      player.playSong(song, onlineMusic.currentResults);
+      showToast(`Streaming: "${song.title}" 🌐`);
+    });
+
+    const saveBtn = row.querySelector('[data-action="save"]');
+    saveBtn?.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate fa-spin"></i>';
+      const success = await onlineMusic.saveToOffline(song);
+      if (success) {
+        saveBtn.classList.add('saved');
+        saveBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+        saveBtn.title = 'Saved in Offline Library';
+      } else {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i>';
+      }
+    });
+
+    row.querySelector('[data-action="menu"]')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openActionSheet(song);
+    });
+
+    row.addEventListener('click', () => {
+      player.playSong(song, onlineMusic.currentResults);
+    });
+
+    container.appendChild(row);
+  });
 }

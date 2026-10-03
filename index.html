@@ -3047,6 +3047,295 @@ i.fa-clock-rotate-left::before { content: "⏳"; }
 i.fa-lines-leaning::before { content: "📚"; }
 
 
+
+/* ==========================================================
+   5. ONLINE MUSIC STREAMING & UNLIMITED SEARCH STYLES
+   ========================================================== */
+
+.mode-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid var(--accentCyan);
+  color: var(--accentCyan);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-smooth);
+}
+
+.mode-pill-btn:hover {
+  background: var(--accentCyan);
+  color: #0a0814;
+  box-shadow: 0 0 14px rgba(6, 182, 212, 0.5);
+  transform: translateY(-1px);
+}
+
+.online-search-wrap {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.online-search-input-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glassBorder);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.online-search-input-box:focus-within {
+  border-color: var(--accentCyan);
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.35);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+#online-search-input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#online-search-input::placeholder {
+  color: var(--textDim);
+}
+
+.online-search-btn {
+  padding: 0 18px;
+  border-radius: var(--radius-md);
+  background: var(--gradCyan);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.online-search-btn:active {
+  transform: scale(0.96);
+}
+
+/* Quick Genre & Artist Filter Chips */
+.online-chips-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.online-chip {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glassBorder);
+  color: var(--textSub);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.online-chip:hover,
+.online-chip.active {
+  background: var(--gradCyan);
+  color: #fff;
+  border-color: var(--accentCyan);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.45);
+}
+
+.online-results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.online-results-header h3 {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.online-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accentCyan);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(6, 182, 212, 0.12);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+/* Online Song Row */
+.online-song-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bgCard);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid var(--glassBorder);
+  margin-bottom: 8px;
+  transition: all 0.2s var(--ease-smooth);
+}
+
+.online-song-row:hover {
+  background: var(--bgSurfaceHover);
+  border-color: var(--accentCyan);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+}
+
+.online-thumb-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.online-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.online-row-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.online-row-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.online-row-artist {
+  font-size: 12px;
+  color: var(--textMuted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.online-actions-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.online-play-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--gradAccent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  box-shadow: 0 2px 10px var(--accentGlow);
+  transition: transform 0.15s;
+}
+
+.online-play-btn:active {
+  transform: scale(0.92);
+}
+
+.online-save-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  color: var(--accentCyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.online-save-btn:hover {
+  background: var(--accentCyan);
+  color: #0a0814;
+}
+
+.online-save-btn.saved {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: var(--accentGreen);
+  color: var(--accentGreen);
+}
+
+.online-load-more-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glassBorderBright);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  margin-top: 14px;
+  margin-bottom: 30px;
+  transition: all 0.2s;
+}
+
+.online-load-more-btn:hover {
+  background: var(--gradCyan);
+  box-shadow: 0 4px 18px rgba(6, 182, 212, 0.45);
+}
+
+/* Streaming Pill in Fullscreen Player */
+.fs-streaming-badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--accentCyan);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  margin-top: 4px;
+}
+
   </style>
 </head>
 <body>
@@ -3070,9 +3359,13 @@ i.fa-lines-leaning::before { content: "📚"; }
         </div>
       </div>
       <div class="header-actions">
+        <button class="mode-pill-btn" id="header-mode-toggle" title="Switch Offline Library / Online Music">
+          <i class="fa-solid fa-globe"></i>
+          <span id="header-mode-label">Online Mode</span>
+        </button>
         <button class="header-action-btn primary-glow" id="import-files-btn" title="Add Songs from Device">
           <i class="fa-solid fa-plus"></i>
-          <span>Add Songs</span>
+          <span>Add</span>
         </button>
         <button class="header-icon-btn" id="import-folder-btn" title="Add Music Folder">
           <i class="fa-solid fa-folder-open"></i>
@@ -3338,6 +3631,54 @@ i.fa-lines-leaning::before { content: "📚"; }
         </div>
       </section>
 
+    
+      <!-- 4. ONLINE MUSIC STREAMING & UNLIMITED SEARCH -->
+      <section class="tab-view" id="view-online">
+        
+        <!-- Online Search Bar -->
+        <div class="online-search-wrap">
+          <div class="online-search-input-box">
+            <i class="fa-solid fa-globe search-ico" style="color:var(--accentCyan);"></i>
+            <input type="text" id="online-search-input" placeholder="Search unlimited songs, Bhojpuri, Hindi, Punjabi..." autocomplete="off">
+            <button class="clear-btn hidden" id="clear-online-search-btn" title="Clear"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <button class="online-search-btn" id="online-search-btn">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span>Search</span>
+          </button>
+        </div>
+
+        <!-- Quick Trending & Genre Chips -->
+        <div class="online-chips-row" id="online-chips-row">
+          <button class="online-chip active" data-query="Latest Hindi Hits 2026">🔥 Trending Hindi</button>
+          <button class="online-chip" data-query="Pawan Singh Khesari Lal">🌾 Bhojpuri Top</button>
+          <button class="online-chip" data-query="Bollywood Party Dance">💃 Bollywood Dance</button>
+          <button class="online-chip" data-query="Arijit Singh Romantic">💖 Romantic Melodies</button>
+          <button class="online-chip" data-query="Sidhu Moosewala Diljit">🎸 Punjabi Beats</button>
+          <button class="online-chip" data-query="Bhojpuri Hindi DJ Remix">🎧 DJ Remix</button>
+          <button class="online-chip" data-query="Top Pop English 2026">🌍 Global Pop</button>
+          <button class="online-chip" data-query="Lofi Chill Indian Beats">🌙 Lo-Fi Midnight</button>
+        </div>
+
+        <!-- Online Results Header -->
+        <div class="online-results-header">
+          <h3 id="online-results-title">Online Music Streams</h3>
+          <span class="online-badge" id="online-results-count">Unlimited Catalog</span>
+        </div>
+
+        <!-- Online Songs Container -->
+        <div class="online-songs-container" id="online-songs-list">
+          <!-- Populated dynamically via online_music.js -->
+        </div>
+
+        <!-- Load More / Infinite Scroll Button -->
+        <button class="online-load-more-btn hidden" id="online-load-more-btn">
+          <i class="fa-solid fa-arrows-rotate"></i>
+          <span>Load More Songs...</span>
+        </button>
+
+      </section>
+
     </main>
 
     <!-- Bottom Selection Action Bar (Appears in multi-select mode) -->
@@ -3386,6 +3727,10 @@ i.fa-lines-leaning::before { content: "📚"; }
       <button class="nav-tab" id="nav-playlists" data-tab="playlists">
         <i class="fa-solid fa-list-ul"></i>
         <span>Playlists</span>
+      </button>
+      <button class="nav-tab" id="nav-online" data-tab="online">
+        <i class="fa-solid fa-globe"></i>
+        <span>Online</span>
       </button>
       <button class="nav-tab" id="nav-studio" data-tab="studio">
         <i class="fa-solid fa-sliders"></i>
@@ -3709,6 +4054,7 @@ i.fa-lines-leaning::before { content: "📚"; }
   <script src="id3.js?v=18.0"></script>
   <script src="db.js?v=18.0"></script>
   <script src="player.js?v=18.0"></script>
-  <script src="app.js?v=18.0"></script>
+  <script src="online_music.js?v=20.0"></script>
+  <script src="app.js?v=20.0"></script>
 </body>
 </html>

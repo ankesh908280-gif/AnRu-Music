@@ -1029,7 +1029,7 @@ class AudioPlayer {
 
     if (fsTitle) fsTitle.textContent = song.title;
     if (fsArtist) fsArtist.textContent = song.artist;
-    if (fsAlbum) fsAlbum.textContent = song.album || 'Local Studio';
+    if (fsAlbum) fsAlbum.textContent = song.isOnline ? ('Online • ' + (song.source || 'HD Stream')) : (song.album || 'Local Studio');
     if (fsArt) fsArt.src = song.artwork || 'icon-512.png';
 
     this.updatePlayPauseUI();
