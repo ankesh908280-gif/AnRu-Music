@@ -1,19 +1,19 @@
-// Service Worker for Anru Music Studio Pro v22.0 (100% Offline Audiophile Master Edition)
-const CACHE_NAME = 'anru-music-v22-clean-offline';
+// Service Worker for Anru Music Studio Pro v22.1 (100% Offline Audiophile Master Edition)
+const CACHE_NAME = 'anru-music-v22-1-clean-offline';
 const STATIC_ASSETS = [
   './',
   './index.html',
-  './style.css?v=22.0',
+  './style.css?v=22.1',
   './css/variables.css',
   './css/base.css',
   './css/components.css',
   './css/views.css',
   './css/player.css',
   './css/vector_icons.css',
-  './id3.js?v=22.0',
-  './db.js?v=22.0',
-  './player.js?v=22.0',
-  './app.js?v=22.0',
+  './id3.js?v=22.1',
+  './db.js?v=22.1',
+  './player.js?v=22.1',
+  './app.js?v=22.1',
   './manifest.json',
   './favicon.png',
   './icon-192.png',
@@ -46,7 +46,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Navigation requests: NETWORK FIRST so updates are immediately loaded
+  // Navigation requests: NETWORK FIRST with robust offline fallback
   if (event.request.mode === 'navigate' || event.request.destination === 'document') {
     event.respondWith(
       fetch(event.request).then((networkResponse) => {
@@ -56,7 +56,9 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch(() => {
-        return caches.match('./index.html') || caches.match('/');
+        return caches.match('./index.html').then((cached) => {
+          return cached || caches.match('/') || fetch(event.request);
+        });
       })
     );
     return;
@@ -64,7 +66,7 @@ self.addEventListener('fetch', (event) => {
 
   // Assets: Cache First with network background update
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
+    caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
       if (cachedResponse) {
         return cachedResponse;
       }

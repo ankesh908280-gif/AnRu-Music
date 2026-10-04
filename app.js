@@ -1,3 +1,13 @@
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 /**
  * ANRU MUSIC STUDIO PRO v17 - MASTER CONTROLLER (app.js)
  * 1. Native App Feel: Anti-Refresh, Web-Artifact Suppression, Android Hardware Back-Button Router
@@ -236,13 +246,30 @@ async function handleFilesImport(fileList) {
   let importedCount = 0;
   let skippedDuplicates = 0;
 
+  // Pre-load existing songs in memory to make duplicate checking O(1) instantaneous
+  const existingSongs = await db.getAllSongs();
+  const existingTitles = new Set(existingSongs.map(s => `${(s.title || '').toLowerCase().trim()}|${(s.artist || '').toLowerCase().trim()}`));
+  const existingFiles = new Set(existingSongs.map(s => `${s.fileSize}|${(s.fileName || '').toLowerCase().trim()}`));
+
   for (let i = 0; i < validAudioFiles.length; i++) {
     const file = validAudioFiles[i];
     try {
       const meta = await ID3Parser.parseFile(file);
 
-      // Check for duplicate song
-      const isDup = await db.findDuplicate(meta, file.size, file.name);
+      const cleanTitle = (meta.title || '').toLowerCase().trim();
+      const cleanArtist = (meta.artist || '').toLowerCase().trim();
+      const cleanFilename = (file.name || '').toLowerCase().trim();
+
+      // Check for duplicate song in O(1)
+      let isDup = false;
+      if (cleanTitle && cleanArtist !== 'local artist' && existingTitles.has(`${cleanTitle}|${cleanArtist}`)) {
+        isDup = true;
+      } else if (file.size > 0 && existingFiles.has(`${file.size}|${cleanFilename}`)) {
+        isDup = true;
+      } else if (cleanTitle && file.size > 0 && existingSongs.some(s => (s.title || '').toLowerCase().trim() === cleanTitle && s.fileSize === file.size)) {
+        isDup = true;
+      }
+
       if (isDup) {
         skippedDuplicates++;
         continue;
@@ -254,13 +281,15 @@ async function handleFilesImport(fileList) {
         artist: meta.artist,
         album: meta.album,
         artwork: meta.artwork,
-        duration: meta.duration,
+        duration: meta.duration || 0,
         audioBlob: file,
         fileSize: file.size,
         fileName: file.name,
         dateAdded: Date.now()
       });
 
+      existingTitles.add(`${cleanTitle}|${cleanArtist}`);
+      existingFiles.add(`${file.size}|${cleanFilename}`);
       importedCount++;
     } catch (err) {
       console.warn('[Anru Importer] Error processing file:', file.name, err);
@@ -329,8 +358,8 @@ function renderLibraryView(songs) {
         <div class="row-play-hover"><i class="fa-solid fa-play"></i></div>
       </div>
       <div class="row-meta">
-        <div class="row-title">${song.title}</div>
-        <div class="row-artist">${song.artist} • ${song.album || 'Offline'}</div>
+        <div class="row-title">${escapeHtml(song.title)}</div>
+        <div class="row-artist">${escapeHtml(song.artist)} • ${escapeHtml(song.album || 'Offline')}</div>
       </div>
       <button class="row-action-btn menu-trigger ${isSelectionMode ? 'hidden' : ''}" title="Options" data-id="${song.id}">
         <i class="fa-solid fa-ellipsis-vertical"></i>
@@ -495,23 +524,27 @@ function updateSelectionUI() {
 function setupSearch() {
   const input = document.getElementById('search-input');
   const clearBtn = document.getElementById('clear-search-btn');
+  let debounceTimer = null;
 
   if (input) {
     input.addEventListener('input', (e) => {
       const q = e.target.value.trim().toLowerCase();
       if (clearBtn) clearBtn.classList.toggle('hidden', q.length === 0);
 
-      if (!q) {
-        renderLibraryView(allLibrarySongs);
-        return;
-      }
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (!q) {
+          renderLibraryView(allLibrarySongs);
+          return;
+        }
 
-      const filtered = allLibrarySongs.filter(s => {
-        const full = `${s.title} ${s.artist} ${s.album}`.toLowerCase();
-        return full.includes(q);
-      });
+        const filtered = allLibrarySongs.filter(s => {
+          const full = `${s.title} ${s.artist} ${s.album}`.toLowerCase();
+          return full.includes(q);
+        });
 
-      renderLibraryView(filtered);
+        renderLibraryView(filtered);
+      }, 160);
     });
   }
 
@@ -1175,7 +1208,7 @@ function openPlaylistDetail(id, title, songIds) {
           <div class="row-play-hover"><i class="fa-solid fa-play"></i></div>
         </div>
         <div class="row-meta">
-          <div class="row-title">${song.title}</div>
+          <div class="row-title">${escapeHtml(song.title)}</div>
           <div class="row-artist">${song.artist} • ${song.album || 'Single'}</div>
         </div>
         <button class="row-action-btn menu-trigger" title="Options" data-id="${song.id}">

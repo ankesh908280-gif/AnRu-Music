@@ -1,11 +1,13 @@
 /**
- * ANRU MUSIC STUDIO PRO v16 - PURE CLIENT-SIDE AUDIO METADATA & COVER ART PARSER
- * Supports:
- * 1. ID3v2.2, ID3v2.3, ID3v2.4 (TIT2, TPE1, TALB, APIC, PIC)
- * 2. MP4 / M4A metadata atoms (©nam, ©ART, ©alb, covr)
- * 3. FLAC Metadata Picture blocks (Type 6)
- * 4. High-resolution embedded artwork extraction up to 2MB
- * 5. Procedural Gradient Artwork Fallback for tracks without embedded art
+ * ANRU MUSIC STUDIO PRO v22.1 - CLIENT-SIDE AUDIO METADATA & COVER ART PARSER
+ * Enhanced for Spotdown, Spotify, iTunes, FLAC & Local Downloads
+ * Features:
+ * 1. Safe UTF-16/UTF-8 decoding without unaligned Uint16Array RangeError crashes
+ * 2. Magic-byte binary detection for embedded APIC JPEG/PNG/WebP/GIF artwork
+ * 3. Permanent Base64 Data URL conversion (Zero broken/expired blob URLs on reload)
+ * 4. Automatic ID3 tag size expansion (No truncated album covers)
+ * 5. Spotdown / Web downloader filename tag sanitizer
+ * 6. Quick duration extraction from audio file metadata
  */
 
 class ID3Parser {
@@ -14,25 +16,47 @@ class ID3Parser {
    */
   static async parseFile(file) {
     const filenameMeta = this.parseFilename(file.name || 'Untitled Song');
-    try {
-      // Read first 2MB to capture high-res embedded album covers
-      const sliceSize = Math.min(file.size, 2097152);
-      const buffer = await file.slice(0, sliceSize).arrayBuffer();
-      const view = new DataView(buffer);
+    let realDuration = 0;
 
-      // 1. Check for MP3 ID3v2 tag
+    // Fast duration probe
+    try {
+      realDuration = await this.getAudioDuration(file);
+    } catch (e) {}
+
+    try {
+      // Read initial slice
+      let initialSlice = Math.min(file.size, 262144); // 256KB
+      let buffer = await file.slice(0, initialSlice).arrayBuffer();
+      let view = new DataView(buffer);
+
+      // 1. Check for MP3 ID3v2 tag ('ID3')
       if (buffer.byteLength >= 10 &&
           view.getUint8(0) === 0x49 && // 'I'
           view.getUint8(1) === 0x44 && // 'D'
           view.getUint8(2) === 0x33) { // '3'
-        const id3Meta = this.parseID3v2(view, buffer, sliceSize);
+        const tagSize = this.readSynchsafeInt(view, 6);
+        const fullTagSize = tagSize + 10;
+        
+        // Expand buffer if embedded cover art causes tag to exceed 256KB
+        if (fullTagSize > initialSlice && fullTagSize <= file.size + 10) {
+          const readSize = Math.min(file.size, fullTagSize + 1024);
+          buffer = await file.slice(0, readSize).arrayBuffer();
+          view = new DataView(buffer);
+        }
+
+        const id3Meta = this.parseID3v2(view, buffer, buffer.byteLength);
         if (id3Meta) {
+          const finalTitle = id3Meta.title || filenameMeta.title;
+          const finalArtist = (id3Meta.artist && id3Meta.artist.toLowerCase() !== 'local artist') ? id3Meta.artist : filenameMeta.artist;
+          const finalAlbum = id3Meta.album || filenameMeta.album;
+          const finalArtwork = id3Meta.artwork || this.generateProceduralCover(finalTitle, finalArtist);
+
           return {
-            title: id3Meta.title || filenameMeta.title,
-            artist: id3Meta.artist || filenameMeta.artist,
-            album: id3Meta.album || filenameMeta.album,
-            artwork: id3Meta.artwork || this.generateProceduralCover(id3Meta.title || filenameMeta.title, id3Meta.artist || filenameMeta.artist),
-            duration: 0
+            title: finalTitle,
+            artist: finalArtist,
+            album: finalAlbum,
+            artwork: finalArtwork,
+            duration: realDuration || 0
           };
         }
       }
@@ -43,14 +67,19 @@ class ID3Parser {
           view.getUint8(5) === 0x74 && // 't'
           view.getUint8(6) === 0x79 && // 'y'
           view.getUint8(7) === 0x70) { // 'p'
-        const m4aMeta = this.parseM4A(view, buffer, sliceSize);
+        const m4aMeta = this.parseM4A(view, buffer, buffer.byteLength);
         if (m4aMeta) {
+          const finalTitle = m4aMeta.title || filenameMeta.title;
+          const finalArtist = m4aMeta.artist || filenameMeta.artist;
+          const finalAlbum = m4aMeta.album || filenameMeta.album;
+          const finalArtwork = m4aMeta.artwork || this.generateProceduralCover(finalTitle, finalArtist);
+
           return {
-            title: m4aMeta.title || filenameMeta.title,
-            artist: m4aMeta.artist || filenameMeta.artist,
-            album: m4aMeta.album || filenameMeta.album,
-            artwork: m4aMeta.artwork || this.generateProceduralCover(m4aMeta.title || filenameMeta.title, m4aMeta.artist || filenameMeta.artist),
-            duration: 0
+            title: finalTitle,
+            artist: finalArtist,
+            album: finalAlbum,
+            artwork: finalArtwork,
+            duration: realDuration || 0
           };
         }
       }
@@ -61,14 +90,19 @@ class ID3Parser {
           view.getUint8(1) === 0x4c && // 'L'
           view.getUint8(2) === 0x61 && // 'a'
           view.getUint8(3) === 0x43) { // 'C'
-        const flacMeta = this.parseFLAC(view, buffer, sliceSize);
+        const flacMeta = this.parseFLAC(view, buffer, buffer.byteLength);
         if (flacMeta) {
+          const finalTitle = flacMeta.title || filenameMeta.title;
+          const finalArtist = flacMeta.artist || filenameMeta.artist;
+          const finalAlbum = flacMeta.album || filenameMeta.album;
+          const finalArtwork = flacMeta.artwork || this.generateProceduralCover(finalTitle, finalArtist);
+
           return {
-            title: flacMeta.title || filenameMeta.title,
-            artist: flacMeta.artist || filenameMeta.artist,
-            album: flacMeta.album || filenameMeta.album,
-            artwork: flacMeta.artwork || this.generateProceduralCover(flacMeta.title || filenameMeta.title, flacMeta.artist || filenameMeta.artist),
-            duration: 0
+            title: finalTitle,
+            artist: finalArtist,
+            album: finalAlbum,
+            artwork: finalArtwork,
+            duration: realDuration || 0
           };
         }
       }
@@ -79,7 +113,7 @@ class ID3Parser {
         artist: filenameMeta.artist,
         album: filenameMeta.album,
         artwork: this.generateProceduralCover(filenameMeta.title, filenameMeta.artist),
-        duration: 0
+        duration: realDuration || 0
       };
     } catch (e) {
       console.warn('[ID3Parser] Notice parsing', file.name, e);
@@ -88,9 +122,52 @@ class ID3Parser {
         artist: filenameMeta.artist,
         album: filenameMeta.album,
         artwork: this.generateProceduralCover(filenameMeta.title, filenameMeta.artist),
-        duration: 0
+        duration: realDuration || 0
       };
     }
+  }
+
+  /**
+   * Fast audio duration helper
+   */
+  static getAudioDuration(file) {
+    return new Promise((resolve) => {
+      try {
+        const url = URL.createObjectURL(file);
+        const a = new Audio();
+        a.preload = 'metadata';
+        let done = false;
+
+        const cleanup = () => {
+          if (!done) {
+            done = true;
+            URL.revokeObjectURL(url);
+          }
+        };
+
+        const timer = setTimeout(() => {
+          cleanup();
+          resolve(0);
+        }, 800);
+
+        a.onloadedmetadata = () => {
+          clearTimeout(timer);
+          const dur = Math.round(a.duration || 0);
+          cleanup();
+          resolve(dur);
+        };
+
+        a.onerror = () => {
+          clearTimeout(timer);
+          cleanup();
+          resolve(0);
+        };
+
+        a.src = url;
+      } catch (err) {
+        resolve(0);
+      }
+    });
   }
 
   /**
@@ -103,13 +180,24 @@ class ID3Parser {
     let offset = 10;
     const maxOffset = Math.min(tagSize + 10, sliceSize);
 
+    // Skip Extended Header if present (flag bit 6 = 0x40)
+    if (flags & 0x40) {
+      if (version === 3 && offset + 4 <= maxOffset) {
+        const extSize = view.getUint32(offset);
+        offset += 4 + extSize;
+      } else if (version === 4 && offset + 4 <= maxOffset) {
+        const extSize = this.readSynchsafeInt(view, offset);
+        offset += extSize;
+      }
+    }
+
     let title = '';
     let artist = '';
     let album = '';
     let artwork = null;
 
-    // ID3v2.2 uses 3-char frame IDs and 3-byte size
     if (version === 2) {
+      // ID3v2.2: 3-char frame IDs, 3-byte size
       while (offset + 6 < maxOffset) {
         let frameId = '';
         for (let i = 0; i < 3; i++) {
@@ -123,9 +211,9 @@ class ID3Parser {
         if (frameSize <= 0 || offset + 6 + frameSize > maxOffset) break;
 
         const dataOffset = offset + 6;
-        if (frameId === 'TT2') title = this.decodeTextFrame(view, dataOffset, frameSize);
-        else if (frameId === 'TP1') artist = this.decodeTextFrame(view, dataOffset, frameSize);
-        else if (frameId === 'TAL') album = this.decodeTextFrame(view, dataOffset, frameSize);
+        if (frameId === 'TT2') title = title || this.decodeTextFrame(view, dataOffset, frameSize);
+        else if (frameId === 'TP1' || frameId === 'TP2') artist = artist || this.decodeTextFrame(view, dataOffset, frameSize);
+        else if (frameId === 'TAL') album = album || this.decodeTextFrame(view, dataOffset, frameSize);
         else if (frameId === 'PIC' && !artwork) {
           artwork = this.decodeID3v22Picture(view, dataOffset, frameSize);
         }
@@ -133,7 +221,7 @@ class ID3Parser {
         offset += 6 + frameSize;
       }
     } else {
-      // ID3v2.3 and ID3v2.4 use 4-char frame IDs and 4-byte size
+      // ID3v2.3 & ID3v2.4: 4-char frame IDs, 4-byte size, 2-byte flags
       while (offset + 10 < maxOffset) {
         let frameId = '';
         for (let i = 0; i < 4; i++) {
@@ -150,9 +238,9 @@ class ID3Parser {
         if (frameSize <= 0 || offset + 10 + frameSize > maxOffset) break;
 
         const dataOffset = offset + 10;
-        if (frameId === 'TIT2') title = this.decodeTextFrame(view, dataOffset, frameSize);
-        else if (frameId === 'TPE1') artist = this.decodeTextFrame(view, dataOffset, frameSize);
-        else if (frameId === 'TALB') album = this.decodeTextFrame(view, dataOffset, frameSize);
+        if (frameId === 'TIT2') title = title || this.decodeTextFrame(view, dataOffset, frameSize);
+        else if (frameId === 'TPE1' || frameId === 'TPE2') artist = artist || this.decodeTextFrame(view, dataOffset, frameSize);
+        else if (frameId === 'TALB') album = album || this.decodeTextFrame(view, dataOffset, frameSize);
         else if (frameId === 'APIC' && !artwork) {
           artwork = this.decodeAPICFrame(view, dataOffset, frameSize);
         }
@@ -171,10 +259,11 @@ class ID3Parser {
 
   /**
    * Decode APIC Frame (ID3v2.3 / ID3v2.4)
+   * Converts directly to Base64 Data URL so it stays permanent across reloads!
    */
   static decodeAPICFrame(view, offset, size) {
     try {
-      if (size <= 4) return null;
+      if (size <= 10) return null;
       const encoding = view.getUint8(offset);
       let curr = offset + 1;
       const end = offset + size;
@@ -196,34 +285,52 @@ class ID3Parser {
       const picType = view.getUint8(curr);
       curr++;
 
-      // Skip description
-      if (encoding === 0 || encoding === 3) {
-        // 1-byte null terminator
-        while (curr < end && view.getUint8(curr) !== 0) curr++;
-        curr++;
-      } else {
-        // 2-byte null terminator for UTF-16
-        while (curr + 1 < end && !(view.getUint8(curr) === 0 && view.getUint8(curr + 1) === 0)) {
-          curr += 2;
+      // Scan for image magic bytes within the next 256 bytes (safe against descriptions)
+      let imgStart = -1;
+      for (let i = curr; i < Math.min(curr + 256, end - 4); i++) {
+        const b0 = view.getUint8(i);
+        const b1 = view.getUint8(i + 1);
+        if (b0 === 0xff && b1 === 0xd8) { // JPEG
+          imgStart = i;
+          mimeType = 'image/jpeg';
+          break;
         }
-        curr += 2;
+        if (b0 === 0x89 && b1 === 0x50 && view.getUint8(i + 2) === 0x4e && view.getUint8(i + 3) === 0x47) { // PNG
+          imgStart = i;
+          mimeType = 'image/png';
+          break;
+        }
+        if (b0 === 0x52 && b1 === 0x49 && view.getUint8(i + 2) === 0x46 && view.getUint8(i + 3) === 0x46) { // WebP
+          imgStart = i;
+          mimeType = 'image/webp';
+          break;
+        }
+        if (b0 === 0x47 && b1 === 0x49 && view.getUint8(i + 2) === 0x46) { // GIF
+          imgStart = i;
+          mimeType = 'image/gif';
+          break;
+        }
       }
 
-      const imgBytesLength = end - curr;
-      if (imgBytesLength <= 16) return null;
+      if (imgStart === -1) {
+        // Fallback: Skip description via null terminator
+        if (encoding === 0 || encoding === 3) {
+          while (curr < end && view.getUint8(curr) !== 0) curr++;
+          curr++;
+        } else {
+          while (curr + 1 < end && !(view.getUint8(curr) === 0 && view.getUint8(curr + 1) === 0)) curr++;
+          curr += 2;
+        }
+        imgStart = curr;
+      }
 
-      // Check image magic bytes for JPEG / PNG
-      const b0 = view.getUint8(curr);
-      const b1 = view.getUint8(curr + 1);
-      if (b0 === 0xff && b1 === 0xd8) mimeType = 'image/jpeg';
-      else if (b0 === 0x89 && b1 === 0x50) mimeType = 'image/png';
-      else if (b0 === 0x47 && b1 === 0x49) mimeType = 'image/gif';
-      else if (b0 === 0x52 && b1 === 0x49) mimeType = 'image/webp';
+      if (imgStart >= end - 16) return null;
+      const imgBytesLength = end - imgStart;
+      const imgData = new Uint8Array(view.buffer, view.byteOffset + imgStart, imgBytesLength);
 
-      const imgData = new Uint8Array(view.buffer, curr, imgBytesLength);
-      const blob = new Blob([imgData], { type: mimeType });
-      return URL.createObjectURL(blob);
+      return this.uint8ArrayToDataURL(imgData, mimeType);
     } catch (e) {
+      console.warn('[ID3Parser] APIC parse notice:', e);
       return null;
     }
   }
@@ -242,24 +349,42 @@ class ID3Parser {
       let mimeType = 'image/jpeg';
       if (format.toUpperCase() === 'PNG') mimeType = 'image/png';
 
-      let curr = offset + 5; // skip encoding, 3-byte format, 1-byte pic type
+      let curr = offset + 5;
       const end = offset + size;
 
-      // Skip description
-      if (encoding === 0) {
-        while (curr < end && view.getUint8(curr) !== 0) curr++;
-        curr++;
-      } else {
-        while (curr + 1 < end && !(view.getUint8(curr) === 0 && view.getUint8(curr + 1) === 0)) curr += 2;
-        curr += 2;
+      // Scan for magic bytes
+      let imgStart = -1;
+      for (let i = curr; i < Math.min(curr + 128, end - 4); i++) {
+        const b0 = view.getUint8(i);
+        const b1 = view.getUint8(i + 1);
+        if (b0 === 0xff && b1 === 0xd8) {
+          imgStart = i;
+          mimeType = 'image/jpeg';
+          break;
+        }
+        if (b0 === 0x89 && b1 === 0x50) {
+          imgStart = i;
+          mimeType = 'image/png';
+          break;
+        }
       }
 
-      const imgLength = end - curr;
-      if (imgLength <= 16) return null;
+      if (imgStart === -1) {
+        if (encoding === 0) {
+          while (curr < end && view.getUint8(curr) !== 0) curr++;
+          curr++;
+        } else {
+          while (curr + 1 < end && !(view.getUint8(curr) === 0 && view.getUint8(curr + 1) === 0)) curr++;
+          curr += 2;
+        }
+        imgStart = curr;
+      }
 
-      const imgData = new Uint8Array(view.buffer, curr, imgLength);
-      const blob = new Blob([imgData], { type: mimeType });
-      return URL.createObjectURL(blob);
+      if (imgStart >= end - 16) return null;
+      const imgLength = end - imgStart;
+      const imgData = new Uint8Array(view.buffer, view.byteOffset + imgStart, imgLength);
+
+      return this.uint8ArrayToDataURL(imgData, mimeType);
     } catch (e) {
       return null;
     }
@@ -271,46 +396,51 @@ class ID3Parser {
   static parseM4A(view, buffer, sliceSize) {
     try {
       let offset = 0;
+      let ilstOffset = -1;
+
+      while (offset + 8 < sliceSize) {
+        const size = view.getUint32(offset);
+        const name = String.fromCharCode(view.getUint8(offset + 4), view.getUint8(offset + 5), view.getUint8(offset + 6), view.getUint8(offset + 7));
+
+        if (name === 'moov' || name === 'udta' || name === 'meta') {
+          offset += (name === 'meta' ? 12 : 8);
+          continue;
+        }
+        if (name === 'ilst') {
+          ilstOffset = offset;
+          break;
+        }
+        if (size <= 0) break;
+        offset += size;
+      }
+
+      if (ilstOffset === -1) return null;
+
+      let subOffset = ilstOffset + 8;
+      const ilstSize = view.getUint32(ilstOffset);
+      const endIlst = Math.min(ilstOffset + ilstSize, sliceSize);
+
       let title = '';
       let artist = '';
       let album = '';
       let artwork = null;
 
-      // Find 'moov' atom
-      while (offset + 8 < sliceSize) {
-        const atomSize = view.getUint32(offset);
-        if (atomSize <= 0) break;
-        const atomName = String.fromCharCode(
-          view.getUint8(offset + 4),
-          view.getUint8(offset + 5),
-          view.getUint8(offset + 6),
-          view.getUint8(offset + 7)
-        );
+      while (subOffset + 8 < endIlst) {
+        const itemSize = view.getUint32(subOffset);
+        const itemName = String.fromCharCode(view.getUint8(subOffset + 4), view.getUint8(subOffset + 5), view.getUint8(subOffset + 6), view.getUint8(subOffset + 7));
 
-        if (atomName === 'moov' || atomName === 'udta' || atomName === 'meta' || atomName === 'ilst') {
-          // Drill into container
-          offset += (atomName === 'meta') ? 12 : 8;
-          continue;
+        if (itemName === '©nam') title = this.extractM4AText(view, subOffset, itemSize);
+        else if (itemName === '©ART') artist = this.extractM4AText(view, subOffset, itemSize);
+        else if (itemName === '©alb') album = this.extractM4AText(view, subOffset, itemSize);
+        else if (itemName === 'covr' && !artwork) {
+          artwork = this.extractM4ACovr(view, subOffset, itemSize);
         }
 
-        // Inside ilst: check tags
-        if (atomName === '©nam') {
-          title = this.extractM4AText(view, offset, atomSize);
-        } else if (atomName === '©ART') {
-          artist = this.extractM4AText(view, offset, atomSize);
-        } else if (atomName === '©alb') {
-          album = this.extractM4AText(view, offset, atomSize);
-        } else if (atomName === 'covr') {
-          artwork = this.extractM4ACovr(view, offset, atomSize);
-        }
-
-        offset += atomSize;
+        if (itemSize <= 0) break;
+        subOffset += itemSize;
       }
 
-      if (title || artist || artwork) {
-        return { title, artist, album, artwork };
-      }
-      return null;
+      return { title, artist, album, artwork };
     } catch (e) {
       return null;
     }
@@ -318,14 +448,13 @@ class ID3Parser {
 
   static extractM4AText(view, offset, size) {
     try {
-      // Find 'data' subatom inside
       let sub = offset + 8;
       const end = offset + size;
       while (sub + 8 < end) {
         const subSize = view.getUint32(sub);
         const subName = String.fromCharCode(view.getUint8(sub + 4), view.getUint8(sub + 5), view.getUint8(sub + 6), view.getUint8(sub + 7));
         if (subName === 'data') {
-          const textBytes = new Uint8Array(view.buffer, sub + 16, subSize - 16);
+          const textBytes = new Uint8Array(view.buffer, view.byteOffset + sub + 16, subSize - 16);
           return new TextDecoder('utf-8').decode(textBytes).trim();
         }
         if (subSize <= 0) break;
@@ -345,9 +474,8 @@ class ID3Parser {
         if (subName === 'data') {
           const typeIndicator = view.getUint32(sub + 8) & 0xff;
           const mimeType = (typeIndicator === 14) ? 'image/png' : 'image/jpeg';
-          const imgBytes = new Uint8Array(view.buffer, sub + 16, subSize - 16);
-          const blob = new Blob([imgBytes], { type: mimeType });
-          return URL.createObjectURL(blob);
+          const imgBytes = new Uint8Array(view.buffer, view.byteOffset + sub + 16, subSize - 16);
+          return this.uint8ArrayToDataURL(imgBytes, mimeType);
         }
         if (subSize <= 0) break;
         sub += subSize;
@@ -357,7 +485,7 @@ class ID3Parser {
   }
 
   /**
-   * Parse FLAC METADATA_BLOCK_PICTURE
+   * Parse FLAC Picture Blocks
    */
   static parseFLAC(view, buffer, sliceSize) {
     try {
@@ -383,9 +511,8 @@ class ID3Parser {
           const dataLen = view.getUint32(curr);
           curr += 4;
           if (dataLen > 0 && curr + dataLen <= sliceSize) {
-            const imgBytes = new Uint8Array(view.buffer, curr, dataLen);
-            const blob = new Blob([imgBytes], { type: mime || 'image/jpeg' });
-            return { artwork: URL.createObjectURL(blob) };
+            const imgBytes = new Uint8Array(view.buffer, view.byteOffset + curr, dataLen);
+            return { artwork: this.uint8ArrayToDataURL(imgBytes, mime || 'image/jpeg') };
           }
         }
 
@@ -409,38 +536,54 @@ class ID3Parser {
   }
 
   /**
-   * Helper: Decode Text Frame with encoding handling
+   * Helper: Decode Text Frame with TextDecoder (handles any byte offset safely)
    */
   static decodeTextFrame(view, offset, size) {
     if (size <= 1) return '';
     const encoding = view.getUint8(offset);
-    const bytes = new Uint8Array(view.buffer, offset + 1, size - 1);
+    const bytes = new Uint8Array(view.buffer, view.byteOffset + offset + 1, size - 1);
 
-    if (encoding === 0) { // ISO-8859-1
-      let str = '';
-      for (let i = 0; i < bytes.length; i++) {
-        if (bytes[i] === 0) break;
-        str += String.fromCharCode(bytes[i]);
+    try {
+      if (encoding === 0) { // ISO-8859-1 / Windows-1252
+        return new TextDecoder('windows-1252').decode(bytes).replace(/\0.*$/, '').trim();
+      } else if (encoding === 1) { // UTF-16 with BOM
+        return new TextDecoder('utf-16').decode(bytes).replace(/\0.*$/, '').trim();
+      } else if (encoding === 2) { // UTF-16BE without BOM
+        return new TextDecoder('utf-16be').decode(bytes).replace(/\0.*$/, '').trim();
+      } else if (encoding === 3) { // UTF-8
+        return new TextDecoder('utf-8').decode(bytes).replace(/\0.*$/, '').trim();
       }
-      return str;
-    } else if (encoding === 1 || encoding === 2) { // UTF-16
-      const utf16Bytes = new Uint16Array(bytes.buffer, bytes.byteOffset, Math.floor(bytes.length / 2));
-      let str = '';
-      for (let i = 0; i < utf16Bytes.length; i++) {
-        if (utf16Bytes[i] === 0) break;
-        if (utf16Bytes[i] !== 0xfeff && utf16Bytes[i] !== 0xfffe) {
-          str += String.fromCharCode(utf16Bytes[i]);
-        }
-      }
-      return str;
-    } else if (encoding === 3) { // UTF-8
-      try {
-        return new TextDecoder('utf-8').decode(bytes).replace(/\0.*$/, '');
-      } catch (e) {
-        return '';
-      }
+    } catch (e) {
+      console.warn('[ID3Parser] decodeTextFrame fallback:', e);
     }
-    return '';
+
+    // ASCII fallback
+    let str = '';
+    for (let i = 0; i < bytes.length; i++) {
+      if (bytes[i] === 0) break;
+      if (bytes[i] >= 32 && bytes[i] <= 126) str += String.fromCharCode(bytes[i]);
+    }
+    return str.trim();
+  }
+
+  /**
+   * Converts Uint8Array to persistent Base64 Data URL
+   */
+  static uint8ArrayToDataURL(bytes, mimeType = 'image/jpeg') {
+    try {
+      let binary = '';
+      const len = bytes.byteLength;
+      const chunkSize = 16384;
+      for (let i = 0; i < len; i += chunkSize) {
+        const chunk = bytes.subarray(i, Math.min(i + chunkSize, len));
+        binary += String.fromCharCode.apply(null, chunk);
+      }
+      return `data:${mimeType};base64,${btoa(binary)}`;
+    } catch (e) {
+      // Memory fallback
+      const blob = new Blob([bytes], { type: mimeType });
+      return URL.createObjectURL(blob);
+    }
   }
 
   /**
@@ -448,20 +591,23 @@ class ID3Parser {
    */
   static parseFilename(filename) {
     let clean = filename.replace(/\.[^/.]+$/, '').trim();
-    // Remove typical download prefixes like #video_, (128k), [320kbps], etc.
+    // Remove typical spotdown & download markers
+    clean = clean.replace(/_?spotdown(\.org)?/ig, '');
+    clean = clean.replace(/\(spotdown(\.org)?\)/ig, '');
     clean = clean.replace(/^[#_]+/, '');
-    clean = clean.replace(/\((128k|320k|Pagalworld|mp3|m4a|song)\)/ig, '');
+    clean = clean.replace(/\((128k|320k|Pagalworld|mp3|m4a|song|audio)\)/ig, '');
     clean = clean.replace(/\[[^\]]*\]/g, '');
-    clean = clean.replace(/_/g, ' ').trim();
+    clean = clean.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
 
     if (clean.includes(' - ')) {
       const parts = clean.split(' - ');
       return {
-        title: (parts[1] || parts[0]).trim(),
-        artist: parts[0].trim() || 'Local Artist',
+        artist: parts[0].trim(),
+        title: parts.slice(1).join(' - ').trim(),
         album: 'Offline Music'
       };
     }
+
     return {
       title: clean || 'Untitled Song',
       artist: 'Local Artist',
@@ -470,8 +616,7 @@ class ID3Parser {
   }
 
   /**
-   * Generates a sleek, high-resolution procedural gradient artwork for songs without embedded art.
-   * Gives each artist/song a distinct aesthetic personality instead of a generic fallback logo!
+   * Generates a sleek procedural album art canvas Data URL
    */
   static generateProceduralCover(title = '', artist = '') {
     try {
@@ -480,7 +625,6 @@ class ID3Parser {
       canvas.height = 320;
       const ctx = canvas.getContext('2d');
 
-      // Generate consistent hash from title & artist
       const str = (title + ' ' + artist).toLowerCase();
       let hash = 0;
       for (let i = 0; i < str.length; i++) {
@@ -488,68 +632,52 @@ class ID3Parser {
         hash |= 0;
       }
 
-      // Color palettes (Studio Neon & Holographic Vibe)
       const palettes = [
-        ['#8b5cf6', '#ec4899', '#3b82f6'], // Aurora
-        ['#00f2fe', '#4facfe', '#000851'], // Cyber
-        ['#f43f5e', '#fb923c', '#701a75'], // Sunset
-        ['#10b981', '#06b6d4', '#064e3b'], // Emerald
-        ['#f59e0b', '#ef4444', '#78350f'], // Fire
-        ['#ec4899', '#8b5cf6', '#1e1b4b'], // Synthwave
-        ['#06b6d4', '#3b82f6', '#1e1b4b']  // Deep Blue
+        ['#8b5cf6', '#ec4899', '#3b82f6'],
+        ['#00f2fe', '#4facfe', '#000851'],
+        ['#f43f5e', '#fb923c', '#701a75'],
+        ['#10b981', '#06b6d4', '#064e3b'],
+        ['#f59e0b', '#ef4444', '#7c2d12'],
+        ['#6366f1', '#a855f7', '#ec4899']
       ];
-      const palette = palettes[Math.abs(hash) % palettes.length];
 
-      // Draw background gradient
+      const pal = palettes[Math.abs(hash) % palettes.length];
+
       const grad = ctx.createLinearGradient(0, 0, 320, 320);
-      grad.addColorStop(0, palette[0]);
-      grad.addColorStop(0.5, palette[1]);
-      grad.addColorStop(1, palette[2]);
+      grad.addColorStop(0, pal[0]);
+      grad.addColorStop(0.5, pal[1]);
+      grad.addColorStop(1, pal[2]);
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 320, 320);
 
-      // Draw decorative geometric circles / studio vinyl rings
+      // Radial acoustic rings
       ctx.save();
-      ctx.globalAlpha = 0.15;
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(160, 160, 110, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(160, 160, 75, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(160, 160, 40, 0, Math.PI * 2);
-      ctx.stroke();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 1.5;
+      for (let r = 40; r <= 140; r += 25) {
+        ctx.beginPath();
+        ctx.arc(160, 160, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
       ctx.restore();
 
-      // Draw centered musical glyph or initial
-      ctx.save();
+      // Bold initial letter
+      const letter = (title || 'A').trim().charAt(0).toUpperCase();
       ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
       ctx.shadowBlur = 12;
-      ctx.font = 'bold 88px "Plus Jakarta Sans", sans-serif';
+      ctx.font = '900 110px "Plus Jakarta Sans", system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
+      ctx.fillText(letter, 160, 160);
 
-      const initial = (title.trim()[0] || '♪').toUpperCase();
-      ctx.fillText(initial, 160, 155);
-
-      // Subtitle artist pill
-      ctx.font = 'bold 16px "Plus Jakarta Sans", sans-serif';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-      ctx.letterSpacing = '1px';
-      const cleanArtist = (artist || 'ANRU STUDIO').toUpperCase().slice(0, 18);
-      ctx.fillText(cleanArtist, 160, 240);
-      ctx.restore();
-
-      return canvas.toDataURL('image/png');
+      return canvas.toDataURL('image/jpeg', 0.85);
     } catch (e) {
       return 'icon-512.png';
     }
   }
 }
 
-if (typeof window !== 'undefined') window.ID3Parser = ID3Parser;
-if (typeof globalThis !== 'undefined') globalThis.ID3Parser = ID3Parser;
+if (typeof window !== 'undefined') {
+  window.ID3Parser = ID3Parser;
+}
