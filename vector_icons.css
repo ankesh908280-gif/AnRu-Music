@@ -1,8 +1,25 @@
 /* ==========================================================
    OFFLINE VECTOR FONT AWESOME ENGINE (PURE SVG, NO EMOJIS, 100% OFFLINE)
+   Guaranteed Zero Tofu Boxes (■), Zero Emojis, Zero WebFont Dependency
    ========================================================== */
-i.fa-solid, i.fa-regular, i[class*="fa-"] {
-  display: inline-flex;
+
+/* Strict suppression of missing-font pseudo-element glyphs */
+i.fa-solid::before,
+i.fa-regular::before,
+i[class*="fa-"]::before,
+.fa-solid::before,
+.fa-regular::before,
+i.fa-solid::after,
+i.fa-regular::after,
+i[class*="fa-"]::after,
+.fa-solid::after,
+.fa-regular::after {
+  content: none !important;
+  display: none !important;
+}
+
+i.fa-solid, i.fa-regular, i[class*="fa-"], .fa-solid, .fa-regular {
+  display: inline-flex !important;
   align-items: center;
   justify-content: center;
   width: 1.15em;
@@ -17,6 +34,8 @@ i.fa-solid, i.fa-regular, i[class*="fa-"] {
   -webkit-mask-size: contain;
   mask-size: contain;
   font-style: normal;
+  font-family: inherit !important;
+  flex-shrink: 0;
 }
 
 i.fa-play {

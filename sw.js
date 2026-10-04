@@ -1,19 +1,19 @@
-// Service Worker for Anru Music Studio Pro v21.0 (100% Offline Audiophile Edition)
-const CACHE_NAME = 'anru-music-v21-offline-pro';
+// Service Worker for Anru Music Studio Pro v22.0 (100% Offline Audiophile Master Edition)
+const CACHE_NAME = 'anru-music-v22-clean-offline';
 const STATIC_ASSETS = [
   './',
   './index.html',
-  './style.css',
+  './style.css?v=22.0',
   './css/variables.css',
   './css/base.css',
   './css/components.css',
   './css/views.css',
   './css/player.css',
   './css/vector_icons.css',
-  './id3.js?v=21.0',
-  './db.js?v=21.0',
-  './player.js?v=21.0',
-  './app.js?v=21.0',
+  './id3.js?v=22.0',
+  './db.js?v=22.0',
+  './player.js?v=22.0',
+  './app.js?v=22.0',
   './manifest.json',
   './favicon.png',
   './icon-192.png',
@@ -23,7 +23,7 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Anru SW] Pre-caching v21 pure offline studio shell');
+      console.log('[Anru SW] Pre-caching v22 pure offline studio shell');
       return cache.addAll(STATIC_ASSETS).catch(err => console.warn('Cache error:', err));
     })
   );
@@ -41,12 +41,28 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
+  // Navigation requests: NETWORK FIRST so updates are immediately loaded
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return networkResponse;
+      }).catch(() => {
+        return caches.match('./index.html') || caches.match('/');
+      })
+    );
+    return;
+  }
+
+  // Assets: Cache First with network background update
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
@@ -58,10 +74,8 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
         return networkResponse;
-      }).catch(() => {
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
-        }
+      }).catch((err) => {
+        console.warn('Fetch error:', err);
       });
     })
   );

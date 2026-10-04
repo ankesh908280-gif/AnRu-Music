@@ -1,8 +1,9 @@
 /* ==========================================================
-   ANRU MUSIC STUDIO PRO - ULTRA-PREMIUM OFFLINE SUITE
-   100% Offline | Font Awesome Vector Engine | Zero Emojis
+   ANRU MUSIC STUDIO PRO v22 - PURE OFFLINE MASTER STYLES
+   Zero Emojis | 100% Vector SVG Engine | Glassmorphic Studio
    ========================================================== */
 
+/* --- css/variables.css --- */
 /* ==========================================================
    ANRU MUSIC STUDIO PRO v18 - DESIGN SYSTEM & VARIABLES
    css/variables.css
@@ -109,7 +110,7 @@
   --accentGlow: rgba(16, 185, 129, 0.45);
 }
 
-
+/* --- css/base.css --- */
 /* ==========================================================
    ANRU MUSIC STUDIO PRO v18 - BASE STYLES & LAYOUT
    css/base.css
@@ -428,7 +429,7 @@ img {
   display: none !important;
 }
 
-
+/* --- css/components.css --- */
 /* ==========================================================
    ANRU MUSIC STUDIO PRO v18 - COMPONENTS & MODALS
    css/components.css
@@ -975,7 +976,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   transform: translateX(-50%) translateY(0);
 }
 
-
+/* --- css/views.css --- */
 /* ==========================================================
    ANRU MUSIC STUDIO PRO v18 - VIEWS & SECTIONS
    css/views.css
@@ -2022,9 +2023,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   box-shadow: 0 4px 18px var(--accentGlow);
 }
 
-
-
-
+/* --- css/player.css --- */
 /* ==========================================================
    ANRU MUSIC STUDIO PRO v18 - PLAYER & AUDIO CONTROLS
    css/player.css
@@ -2978,12 +2977,29 @@ input[type="range"]::-webkit-slider-thumb:hover {
   box-shadow: 0 4px 15px var(--accentGlow);
 }
 
-
+/* --- css/vector_icons.css --- */
 /* ==========================================================
    OFFLINE VECTOR FONT AWESOME ENGINE (PURE SVG, NO EMOJIS, 100% OFFLINE)
+   Guaranteed Zero Tofu Boxes (■), Zero Emojis, Zero WebFont Dependency
    ========================================================== */
-i.fa-solid, i.fa-regular, i[class*="fa-"] {
-  display: inline-flex;
+
+/* Strict suppression of missing-font pseudo-element glyphs */
+i.fa-solid::before,
+i.fa-regular::before,
+i[class*="fa-"]::before,
+.fa-solid::before,
+.fa-regular::before,
+i.fa-solid::after,
+i.fa-regular::after,
+i[class*="fa-"]::after,
+.fa-solid::after,
+.fa-regular::after {
+  content: none !important;
+  display: none !important;
+}
+
+i.fa-solid, i.fa-regular, i[class*="fa-"], .fa-solid, .fa-regular {
+  display: inline-flex !important;
   align-items: center;
   justify-content: center;
   width: 1.15em;
@@ -2998,6 +3014,8 @@ i.fa-solid, i.fa-regular, i[class*="fa-"] {
   -webkit-mask-size: contain;
   mask-size: contain;
   font-style: normal;
+  font-family: inherit !important;
+  flex-shrink: 0;
 }
 
 i.fa-play {
@@ -3164,3 +3182,4 @@ i.fa-grip-lines {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20448%20512%22%3E%3Cpath%20d%3D%22M32%20192c-17.7%200-32%2014.3-32%2032s14.3%2032%2032%2032l384%200c17.7%200%2032-14.3%2032-32s-14.3-32-32-32L32%20192zm0%20128c-17.7%200-32%2014.3-32%2032s14.3%2032%2032%2032l384%200c17.7%200%2032-14.3%2032-32s-14.3-32-32-32l-384%200z%22/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20448%20512%22%3E%3Cpath%20d%3D%22M32%20192c-17.7%200-32%2014.3-32%2032s14.3%2032%2032%2032l384%200c17.7%200%2032-14.3%2032-32s-14.3-32-32-32L32%20192zm0%20128c-17.7%200-32%2014.3-32%2032s14.3%2032%2032%2032l384%200c17.7%200%2032-14.3%2032-32s-14.3-32-32-32l-384%200z%22/%3E%3C/svg%3E");
 }
+
