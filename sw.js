@@ -1,19 +1,19 @@
 // Service Worker for Anru Music Studio Pro v22.1 (100% Offline Audiophile Master Edition)
-const CACHE_NAME = 'anru-music-v22-1-clean-offline';
+const CACHE_NAME = 'anru-music-v22-2-clean-offline';
 const STATIC_ASSETS = [
   './',
   './index.html',
-  './style.css?v=22.1',
+  './style.css?v=22.2',
   './css/variables.css',
   './css/base.css',
   './css/components.css',
   './css/views.css',
   './css/player.css',
   './css/vector_icons.css',
-  './id3.js?v=22.1',
-  './db.js?v=22.1',
-  './player.js?v=22.1',
-  './app.js?v=22.1',
+  './id3.js?v=22.2',
+  './db.js?v=22.2',
+  './player.js?v=22.2',
+  './app.js?v=22.2',
   './manifest.json',
   './favicon.png',
   './icon-192.png',

@@ -956,3 +956,297 @@
   font-weight: 700;
   box-shadow: 0 4px 15px var(--accentGlow);
 }
+
+/* ==========================================================
+   ENHANCEMENTS: FULLSCREEN PLAYER PROGRESS STICK & 3-DOTS
+   ========================================================== */
+
+.fs-meta-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fs-more-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glassBorder);
+  color: var(--textSub);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fs-more-btn:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+/* High-Visibility Progress Stick (Interactive Slider) */
+.fs-progress-stick-wrap {
+  width: 100%;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+  padding: 4px 0;
+  margin-top: 4px;
+}
+
+.fs-progress-stick-bg {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 4px;
+  overflow: visible;
+}
+
+.fs-progress-stick-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #ec4899, #a855f7);
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.6);
+  transition: width 0.08s linear;
+}
+
+.fs-progress-stick-thumb {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 12px #a855f7, 0 2px 6px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -50%);
+  transition: left 0.08s linear;
+}
+
+/* ==========================================================
+   HORIZONTAL STUDIO EQUALIZER FADERS
+   ========================================================== */
+
+.eq-horizontal-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+  max-height: 48vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 4px;
+}
+
+.eq-h-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.eq-h-label {
+  width: 58px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.eq-h-freq {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.eq-h-tag {
+  font-size: 9px;
+  color: var(--textMuted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.eq-h-track-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.eq-h-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.16);
+  outline: none;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.eq-h-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 10px var(--accentGlow), 0 2px 5px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.eq-h-gain {
+  width: 44px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accentCyan);
+  flex-shrink: 0;
+}
+
+/* ==========================================================
+   CUSTOM PLAYLIST PICKER MODAL
+   ========================================================== */
+
+.playlist-picker-card {
+  width: 90% !important;
+  max-width: 420px !important;
+  max-height: 82vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 20px 22px !important;
+}
+
+.create-new-pl-picker-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  margin: 14px 0 16px 0;
+  border-radius: var(--radius-md);
+  background: var(--gradAccent);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(236, 72, 153, 0.35);
+  transition: all 0.2s;
+}
+
+.create-new-pl-picker-btn:active {
+  transform: scale(0.98);
+}
+
+.playlist-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: 52vh;
+  padding-right: 4px;
+}
+
+.picker-pl-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glassBorder);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+  color: #fff;
+}
+
+.picker-pl-card:active {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: var(--accent);
+  transform: scale(0.98);
+}
+
+.picker-pl-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: rgba(168, 85, 247, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.picker-pl-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.picker-pl-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.picker-pl-count {
+  font-size: 12px;
+  color: var(--textSub);
+  margin-top: 2px;
+}
+
+.picker-pl-card .chevron-ico {
+  font-size: 14px;
+  color: var(--textDim);
+}
+
+/* ==========================================================
+   TOP TRACKS HEADER & MONTH FILTER
+   ========================================================== */
+
+.top-tracks-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.top-tracks-header h4 {
+  margin-bottom: 0 !important;
+}
+
+.studio-month-select {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glassBorder);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: pointer;
+}
+
+.studio-month-select option {
+  background: #120e20;
+  color: #fff;
+}

@@ -24,6 +24,7 @@ let isSelectionMode = false;
 let selectedSongIds = new Set();
 let activePlaylistDetail = null;
 let currentStatsTimeframe = 'week';
+let currentStatsMonth = 'all';
 
 // ==========================================
 // 1. APP INITIALIZATION & HARDWARE ROUTER
@@ -649,6 +650,16 @@ function initPlayerControls() {
     });
   }
 
+  // 3-Dots More Options Button on Fullscreen Player
+  const fsMoreBtn = document.getElementById('fs-more-btn');
+  if (fsMoreBtn) {
+    fsMoreBtn.addEventListener('click', () => {
+      if (player.currentSong) {
+        openActionSheet(player.currentSong);
+      }
+    });
+  }
+
   // Queue Drawer triggers
   document.getElementById('fs-queue-btn')?.addEventListener('click', openQueue);
   document.getElementById('close-queue-btn')?.addEventListener('click', closeQueue);
@@ -847,7 +858,34 @@ async function openPlaylistPickerModal(songs) {
   if (!songs || songs.length === 0) return;
   const pickerModal = document.getElementById('custom-playlist-picker-modal');
   const list = document.getElementById('playlist-picker-list');
+  const newPlBtn = document.getElementById('picker-new-pl-btn');
+  const closeBtn = document.getElementById('close-pl-picker-btn');
+
   if (!pickerModal || !list) return;
+
+  if (newPlBtn) {
+    newPlBtn.onclick = async () => {
+      const name = await showCustomPrompt({
+        title: 'Create Playlist',
+        message: 'Enter a name for your new playlist',
+        placeholder: 'Gym, Chill, Party...',
+        confirmText: 'Create'
+      });
+      if (name) {
+        const newPl = await db.createPlaylist(name);
+        if (newPl) {
+          showToast(`Created "${newPl.name}" 📁`);
+          await openPlaylistPickerModal(songs);
+        }
+      }
+    };
+  }
+
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      pickerModal.classList.add('hidden');
+    };
+  }
 
   const playlists = await db.getPlaylists();
   list.innerHTML = '';
@@ -861,7 +899,7 @@ async function openPlaylistPickerModal(songs) {
       card.innerHTML = `
         <div class="picker-pl-icon"><i class="fa-solid fa-list-ul"></i></div>
         <div class="picker-pl-meta">
-          <div class="picker-pl-title">${pl.name}</div>
+          <div class="picker-pl-title">${escapeHtml(pl.name)}</div>
           <div class="picker-pl-count">${(pl.songIds || []).length} Songs</div>
         </div>
         <i class="fa-solid fa-chevron-right chevron-ico"></i>
@@ -1276,10 +1314,18 @@ function initHolographicStudio() {
       renderActivityGraph(currentStatsTimeframe);
     });
   });
+
+  const monthFilterSelect = document.getElementById('stat-month-filter');
+  if (monthFilterSelect) {
+    monthFilterSelect.addEventListener('change', (e) => {
+      currentStatsMonth = e.target.value;
+      renderActivityGraph(currentStatsTimeframe);
+    });
+  }
 }
 
 async function renderActivityGraph(timeframe = 'week') {
-  const stats = await db.getListeningStats(timeframe);
+  const stats = await db.getListeningStats(timeframe, currentStatsMonth);
   const graphData = await db.getActivityGraphData(timeframe);
 
   const hoursEl = document.getElementById('stat-hours');
@@ -1352,16 +1398,17 @@ async function renderActivityGraph(timeframe = 'week') {
 
   songsListEl.innerHTML = '';
   stats.topSongs.forEach((item, idx) => {
-    const rankColors = ['#f59e0b', '#94a3b8', '#b45309', 'var(--accent)', 'var(--accent)'];
+    const rankColors = ['#f59e0b', '#94a3b8', '#b45309', '#a855f7', '#a855f7'];
     const row = document.createElement('div');
     row.className = 'top-track-row';
     row.innerHTML = `
-      <div class="top-rank-badge" style="background:${rankColors[idx] || 'var(--accent)'};">#${idx + 1}</div>
+      <div class="top-rank-badge" style="background:${rankColors[idx] || '#a855f7'};">#${idx + 1}</div>
+      <img src="${item.artwork || 'icon-512.png'}" class="top-track-art" alt="art" onerror="this.src='icon-512.png'">
       <div class="top-track-meta">
-        <div class="top-track-title">${item.title}</div>
-        <div class="top-track-artist">${item.artist}</div>
+        <div class="top-track-title">${escapeHtml(item.title)}</div>
+        <div class="top-track-artist">${escapeHtml(item.artist)}</div>
       </div>
-      <div class="top-track-plays"><i class="fa-solid fa-play"></i> ${item.count} plays</div>
+      <div class="top-track-plays"><i class="fa-solid fa-play"></i> ${item.playCount || item.count || 1} plays</div>
     `;
 
     row.addEventListener('click', () => {

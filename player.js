@@ -1,3 +1,13 @@
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 /**
  * ANRU MUSIC STUDIO PRO v22.1 - STUDIO AUDIO ENGINE & AUDIOPHILE DSP GRAPH
  * Pure Offline Audio Pipeline with High-Buffer Playback Stability
@@ -67,6 +77,7 @@ class AudioPlayer {
     this._lastPeriodicSave = 0;
 
     this.initAudioListeners();
+    this.initProgressSeekbar();
   }
 
   initAudioListeners() {
@@ -665,7 +676,13 @@ class AudioPlayer {
   onTimeUpdate() {
     const cur = this.audio.currentTime || 0;
     const dur = this.audio.duration || this.currentSong?.duration || 1;
-    const pct = (cur / dur) * 100;
+    const pct = Math.min(100, Math.max(0, (cur / dur) * 100));
+
+    // Update High-Visibility Progress Stick
+    const progressFill = document.getElementById('fs-progress-fill');
+    const progressThumb = document.getElementById('fs-progress-thumb');
+    if (progressFill) progressFill.style.width = `${pct}%`;
+    if (progressThumb) progressThumb.style.left = `${pct}%`;
 
     const miniFill = document.getElementById('mini-progress-fill');
     if (miniFill) miniFill.style.width = `${pct}%`;
@@ -675,8 +692,32 @@ class AudioPlayer {
     if (curTimeEl) curTimeEl.textContent = this.formatTime(cur);
     if (durTimeEl) durTimeEl.textContent = this.formatTime(dur);
 
-    // Update Waveform Seekbar Canvas (guarded if in background or hidden)
+    // Update Waveform Seekbar Canvas
     this.drawWaveformSeekbar(pct);
+  }
+
+  initProgressSeekbar() {
+    const progressWrap = document.getElementById('fs-progress-wrap');
+    if (!progressWrap) return;
+
+    const handleSeek = (e) => {
+      const rect = progressWrap.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clickX = Math.max(0, Math.min(rect.width, clientX - rect.left));
+      const pct = (clickX / rect.width) * 100;
+      this.seek(pct);
+    };
+
+    progressWrap.addEventListener('click', handleSeek);
+
+    let isSeeking = false;
+    progressWrap.addEventListener('mousedown', (e) => { isSeeking = true; handleSeek(e); });
+    window.addEventListener('mousemove', (e) => { if (isSeeking) handleSeek(e); });
+    window.addEventListener('mouseup', () => { isSeeking = false; });
+
+    progressWrap.addEventListener('touchstart', (e) => { isSeeking = true; handleSeek(e); }, { passive: true });
+    window.addEventListener('touchmove', (e) => { if (isSeeking) handleSeek(e); }, { passive: true });
+    window.addEventListener('touchend', () => { isSeeking = false; });
   }
 
   seek(percentage) {
@@ -780,8 +821,8 @@ class AudioPlayer {
   drawWaveformSeekbar(progressPct = 0) {
     if (document.hidden) return;
 
-    const fsModal = document.getElementById('fullscreen-player-modal');
-    if (!fsModal || fsModal.classList.contains('hidden')) return;
+    const fsPlayer = document.getElementById('fullscreen-player');
+    if (!fsPlayer || fsPlayer.classList.contains('hidden')) return;
 
     if (!this.waveformCanvas) {
       this.waveformCanvas = document.getElementById('fs-waveform-canvas');
@@ -960,59 +1001,149 @@ class AudioPlayer {
   }
 
   renderQueueDrawer() {
-    const list = document.getElementById('queue-songs-list');
-    const badge = document.getElementById('queue-count-badge');
+    const nowPlayingBox = document.getElementById('queue-now-playing');
+    const upcomingList = document.getElementById('queue-upcoming-list');
     const headerCount = document.getElementById('fs-queue-count');
 
-    if (badge) badge.textContent = `${this.queue.length} Tracks`;
     if (headerCount) headerCount.textContent = `${this.queue.length}`;
-    if (!list) return;
 
-    list.innerHTML = '';
-    if (this.queue.length === 0) {
-      list.innerHTML = '<div class="empty-sub">Queue is empty. Tap any song to play!</div>';
-      return;
+    // 1. Render Now Playing Box
+    if (nowPlayingBox) {
+      if (this.currentSong) {
+        nowPlayingBox.innerHTML = `
+          <img src="${this.currentSong.artwork || 'icon-512.png'}" class="queue-thumb" alt="cover" onerror="this.src='icon-512.png'">
+          <div class="queue-info">
+            <div class="queue-title highlight">${escapeHtml(this.currentSong.title)}</div>
+            <div class="queue-artist">${escapeHtml(this.currentSong.artist)}</div>
+          </div>
+          <div class="queue-playing-tag">
+            <i class="fa-solid fa-volume-high"></i> PLAYING
+          </div>
+        `;
+      } else {
+        nowPlayingBox.innerHTML = '<div class="empty-sub">No track currently playing</div>';
+      }
     }
 
-    this.queue.forEach((song, idx) => {
-      const isNowPlaying = idx === this.currentIndex;
-      const row = document.createElement('div');
-      row.className = `queue-row ${isNowPlaying ? 'now-playing' : ''}`;
-      row.innerHTML = `
-        <div class="queue-drag-handle"><i class="fa-solid fa-grip-lines"></i></div>
-        <img src="${song.artwork || 'icon-512.png'}" class="queue-art" alt="cover" onerror="this.src='icon-512.png'">
-        <div class="queue-info">
-          <div class="queue-title ${isNowPlaying ? 'highlight' : ''}">${song.title}</div>
-          <div class="queue-artist">${song.artist}</div>
-        </div>
-        <div class="queue-actions">
-          ${idx > 0 ? `<button class="queue-btn move-up" title="Move Up"><i class="fa-solid fa-chevron-up"></i></button>` : ''}
-          ${idx < this.queue.length - 1 ? `<button class="queue-btn move-down" title="Move Down"><i class="fa-solid fa-chevron-down"></i></button>` : ''}
-          <button class="queue-btn remove-track" title="Remove"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-      `;
+    // 2. Render Upcoming Tracks
+    if (upcomingList) {
+      upcomingList.innerHTML = '';
 
-      row.querySelector('.queue-info')?.addEventListener('click', () => {
-        this.playSong(song);
+      if (this.queue.length === 0) {
+        upcomingList.innerHTML = '<div class="empty-sub">Queue is empty. Tap any song in Library to play!</div>';
+        return;
+      }
+
+      this.queue.forEach((song, idx) => {
+        const isNowPlaying = idx === this.currentIndex;
+        const row = document.createElement('div');
+        row.className = `queue-row ${isNowPlaying ? 'now-playing' : ''}`;
+        row.dataset.index = idx;
+        row.draggable = true;
+
+        row.innerHTML = `
+          <div class="queue-drag-handle" title="Hold & Drag to reorder"><i class="fa-solid fa-grip-lines"></i></div>
+          <img src="${song.artwork || 'icon-512.png'}" class="queue-thumb queue-row-thumb" alt="cover" onerror="this.src='icon-512.png'">
+          <div class="queue-info">
+            <div class="queue-title ${isNowPlaying ? 'highlight' : ''}">${escapeHtml(song.title)}</div>
+            <div class="queue-artist">${escapeHtml(song.artist)}</div>
+          </div>
+          <div class="queue-actions">
+            ${idx > 0 ? `<button class="queue-btn move-up" title="Move Up"><i class="fa-solid fa-chevron-up"></i></button>` : ''}
+            ${idx < this.queue.length - 1 ? `<button class="queue-btn move-down" title="Move Down"><i class="fa-solid fa-chevron-down"></i></button>` : ''}
+            <button class="queue-btn remove-track" title="Remove"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+        `;
+
+        // Click track info to play
+        row.querySelector('.queue-info')?.addEventListener('click', () => {
+          this.playSong(song);
+        });
+
+        // 1-Tap Move Up / Move Down buttons
+        row.querySelector('.move-up')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.moveQueueItem(idx, idx - 1);
+        });
+
+        row.querySelector('.move-down')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.moveQueueItem(idx, idx + 1);
+        });
+
+        row.querySelector('.remove-track')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.removeFromQueue(idx);
+        });
+
+        // Desktop Drag and Drop
+        row.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', idx);
+          row.classList.add('touch-dragging');
+        });
+
+        row.addEventListener('dragend', () => {
+          row.classList.remove('touch-dragging');
+          upcomingList.querySelectorAll('.queue-row').forEach(r => r.classList.remove('drag-over'));
+        });
+
+        row.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          row.classList.add('drag-over');
+        });
+
+        row.addEventListener('dragleave', () => {
+          row.classList.remove('drag-over');
+        });
+
+        row.addEventListener('drop', (e) => {
+          e.preventDefault();
+          row.classList.remove('drag-over');
+          const fromIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
+          const toIndex = idx;
+          if (!isNaN(fromIndex) && fromIndex !== toIndex) {
+            this.moveQueueItem(fromIndex, toIndex);
+          }
+        });
+
+        // Mobile Touch Drag on Handle
+        const handle = row.querySelector('.queue-drag-handle');
+        if (handle) {
+          handle.addEventListener('touchstart', (e) => {
+            row.classList.add('touch-dragging');
+            if (navigator.vibrate) navigator.vibrate(25);
+          }, { passive: true });
+
+          handle.addEventListener('touchmove', (e) => {
+            const currentY = e.touches[0].clientY;
+            const elementUnder = document.elementFromPoint(e.touches[0].clientX, currentY);
+            const targetRow = elementUnder?.closest('.queue-row');
+            
+            upcomingList.querySelectorAll('.queue-row').forEach(r => r.classList.remove('drag-over'));
+            if (targetRow && targetRow !== row) {
+              targetRow.classList.add('drag-over');
+            }
+          }, { passive: true });
+
+          handle.addEventListener('touchend', (e) => {
+            row.classList.remove('touch-dragging');
+            const endY = e.changedTouches[0].clientY;
+            const elementUnder = document.elementFromPoint(e.changedTouches[0].clientX, endY);
+            const targetRow = elementUnder?.closest('.queue-row');
+            upcomingList.querySelectorAll('.queue-row').forEach(r => r.classList.remove('drag-over'));
+
+            if (targetRow && targetRow !== row) {
+              const toIndex = parseInt(targetRow.dataset.index, 10);
+              if (!isNaN(toIndex)) {
+                this.moveQueueItem(idx, toIndex);
+              }
+            }
+          });
+        }
+
+        upcomingList.appendChild(row);
       });
-
-      row.querySelector('.move-up')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.moveQueueItem(idx, idx - 1);
-      });
-
-      row.querySelector('.move-down')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.moveQueueItem(idx, idx + 1);
-      });
-
-      row.querySelector('.remove-track')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.removeFromQueue(idx);
-      });
-
-      list.appendChild(row);
-    });
+    }
   }
 
   // ==========================================

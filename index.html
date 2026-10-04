@@ -18,7 +18,7 @@
 
   <!-- Official Font Awesome Library (CDN with offline vector fallback) -->
   
-  <link rel="stylesheet" href="style.css?v=22.1">
+  <link rel="stylesheet" href="style.css?v=22.2">
 
   <!-- Self-Contained Master Stylesheet with Font Awesome Vector Engine (Guaranteed 100% Offline) -->
     <!-- 100% Offline & Emergency Cache-Busting Script -->
@@ -247,7 +247,25 @@
 
           <!-- Top 5 Most Played Tracks -->
           <div class="top-tracks-card glass-card">
-            <h4><i class="fa-solid fa-trophy" style="color:#f59e0b;"></i> Top 5 Most Played</h4>
+            <div class="top-tracks-header">
+              <h4><i class="fa-solid fa-trophy" style="color:#f59e0b;"></i> Top 5 Most Played</h4>
+              <select id="stat-month-filter" class="studio-month-select" title="Filter by Month">
+                <option value="all">All Time</option>
+                <option value="this_month">This Month</option>
+                <option value="0">January</option>
+                <option value="1">February</option>
+                <option value="2">March</option>
+                <option value="3">April</option>
+                <option value="4">May</option>
+                <option value="5">June</option>
+                <option value="6">July</option>
+                <option value="7">August</option>
+                <option value="8">September</option>
+                <option value="9">October</option>
+                <option value="10">November</option>
+                <option value="11">December</option>
+              </select>
+            </div>
             <div class="top-tracks-list" id="stat-top-songs-list">
               <div class="empty-sub">Play your favorite songs to see top rankings here!</div>
             </div>
@@ -424,7 +442,10 @@
           <h2 class="fs-title" id="fs-title">Song Title</h2>
           <p class="fs-artist" id="fs-artist">Artist Name</p>
         </div>
-        <button class="fs-like-btn" id="fs-like-btn" title="Favorite"><i class="fa-regular fa-heart"></i></button>
+        <div class="fs-meta-actions">
+          <button class="fs-like-btn" id="fs-like-btn" title="Favorite"><i class="fa-regular fa-heart"></i></button>
+          <button class="fs-more-btn" id="fs-more-btn" title="Song Options"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+        </div>
       </div>
 
       <!-- Audio Enhancement Quick-Pill Bar (Direct 3D & Normalizer Toggles in Fullscreen Player) -->
@@ -439,8 +460,15 @@
 
       <!-- INTERACTIVE WAVEFORM SEEKBAR -->
       <div class="fs-seek-box">
-        <div class="waveform-container">
-          <canvas id="fs-waveform-canvas" class="fs-waveform-canvas" width="340" height="52"></canvas>
+        <div class="waveform-container" id="fs-waveform-wrap">
+          <canvas id="fs-waveform-canvas" class="fs-waveform-canvas" width="340" height="42"></canvas>
+        </div>
+        <!-- High-Visibility Sleek Progress Stick -->
+        <div class="fs-progress-stick-wrap" id="fs-progress-wrap" title="Drag to Seek">
+          <div class="fs-progress-stick-bg">
+            <div class="fs-progress-stick-fill" id="fs-progress-fill" style="width: 0%;"></div>
+            <div class="fs-progress-stick-thumb" id="fs-progress-thumb" style="left: 0%;"></div>
+          </div>
         </div>
         <div class="fs-time-row">
           <span id="fs-curr-time">0:00</span>
@@ -515,42 +543,83 @@
           <button class="eq-preset-chip" data-preset="hiphop">Hip Hop</button>
         </div>
 
-        <!-- 7 Responsive Frequency Sliders -->
-        <div class="eq-sliders-stage">
-          <div class="eq-band-col">
-            <span class="eq-gain-val" id="eq-val-0">0dB</span>
-            <input type="range" class="eq-vertical-slider" id="eq-band-0" min="-12" max="12" step="1" value="0">
-            <span class="eq-freq-label">60Hz</span>
+        <!-- 7 Responsive Frequency Sliders (Horizontal Studio Faders) -->
+        <div class="eq-horizontal-stage">
+          <div class="eq-h-row">
+            <div class="eq-h-label">
+              <span class="eq-h-freq">60Hz</span>
+              <span class="eq-h-tag">Sub-Bass</span>
+            </div>
+            <div class="eq-h-track-wrap">
+              <input type="range" class="eq-h-slider" id="eq-band-0" min="-12" max="12" step="1" value="0">
+            </div>
+            <span class="eq-h-gain" id="eq-val-0">0dB</span>
           </div>
-          <div class="eq-band-col">
-            <span class="eq-gain-val" id="eq-val-1">0dB</span>
-            <input type="range" class="eq-vertical-slider" id="eq-band-1" min="-12" max="12" step="1" value="0">
-            <span class="eq-freq-label">150Hz</span>
+
+          <div class="eq-h-row">
+            <div class="eq-h-label">
+              <span class="eq-h-freq">150Hz</span>
+              <span class="eq-h-tag">Bass</span>
+            </div>
+            <div class="eq-h-track-wrap">
+              <input type="range" class="eq-h-slider" id="eq-band-1" min="-12" max="12" step="1" value="0">
+            </div>
+            <span class="eq-h-gain" id="eq-val-1">0dB</span>
           </div>
-          <div class="eq-band-col">
-            <span class="eq-gain-val" id="eq-val-2">0dB</span>
-            <input type="range" class="eq-vertical-slider" id="eq-band-2" min="-12" max="12" step="1" value="0">
-            <span class="eq-freq-label">400Hz</span>
+
+          <div class="eq-h-row">
+            <div class="eq-h-label">
+              <span class="eq-h-freq">400Hz</span>
+              <span class="eq-h-tag">Low-Mid</span>
+            </div>
+            <div class="eq-h-track-wrap">
+              <input type="range" class="eq-h-slider" id="eq-band-2" min="-12" max="12" step="1" value="0">
+            </div>
+            <span class="eq-h-gain" id="eq-val-2">0dB</span>
           </div>
-          <div class="eq-band-col">
-            <span class="eq-gain-val" id="eq-val-3">0dB</span>
-            <input type="range" class="eq-vertical-slider" id="eq-band-3" min="-12" max="12" step="1" value="0">
-            <span class="eq-freq-label">1kHz</span>
+
+          <div class="eq-h-row">
+            <div class="eq-h-label">
+              <span class="eq-h-freq">1kHz</span>
+              <span class="eq-h-tag">Mid</span>
+            </div>
+            <div class="eq-h-track-wrap">
+              <input type="range" class="eq-h-slider" id="eq-band-3" min="-12" max="12" step="1" value="0">
+            </div>
+            <span class="eq-h-gain" id="eq-val-3">0dB</span>
           </div>
-          <div class="eq-band-col">
-            <span class="eq-gain-val" id="eq-val-4">0dB</span>
-            <input type="range" class="eq-vertical-slider" id="eq-band-4" min="-12" max="12" step="1" value="0">
-            <span class="eq-freq-label">2.5k</span>
+
+          <div class="eq-h-row">
+            <div class="eq-h-label">
+              <span class="eq-h-freq">2.5k</span>
+              <span class="eq-h-tag">Upper-Mid</span>
+            </div>
+            <div class="eq-h-track-wrap">
+              <input type="range" class="eq-h-slider" id="eq-band-4" min="-12" max="12" step="1" value="0">
+            </div>
+            <span class="eq-h-gain" id="eq-val-4">0dB</span>
           </div>
-          <div class="eq-band-col">
-            <span class="eq-gain-val" id="eq-val-5">0dB</span>
-            <input type="range" class="eq-vertical-slider" id="eq-band-5" min="-12" max="12" step="1" value="0">
-            <span class="eq-freq-label">6kHz</span>
+
+          <div class="eq-h-row">
+            <div class="eq-h-label">
+              <span class="eq-h-freq">6kHz</span>
+              <span class="eq-h-tag">Presence</span>
+            </div>
+            <div class="eq-h-track-wrap">
+              <input type="range" class="eq-h-slider" id="eq-band-5" min="-12" max="12" step="1" value="0">
+            </div>
+            <span class="eq-h-gain" id="eq-val-5">0dB</span>
           </div>
-          <div class="eq-band-col">
-            <span class="eq-gain-val" id="eq-val-6">0dB</span>
-            <input type="range" class="eq-vertical-slider" id="eq-band-6" min="-12" max="12" step="1" value="0">
-            <span class="eq-freq-label">15kHz</span>
+
+          <div class="eq-h-row">
+            <div class="eq-h-label">
+              <span class="eq-h-freq">15kHz</span>
+              <span class="eq-h-tag">Brilliance</span>
+            </div>
+            <div class="eq-h-track-wrap">
+              <input type="range" class="eq-h-slider" id="eq-band-6" min="-12" max="12" step="1" value="0">
+            </div>
+            <span class="eq-h-gain" id="eq-val-6">0dB</span>
           </div>
         </div>
 
@@ -708,10 +777,10 @@
   </div>
 
   <!-- Master Offline Scripts (100% Offline, Pure Local Engine) -->
-  <script src="id3.js?v=22.1"></script>
-  <script src="db.js?v=22.1"></script>
-  <script src="player.js?v=22.1"></script>
-  <script src="app.js?v=22.1"></script>
+  <script src="id3.js?v=22.2"></script>
+  <script src="db.js?v=22.2"></script>
+  <script src="player.js?v=22.2"></script>
+  <script src="app.js?v=22.2"></script>
   <div id="app-toast" class="app-toast"></div>
 </body>
 </html>

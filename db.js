@@ -592,40 +592,90 @@ class MusicDatabase {
     });
   }
 
-  async getListeningStats(timeframe = 'week') {
+  async getListeningStats(timeframe = 'week', monthFilter = 'all') {
     const history = await this.getAllPlayHistory();
-    const now = Date.now();
+    const now = new Date();
     const oneDayMs = 86400000;
 
-    let cutoff = 0;
-    let daysCount = 7;
-    if (timeframe === 'day') {
-      cutoff = now - oneDayMs;
-      daysCount = 1;
-    } else if (timeframe === 'week') {
-      cutoff = now - (7 * oneDayMs);
-      daysCount = 7;
-    } else if (timeframe === 'month') {
-      cutoff = now - (30 * oneDayMs);
-      daysCount = 30;
-    } else if (timeframe === 'year') {
-      cutoff = now - (365 * oneDayMs);
-      daysCount = 365;
+    let filtered = [];
+
+    if (monthFilter === 'all') {
+      let cutoff = 0;
+      let daysCount = 7;
+      if (timeframe === 'day') {
+        cutoff = Date.now() - oneDayMs;
+        daysCount = 1;
+      } else if (timeframe === 'week') {
+        cutoff = Date.now() - (7 * oneDayMs);
+        daysCount = 7;
+      } else if (timeframe === 'month') {
+        cutoff = Date.now() - (30 * oneDayMs);
+        daysCount = 30;
+      } else if (timeframe === 'year') {
+        cutoff = Date.now() - (365 * oneDayMs);
+        daysCount = 365;
+      }
+      filtered = history.filter(h => (h.timestamp || 0) >= cutoff);
+    } else if (monthFilter === 'this_month') {
+      filtered = history.filter(h => {
+        const d = new Date(h.timestamp || 0);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      });
+    } else {
+      const targetMonth = parseInt(monthFilter, 10);
+      filtered = history.filter(h => {
+        const d = new Date(h.timestamp || 0);
+        return d.getMonth() === targetMonth && d.getFullYear() === now.getFullYear();
+      });
     }
 
-    const filtered = history.filter(h => (h.timestamp || 0) >= cutoff);
     let totalSeconds = 0;
     filtered.forEach(e => totalSeconds += (e.duration || 30));
 
     const totalMinutes = Math.round(totalSeconds / 60);
     const totalHours = (totalMinutes / 60).toFixed(1);
-    const dailyAvgMinutes = Math.round(totalMinutes / Math.max(1, daysCount));
+    const dailyAvgMinutes = Math.round(totalMinutes / (timeframe === 'day' ? 1 : (timeframe === 'week' ? 7 : 30)));
+
+    // Calculate Top 5 Most Played Tracks for this timeframe/month
+    const songPlayMap = {};
+    filtered.forEach(h => {
+      if (!songPlayMap[h.songId]) {
+        songPlayMap[h.songId] = {
+          songId: h.songId,
+          title: h.title,
+          artist: h.artist,
+          playCount: 0,
+          totalSeconds: 0
+        };
+      }
+      songPlayMap[h.songId].playCount++;
+      songPlayMap[h.songId].totalSeconds += (h.duration || 30);
+    });
+
+    const allSongs = await this.getAllSongs();
+    const allSongsMap = new Map(allSongs.map(s => [s.id, s]));
+
+    const topSongs = Object.values(songPlayMap)
+      .sort((a, b) => (b.playCount - a.playCount) || (b.totalSeconds - a.totalSeconds))
+      .slice(0, 5)
+      .map(item => {
+        const fullSong = allSongsMap.get(item.songId);
+        return {
+          ...item,
+          title: fullSong ? fullSong.title : item.title,
+          artist: fullSong ? fullSong.artist : item.artist,
+          album: fullSong ? fullSong.album : 'Offline Music',
+          artwork: fullSong ? fullSong.artwork : 'icon-512.png',
+          fullSong: fullSong || null
+        };
+      });
 
     return {
       totalHours,
       totalPlays: filtered.length,
       dailyAvgMinutes,
-      totalSeconds
+      totalSeconds,
+      topSongs
     };
   }
 
