@@ -3483,3 +3483,57 @@ i.fa-grip-lines {
   background: #120e20;
   color: #fff;
 }
+
+/* ==========================================================
+   TOP TRACKS ARTWORK THUMBNAIL FIX (Fixes Photo Bug 24523.jpg)
+   ========================================================== */
+
+.top-track-art {
+  width: 44px !important;
+  height: 44px !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  border-radius: 8px !important;
+  object-fit: cover !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+  background: var(--bgSurface) !important;
+}
+
+/* ==========================================================
+   HARDWARE ACCELERATION & BUTTER-SMOOTH 60FPS ANIMATIONS
+   ========================================================== */
+
+.fullscreen-player {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.queue-drawer {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.modal-card {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.song-row {
+  transform: translateZ(0);
+  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.15s ease;
+}
+
+.picker-pl-card {
+  transform: translateZ(0);
+  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.15s ease;
+}

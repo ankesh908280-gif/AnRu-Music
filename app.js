@@ -344,6 +344,8 @@ function renderLibraryView(songs) {
   if (emptyState) emptyState.classList.add('hidden');
   container.innerHTML = '';
 
+  const fragment = document.createDocumentFragment();
+
   songs.forEach((song, idx) => {
     const row = document.createElement('div');
     row.className = `song-row ${selectedSongIds.has(song.id) ? 'selected' : ''}`;
@@ -355,7 +357,7 @@ function renderLibraryView(songs) {
       </div>
       <span class="row-num ${isSelectionMode ? 'hidden' : ''}">${idx + 1}</span>
       <div class="row-art-box">
-        <img src="${song.artwork || 'icon-512.png'}" alt="cover" class="row-art" loading="lazy" onerror="this.src='icon-512.png'">
+        <img src="${song.artwork || 'icon-512.png'}" alt="cover" class="row-art" loading="lazy" decoding="async" onerror="this.src='icon-512.png'">
         <div class="row-play-hover"><i class="fa-solid fa-play"></i></div>
       </div>
       <div class="row-meta">
@@ -406,8 +408,10 @@ function renderLibraryView(songs) {
       });
     }
 
-    container.appendChild(row);
+    fragment.appendChild(row);
   });
+
+  container.appendChild(fragment);
 }
 
 function initSelectionMode() {

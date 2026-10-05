@@ -171,6 +171,11 @@ class AudioPlayer {
       this.audioCtx = new AudioContextClass({
         latencyHint: 'playback'
       });
+      this.audioCtx.onstatechange = () => {
+        if (this.audioCtx && this.audioCtx.state === 'suspended' && this.isPlaying) {
+          this.audioCtx.resume().catch(() => {});
+        }
+      };
       this.sourceNode = this.audioCtx.createMediaElementSource(this.audio);
 
       // 1. Headroom Preamp Gain (Prevents digital clipping when EQ or Bass Boost is boosted)
@@ -523,6 +528,25 @@ class AudioPlayer {
     this.updateMediaSession();
     this.renderQueueDrawer();
     this.triggerStateSave(500);
+    this.preloadNextSong();
+  }
+
+  // Preloads the next upcoming track's audioBlob into memory
+  // Ensures 0ms instant transition upon song completion in background!
+  async preloadNextSong() {
+    if (this.queue.length <= 1) return;
+    let nextIndex = this.currentIndex + 1;
+    if (nextIndex >= this.queue.length) {
+      if (this.repeatMode === 'all') nextIndex = 0;
+      else return;
+    }
+    const nextSong = this.queue[nextIndex];
+    if (nextSong && !nextSong.audioBlob && typeof db !== 'undefined') {
+      try {
+        const blob = await db.getSongBlob(nextSong.id);
+        if (blob) nextSong.audioBlob = blob;
+      } catch (e) {}
+    }
   }
 
   // Restore player state on app reload without auto-playing aloud
@@ -569,10 +593,13 @@ class AudioPlayer {
   }
 
   triggerStateSave(delay = 500) {
+    // Avoid continuous background disk I/O to prevent Android battery managers from freezing the tab
+    if (document.hidden && delay >= 2000) return;
+
     const now = Date.now();
-    // Throttled periodic save every 3 seconds while playing
+    // Throttled periodic save every 4 seconds while playing in foreground
     if (delay >= 2000) {
-      if (now - (this._lastPeriodicSave || 0) < 3000) return;
+      if (now - (this._lastPeriodicSave || 0) < 4000) return;
       this._lastPeriodicSave = now;
       this.saveStateNow();
       return;
@@ -694,6 +721,20 @@ class AudioPlayer {
 
     // Update Waveform Seekbar Canvas
     this.drawWaveformSeekbar(pct);
+
+    // Update MediaSession Position State for Android Lockscreen / Notification
+    if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession && this.audio.duration && !isNaN(this.audio.duration)) {
+      if (Date.now() - (this._lastMediaSessionUpdate || 0) > 2000) {
+        this._lastMediaSessionUpdate = Date.now();
+        try {
+          navigator.mediaSession.setPositionState({
+            duration: this.audio.duration,
+            playbackRate: this.audio.playbackRate || 1.0,
+            position: Math.min(this.audio.duration, Math.max(0, cur))
+          });
+        } catch (e) {}
+      }
+    }
   }
 
   initProgressSeekbar() {
