@@ -3592,3 +3592,16 @@ i.fa-grip-lines {
   color: var(--danger, #ef4444);
   background: rgba(239, 68, 68, 0.15);
 }
+
+/* ==========================================================
+   BATTERY & GPU POWER-SAVER RULES
+   Pauses GPU keyframe animations when audio is paused or screen is locked
+   ========================================================== */
+body.app-paused .holo-ring,
+body.app-paused .mini-playing-indicator span,
+body.app-paused .fs-vinyl-box.rotating,
+body.screen-hidden .holo-ring,
+body.screen-hidden .mini-playing-indicator span,
+body.screen-hidden .fs-vinyl-box.rotating {
+  animation-play-state: paused !important;
+}

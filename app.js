@@ -380,19 +380,27 @@ function renderLibraryView(songs) {
       </button>
     `;
 
-    // Long press detection for selection mode
+    // Long press detection for selection mode (with click suppression)
     let touchTimer = null;
+    let didLongPress = false;
+
     row.addEventListener('touchstart', () => {
+      didLongPress = false;
       touchTimer = setTimeout(() => {
+        didLongPress = true;
         if (!isSelectionMode) {
           enterSelectionMode();
-          toggleSongSelection(song.id, row);
         }
-      }, 550);
+        toggleSongSelection(song.id, row);
+        if (navigator.vibrate) navigator.vibrate(30);
+      }, 500);
     }, { passive: true });
 
     row.addEventListener('touchend', () => {
       if (touchTimer) clearTimeout(touchTimer);
+      if (didLongPress) {
+        setTimeout(() => { didLongPress = false; }, 350);
+      }
     });
 
     row.addEventListener('touchmove', () => {
@@ -401,7 +409,11 @@ function renderLibraryView(songs) {
 
     // Row click
     row.addEventListener('click', (e) => {
-      if (e.target.closest('.menu-trigger')) return;
+      if (didLongPress) {
+        didLongPress = false;
+        return;
+      }
+      if (e.target.closest('.menu-trigger') || e.target.closest('.row-checkbox')) return;
 
       if (isSelectionMode) {
         toggleSongSelection(song.id, row);
@@ -459,6 +471,7 @@ function initSelectionMode() {
 
     if (confirmed) {
       const ids = Array.from(selectedSongIds);
+      player.removeSongsByIds(ids);
       await db.deleteMultipleSongs(ids);
       showToast(`🗑️ Deleted ${ids.length} songs`);
       exitSelectionMode();
@@ -753,6 +766,7 @@ function initActionSheet() {
     });
 
     if (confirmed) {
+      player.removeSongById(actionSheetSong.id);
       await db.deleteSong(actionSheetSong.id);
       showToast('Deleted from library 🗑️');
       overlay.classList.add('hidden');
