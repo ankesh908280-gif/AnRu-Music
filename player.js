@@ -1266,14 +1266,20 @@ class AudioPlayer {
     this.isPlaying = false;
     this.updatePlayPauseUI();
 
+    // Hide Mini Player when nothing is loaded or playing
+    const miniPlayer = document.getElementById("mini-player");
+    if (miniPlayer) {
+      miniPlayer.classList.add("hidden");
+    }
+
     // Reset Mini Player
     const miniTitle = document.getElementById("mini-title");
     const miniArtist = document.getElementById("mini-artist");
-    const miniArt = document.getElementById("mini-art");
+    const miniThumb = document.getElementById("mini-thumb") || document.getElementById("mini-art");
     const miniFill = document.getElementById("mini-progress-fill");
-    if (miniTitle) miniTitle.textContent = "No track playing";
-    if (miniArtist) miniArtist.textContent = "Select a song from library";
-    if (miniArt) miniArt.src = "icon-512.png";
+    if (miniTitle) miniTitle.textContent = "Select a Song";
+    if (miniArtist) miniArtist.textContent = "Artist";
+    if (miniThumb) miniThumb.src = "icon-512.png";
     if (miniFill) miniFill.style.width = "0%";
 
     // Reset Fullscreen Player
@@ -1535,23 +1541,31 @@ class AudioPlayer {
     if (!this.currentSong) return;
     const song = this.currentSong;
 
+    // Immediately reveal floating mini-player controller at bottom
+    const miniPlayer = document.getElementById("mini-player");
+    if (miniPlayer) {
+      miniPlayer.classList.remove("hidden");
+    }
+
+    // Update Mini Player metadata
     const miniTitle = document.getElementById("mini-title");
     const miniArtist = document.getElementById("mini-artist");
-    const miniArt = document.getElementById("mini-art");
+    const miniThumb = document.getElementById("mini-thumb") || document.getElementById("mini-art");
 
     if (miniTitle) miniTitle.textContent = song.title;
     if (miniArtist) miniArtist.textContent = song.artist;
-    if (miniArt) miniArt.src = song.artwork || "icon-512.png";
+    if (miniThumb) miniThumb.src = song.artwork || "icon-512.png";
 
+    // Update Fullscreen Player metadata
     const fsTitle = document.getElementById("fs-title");
     const fsArtist = document.getElementById("fs-artist");
-    const fsAlbum = document.getElementById("fs-album");
-    const fsArt = document.getElementById("fs-art");
+    const fsAlbum = document.getElementById("fs-header-album") || document.getElementById("fs-album");
+    const fsArtwork = document.getElementById("fs-artwork") || document.getElementById("fs-art");
 
     if (fsTitle) fsTitle.textContent = song.title;
     if (fsArtist) fsArtist.textContent = song.artist;
     if (fsAlbum) fsAlbum.textContent = song.album || "Offline Music";
-    if (fsArt) fsArt.src = song.artwork || "icon-512.png";
+    if (fsArtwork) fsArtwork.src = song.artwork || "icon-512.png";
 
     const likeBtn = document.getElementById("fs-like-btn");
     if (typeof db !== "undefined" && likeBtn) {
@@ -1564,22 +1578,46 @@ class AudioPlayer {
       });
     }
 
+    // Highlight currently playing song row in library list
+    document.querySelectorAll(".song-row").forEach(row => {
+      const isCurrent = row.dataset.id === song.id;
+      row.classList.toggle("playing", isCurrent);
+      const playHover = row.querySelector(".row-play-hover i");
+      if (playHover) {
+        playHover.className = (isCurrent && this.isPlaying) ? "fa-solid fa-pause" : "fa-solid fa-play";
+      }
+    });
+
     this.updatePlayPauseUI();
   }
 
   updatePlayPauseUI() {
-    const miniPlayIcon = document.querySelector("#mini-play-btn i");
+    const miniPlayIcon = document.querySelector("#mini-play-btn i") || document.getElementById("mini-play-icon");
     const fsPlayIcon = document.querySelector("#fs-play-btn i");
     const vinylBox = document.querySelector(".fs-vinyl-box");
+    const miniEq = document.getElementById("mini-equalizer");
 
     if (this.isPlaying) {
       if (miniPlayIcon) { miniPlayIcon.classList.remove("fa-play"); miniPlayIcon.classList.add("fa-pause"); }
       if (fsPlayIcon) { fsPlayIcon.classList.remove("fa-play"); fsPlayIcon.classList.add("fa-pause"); }
       if (vinylBox) vinylBox.classList.add("rotating");
+      if (miniEq) miniEq.classList.remove("hidden");
     } else {
       if (miniPlayIcon) { miniPlayIcon.classList.remove("fa-pause"); miniPlayIcon.classList.add("fa-play"); }
       if (fsPlayIcon) { fsPlayIcon.classList.remove("fa-pause"); fsPlayIcon.classList.add("fa-play"); }
       if (vinylBox) vinylBox.classList.remove("rotating");
+      if (miniEq) miniEq.classList.add("hidden");
+    }
+
+    if (this.currentSong) {
+      document.querySelectorAll(".song-row").forEach(row => {
+        const isCurrent = row.dataset.id === this.currentSong.id;
+        row.classList.toggle("playing", isCurrent);
+        const playHover = row.querySelector(".row-play-hover i");
+        if (playHover) {
+          playHover.className = (isCurrent && this.isPlaying) ? "fa-solid fa-pause" : "fa-solid fa-play";
+        }
+      });
     }
   }
 

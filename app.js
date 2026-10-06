@@ -419,6 +419,18 @@ function renderLibraryView(songs) {
         toggleSongSelection(song.id, row);
         return;
       }
+
+      // If the song is already playing or selected, open fullscreen player controller!
+      if (player.currentSong && player.currentSong.id === song.id) {
+        const fsPlayer = document.getElementById('fullscreen-player');
+        if (fsPlayer) {
+          fsPlayer.classList.remove('hidden');
+          pushNavState('fullscreen');
+          player.drawWaveformSeekbar(0);
+        }
+        return;
+      }
+
       player.playSong(song, songs);
     });
 
@@ -627,11 +639,11 @@ function setupSorting() {
 // 5. PLAYER & FULLSCREEN CONTROLS BINDING
 // ==========================================
 function initPlayerControls() {
-  const miniContent = document.getElementById('mini-player-content');
+  const miniPlayer = document.getElementById('mini-player');
   const fsPlayer = document.getElementById('fullscreen-player');
 
-  if (miniContent && fsPlayer) {
-    miniContent.addEventListener('click', (e) => {
+  if (miniPlayer && fsPlayer) {
+    miniPlayer.addEventListener('click', (e) => {
       if (e.target.closest('.mini-action-btn')) return;
       fsPlayer.classList.remove('hidden');
       pushNavState('fullscreen');
@@ -640,8 +652,18 @@ function initPlayerControls() {
   }
 
   // Mini Controls
-  document.getElementById('mini-play-btn')?.addEventListener('click', () => player.togglePlay());
-  document.getElementById('mini-next-btn')?.addEventListener('click', () => player.next());
+  document.getElementById('mini-prev-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    player.previous();
+  });
+  document.getElementById('mini-play-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    player.togglePlay();
+  });
+  document.getElementById('mini-next-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    player.next();
+  });
   document.getElementById('mini-queue-btn')?.addEventListener('click', (e) => {
     e.stopPropagation();
     openQueue();

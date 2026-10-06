@@ -3605,3 +3605,27 @@ body.screen-hidden .mini-playing-indicator span,
 body.screen-hidden .fs-vinyl-box.rotating {
   animation-play-state: paused !important;
 }
+
+/* ==========================================================
+   ACTIVE PLAYING SONG & CONTROLLER VISIBILITY ENHANCEMENTS
+   ========================================================== */
+.song-row.playing {
+  border-color: var(--accentCyan) !important;
+  background: rgba(0, 242, 254, 0.12) !important;
+  box-shadow: 0 0 16px rgba(0, 242, 254, 0.22) !important;
+}
+
+.song-row.playing .row-title {
+  color: var(--accentCyan) !important;
+  font-weight: 800;
+}
+
+.song-row.playing .row-play-hover {
+  opacity: 1 !important;
+  background: rgba(0, 242, 254, 0.35) !important;
+}
+
+.song-row.playing .row-num {
+  color: var(--accentCyan) !important;
+  font-weight: 800;
+}
