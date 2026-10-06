@@ -145,8 +145,8 @@ class AudioPlayer {
 
     if ('mediaSession' in navigator) {
       try {
-        navigator.mediaSession.setActionHandler('play', () => this.togglePlay());
-        navigator.mediaSession.setActionHandler('pause', () => this.togglePlay());
+        navigator.mediaSession.setActionHandler('play', () => { if (this.audio && this.audio.paused) this.togglePlay(); });
+        navigator.mediaSession.setActionHandler('pause', () => { if (this.audio && !this.audio.paused) this.togglePlay(); });
         navigator.mediaSession.setActionHandler('previoustrack', () => this.previous());
         navigator.mediaSession.setActionHandler('nexttrack', () => this.next());
         navigator.mediaSession.setActionHandler('seekto', (details) => {
@@ -302,7 +302,7 @@ class AudioPlayer {
     if (typeof db !== 'undefined') {
       db.setSetting('virtualizer_enabled', this.isVirtualizerOn);
     }
-    const btn = document.getElementById('fs-3d-btn');
+    const btn = document.getElementById('fs-3d-toggle-btn');
     if (btn) btn.classList.toggle('active', this.isVirtualizerOn);
     if (typeof showToast === 'function') {
       showToast(this.isVirtualizerOn ? '3D Spatial Audio: ON 🎧' : '3D Spatial Audio: OFF');
@@ -322,7 +322,7 @@ class AudioPlayer {
     if (typeof db !== 'undefined') {
       db.setSetting('normalizer_enabled', this.isNormalizerOn);
     }
-    const btn = document.getElementById('fs-normalize-btn');
+    const btn = document.getElementById('fs-norm-toggle-btn');
     if (btn) btn.classList.toggle('active', this.isNormalizerOn);
     if (typeof showToast === 'function') {
       showToast(this.isNormalizerOn ? 'Auto Volume Normalizer: ON 🔊' : 'Auto Volume Normalizer: OFF');
@@ -555,9 +555,11 @@ class AudioPlayer {
     const targetSong = allSongs.find(s => s.id === state.songId);
     if (!targetSong) return;
 
-    // Restore queue
+    // Restore queue in exact sequence
     if (state.queueSongIds && Array.isArray(state.queueSongIds)) {
-      this.queue = allSongs.filter(s => state.queueSongIds.includes(s.id));
+      this.queue = state.queueSongIds
+        .map(id => allSongs.find(s => s.id === id))
+        .filter(Boolean);
     }
     if (this.queue.length === 0) {
       this.queue = [targetSong];
@@ -871,6 +873,16 @@ class AudioPlayer {
     }
     if (!this.waveformCanvas) return;
 
+    // Auto-recalibrate canvas for sharp High-DPI screens
+    const rect = this.waveformCanvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const targetW = Math.round(rect.width * dpr);
+    const targetH = Math.round(rect.height * dpr);
+    if (targetW > 0 && targetH > 0 && (this.waveformCanvas.width !== targetW || this.waveformCanvas.height !== targetH)) {
+      this.waveformCanvas.width = targetW;
+      this.waveformCanvas.height = targetH;
+    }
+
     const canvas = this.waveformCanvas;
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
@@ -962,8 +974,11 @@ class AudioPlayer {
         const deltaY = e.changedTouches[0].clientY - fsTouchStartY;
         const deltaX = e.changedTouches[0].clientX - fsTouchStartX;
         if (deltaY > 90 && Math.abs(deltaY) > Math.abs(deltaX) * 1.5) {
-          const fsModal = document.getElementById('fullscreen-player-modal');
-          if (fsModal) fsModal.classList.add('hidden');
+          const fsModal = document.getElementById('fullscreen-player');
+          if (fsModal) {
+            fsModal.classList.add('hidden');
+            if (history.state?.modal === 'fullscreen') history.back();
+          }
         }
       }, { passive: true });
     }

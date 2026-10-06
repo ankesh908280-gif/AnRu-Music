@@ -159,12 +159,23 @@ class MusicDatabase {
       return list;
     }
 
+    if (this._cachedSongMeta) {
+      return [...this._cachedSongMeta];
+    }
+
     return new Promise((resolve) => {
       const tx = this.db.transaction(['songs'], 'readonly');
       const store = tx.objectStore('songs');
       const req = store.getAll();
       req.onsuccess = () => {
-        const list = req.result || [];
+        const rawList = req.result || [];
+        // Performance & Battery Optimization:
+        // Strip heavy binary audioBlob from in-memory metadata array!
+        // audioBlob is loaded on-demand via getSongBlob(id) when playing.
+        const list = rawList.map(item => {
+          const { audioBlob, ...meta } = item;
+          return meta;
+        });
         list.sort((a, b) => (b.dateAdded || 0) - (a.dateAdded || 0));
         this._cachedSongMeta = list;
         resolve(list);
@@ -718,6 +729,43 @@ class MusicDatabase {
         else if (age < oneWeekMs * 4) weeks[0].minutes += Math.round((h.duration || 30) / 60);
       });
       return weeks;
+    }
+
+    if (timeframe === 'year') {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const result = months.map(m => ({ label: m, minutes: 0 }));
+      const currentYear = now.getFullYear();
+      history.forEach(h => {
+        const d = new Date(h.timestamp || 0);
+        if (d.getFullYear() === currentYear) {
+          const mIdx = d.getMonth();
+          if (result[mIdx]) {
+            result[mIdx].minutes += Math.round((h.duration || 30) / 60);
+          }
+        }
+      });
+      return result;
+    }
+
+    if (timeframe === 'day') {
+      const segments = [
+        { label: 'Night', minutes: 0 },
+        { label: 'Morning', minutes: 0 },
+        { label: 'Afternoon', minutes: 0 },
+        { label: 'Evening', minutes: 0 }
+      ];
+      const oneDayMs = 86400000;
+      history.forEach(h => {
+        if (Date.now() - (h.timestamp || 0) < oneDayMs) {
+          const hr = new Date(h.timestamp || 0).getHours();
+          const mins = Math.round((h.duration || 30) / 60);
+          if (hr < 6) segments[0].minutes += mins;
+          else if (hr < 12) segments[1].minutes += mins;
+          else if (hr < 18) segments[2].minutes += mins;
+          else segments[3].minutes += mins;
+        }
+      });
+      return segments;
     }
 
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map(m => ({ label: m, minutes: 0 }));
