@@ -3629,3 +3629,213 @@ body.screen-hidden .fs-vinyl-box.rotating {
   color: var(--accentCyan) !important;
   font-weight: 800;
 }
+
+
+/* ==========================================================
+   v24.0 MASTER UI/UX FIXES: QUEUE BUTTONS, SLEEP BADGE,
+   PLAYLIST PICKER CHIP, PROFILE NAME EDIT & DIALOGS
+   ========================================================== */
+
+/* Vector Icon: fa-pen (Edit Profile Name) */
+i.fa-pen {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Cpath%20d%3D%22M362.7%2019.3L314.3%2067.7%20444.3%20197.7l48.4-48.4c25-25%2025-65.5%200-90.5L453.3%2019.3c-25-25-65.5-25-90.5%200zm-71%2071L58.6%20323.5c-10.4%2010.4-18%2023.3-22.2%2037.4L1%20481.2C-1.5%20489.7%20.8%20498.8%207%20505s15.3%208.5%2023.7%206.1l120.3-35.4c14.1-4.2%2027-11.8%2037.4-22.2L421.7%20220.3%20291.7%2090.3z%22/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Cpath%20d%3D%22M362.7%2019.3L314.3%2067.7%20444.3%20197.7l48.4-48.4c25-25%2025-65.5%200-90.5L453.3%2019.3c-25-25-65.5-25-90.5%200zm-71%2071L58.6%20323.5c-10.4%2010.4-18%2023.3-22.2%2037.4L1%20481.2C-1.5%20489.7%20.8%20498.8%207%20505s15.3%208.5%2023.7%206.1l120.3-35.4c14.1-4.2%2027-11.8%2037.4-22.2L421.7%20220.3%20291.7%2090.3z%22/%3E%3C/svg%3E");
+}
+
+/* Editable Profile Name Row in Studio */
+.holo-name-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 2px 6px 2px 0;
+  border-radius: var(--radius-sm);
+  transition: opacity 0.2s;
+}
+
+.holo-name-row:active {
+  opacity: 0.75;
+}
+
+.holo-name-edit-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--glassBorder);
+  color: var(--textSub);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.holo-name-row:hover .holo-name-edit-btn {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* Queue Drawer Action Buttons (Move Up, Move Down, Remove) */
+.queue-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.queue-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glassBorder);
+  color: var(--textSub);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.queue-btn:hover,
+.queue-btn:active {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  transform: scale(0.95);
+}
+
+.queue-btn.remove-track:hover,
+.queue-btn.remove-track:active {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #ef4444;
+}
+
+/* Create New Playlist Chip inside Add-to-Playlist Picker Modal */
+.create-new-pl-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 16px;
+  margin: 4px 0 14px 0;
+  border-radius: var(--radius-md);
+  background: var(--gradAccent);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  box-shadow: 0 4px 16px var(--accentGlow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.create-new-pl-chip:hover,
+.create-new-pl-chip:active {
+  transform: scale(0.98);
+}
+
+/* Sleep Timer Floating Badge on Fullscreen Player Moon Button */
+#sleep-timer-badge,
+.fs-nav-btn .badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: var(--accentPink);
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  line-height: 1.1;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Custom Confirm & Prompt Dialog Cards */
+.confirm-card,
+.prompt-card {
+  max-width: 380px;
+  text-align: center;
+}
+
+.prompt-card {
+  text-align: left;
+}
+
+.prompt-card h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.prompt-card p {
+  font-size: 13px;
+  color: var(--textMuted);
+  margin-bottom: 14px;
+}
+
+.confirm-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin: 0 auto 14px auto;
+}
+
+.confirm-card h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.confirm-card p {
+  font-size: 13px;
+  color: var(--textMuted);
+  margin-bottom: 20px;
+  line-height: 1.45;
+}
+
+.confirm-card .modal-btn-row {
+  justify-content: center;
+}
+
+/* Empty State Subtitle Text */
+.empty-sub {
+  text-align: center;
+  padding: 24px 16px;
+  color: var(--textMuted);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.wrapped-action-row {
+  margin-top: 8px;
+}
+
+.wp-gradient-glow {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.3) 0%, transparent 70%);
+  pointer-events: none;
+}

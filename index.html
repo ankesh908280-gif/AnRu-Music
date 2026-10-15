@@ -18,7 +18,7 @@
 
   <!-- Official Font Awesome Library (CDN with offline vector fallback) -->
   
-  <link rel="stylesheet" href="style.css?v=23.3">
+  <link rel="stylesheet" href="style.css?v=24.0">
 
   <!-- Self-Contained Master Stylesheet with Font Awesome Vector Engine (Guaranteed 100% Offline) -->
     <!-- 100% Offline & Emergency Cache-Busting Script -->
@@ -39,10 +39,18 @@
       if ('caches' in window) {
         caches.keys().then(function(keys) {
           keys.forEach(function(k) {
-            if (k.includes('streaming') || k.includes('v20') || k.includes('v19')) {
+            if (k !== 'anru-music-v24.0-master-fixed') {
               caches.delete(k);
               console.log('[Anru SW] Deleted old cache:', k);
             }
+          });
+        });
+      }
+      // Register Offline Service Worker v24.0
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('./sw.js?v=24.0').catch(function(err) {
+            console.warn('[Anru SW] Registration notice:', err);
           });
         });
       }
@@ -193,7 +201,10 @@
             <div class="holo-avatar-edit-badge"><i class="fa-solid fa-camera"></i></div>
           </div>
           <div class="holo-profile-meta">
-            <h3 id="holo-profile-name">Anru VIP Listener</h3>
+            <div class="holo-name-row" id="holo-name-edit-trigger" title="Tap to edit your name">
+              <h3 id="holo-profile-name">Anru VIP Listener</h3>
+              <button class="holo-name-edit-btn" id="holo-name-edit-btn" type="button" title="Edit Profile Name"><i class="fa-solid fa-pen"></i></button>
+            </div>
             <div class="holo-badge"><i class="fa-solid fa-bolt"></i> Hi-Res Studio Master</div>
             <div class="holo-stats-chip"><i class="fa-solid fa-music"></i> <span id="holo-total-tracks">0 Tracks in Library</span></div>
           </div>
@@ -725,7 +736,7 @@
           <h3><i class="fa-solid fa-folder-plus"></i> Add to Playlist</h3>
           <button class="modal-close-btn" id="close-pl-picker-btn"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <button class="create-new-pl-chip" id="picker-create-new-btn">
+        <button class="create-new-pl-chip create-new-pl-picker-btn" id="picker-create-new-btn">
           <i class="fa-solid fa-plus"></i> Create New Playlist
         </button>
         <div class="playlist-picker-list" id="playlist-picker-list">
@@ -778,10 +789,10 @@
   </div>
 
   <!-- Master Offline Scripts (100% Offline, Pure Local Engine) -->
-  <script src="id3.js?v=23.3"></script>
-  <script src="db.js?v=23.3"></script>
-  <script src="player.js?v=23.3"></script>
-  <script src="app.js?v=23.3"></script>
+  <script src="id3.js?v=24.0"></script>
+  <script src="db.js?v=24.0"></script>
+  <script src="player.js?v=24.0"></script>
+  <script src="app.js?v=24.0"></script>
   <div id="app-toast" class="app-toast"></div>
 </body>
 </html>

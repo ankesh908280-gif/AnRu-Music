@@ -277,16 +277,37 @@ class AudioPlayer {
 
       this.virtualizerSplitter = this.audioCtx.createChannelSplitter(2);
       this.virtualizerMerger = this.audioCtx.createChannelMerger(2);
-      this.virtualizerDelayNode = this.audioCtx.createDelay();
-      this.virtualizerDelayNode.delayTime.value = 0.012;
-      this.virtualizerSideGain = this.audioCtx.createGain();
-      this.virtualizerSideGain.gain.value = 0.85;
+
+      // Balanced Binaural Stereo Expansion: symmetric direct + delayed crossfeed on both ears
+      const leftDirect = this.audioCtx.createGain();
+      const rightDirect = this.audioCtx.createGain();
+      leftDirect.gain.value = 0.90;
+      rightDirect.gain.value = 0.90;
+
+      const delayLtoR = this.audioCtx.createDelay();
+      const delayRtoL = this.audioCtx.createDelay();
+      delayLtoR.delayTime.value = 0.013; // 13ms Haas spatial cue
+      delayRtoL.delayTime.value = 0.011; // 11ms Haas spatial cue
+
+      const crossLtoR = this.audioCtx.createGain();
+      const crossRtoL = this.audioCtx.createGain();
+      crossLtoR.gain.value = 0.24;
+      crossRtoL.gain.value = 0.24;
 
       postNormSum.connect(this.virtualizerSplitter);
-      this.virtualizerSplitter.connect(this.virtualizerMerger, 0, 0);
-      this.virtualizerSplitter.connect(this.virtualizerDelayNode, 1);
-      this.virtualizerDelayNode.connect(this.virtualizerSideGain);
-      this.virtualizerSideGain.connect(this.virtualizerMerger, 0, 1);
+      // Left channel -> Left direct + delayed to Right ear
+      this.virtualizerSplitter.connect(leftDirect, 0);
+      leftDirect.connect(this.virtualizerMerger, 0, 0);
+      this.virtualizerSplitter.connect(delayLtoR, 0);
+      delayLtoR.connect(crossLtoR);
+      crossLtoR.connect(this.virtualizerMerger, 0, 1);
+
+      // Right channel -> Right direct + delayed to Left ear (fallback to ch 0 if mono source)
+      this.virtualizerSplitter.connect(rightDirect, 1);
+      rightDirect.connect(this.virtualizerMerger, 0, 1);
+      this.virtualizerSplitter.connect(delayRtoL, 1);
+      delayRtoL.connect(crossRtoL);
+      crossRtoL.connect(this.virtualizerMerger, 0, 0);
 
       this.virtualizerMerger.connect(this.virtualizerSpatialGain);
 
@@ -503,30 +524,36 @@ class AudioPlayer {
 
   applyEQPreset(presetName) {
     const presets = {
-      flat: [0, 0, 0, 0, 0, 0, 0],
-      bass_boost: [6, 4, 2, 0, 0, 1, 2],
-      electronic: [5, 4, 1, 0, 2, 4, 5],
-      rock: [4, 3, -1, -2, 1, 3, 5],
-      vocal: [-2, -1, 1, 4, 4, 2, 0],
-      audiophile: [1, 0, -1, 0, 1, 2, 3]
+      flat: { gains: [0, 0, 0, 0, 0, 0, 0], bass: 0, label: "Flat" },
+      bass_boost: { gains: [6, 5, 2, 0, 0, 1, 2], bass: 6, label: "Bass Boost" },
+      dance: { gains: [5, 4, 1, 0, 2, 4, 5], bass: 4, label: "Club / DJ" },
+      electronic: { gains: [5, 4, 1, 0, 2, 4, 5], bass: 4, label: "Electronic" },
+      rock: { gains: [4, 3, -1, -2, 1, 3, 5], bass: 2, label: "Rock" },
+      vocal: { gains: [-2, -1, 1, 4, 4, 2, 0], bass: 0, label: "Vocal" },
+      pop: { gains: [2, 3, 1, 0, 2, 3, 2], bass: 2, label: "Pop" },
+      hiphop: { gains: [6, 5, 1, -1, 1, 2, 3], bass: 5, label: "Hip Hop" },
+      audiophile: { gains: [1, 0, -1, 0, 1, 2, 3], bass: 1, label: "Audiophile" }
     };
-    const gains = presets[presetName] || presets.flat;
-    gains.forEach((g, idx) => {
+    const p = presets[presetName] || presets.flat;
+    p.gains.forEach((g, idx) => {
       this.setEQGain(idx, g);
       const slider = document.getElementById(`eq-band-${idx}`);
       const valText = document.getElementById(`eq-val-${idx}`);
       if (slider) slider.value = g;
       if (valText) valText.textContent = `${g > 0 ? "+" : ""}${g}dB`;
     });
-    if (presetName === "bass_boost") {
-      this.setBassBoost(6);
-      const bSlider = document.getElementById("bass-boost-slider");
-      const bVal = document.getElementById("bass-val");
-      if (bSlider) bSlider.value = 6;
-      if (bVal) bVal.textContent = "+6dB";
+
+    this.setBassBoost(p.bass);
+    const bSlider = document.getElementById("bass-boost-slider");
+    const bVal = document.getElementById("bass-val");
+    if (bSlider) bSlider.value = p.bass;
+    if (bVal) bVal.textContent = `${p.bass > 0 ? "+" : ""}${p.bass}dB`;
+
+    if (typeof db !== "undefined") {
+      db.setSetting("eq_active_preset", presetName);
     }
     if (typeof showToast === "function") {
-      showToast(`Applied EQ Preset: ${presetName.toUpperCase().replace("_", " ")}`);
+      showToast(`Applied EQ Preset: ${p.label} 🎛️`);
     }
   }
 
@@ -1133,6 +1160,9 @@ class AudioPlayer {
         if (deltaY > 90 && Math.abs(deltaY) > Math.abs(deltaX) * 1.5) {
           const fsModal = document.getElementById("fullscreen-player");
           if (fsModal) fsModal.classList.add("hidden");
+          if (window.history && window.history.state?.modal === "fullscreen") {
+            window.history.back();
+          }
         }
       });
     }
@@ -1285,14 +1315,18 @@ class AudioPlayer {
     // Reset Fullscreen Player
     const fsTitle = document.getElementById("fs-title");
     const fsArtist = document.getElementById("fs-artist");
-    const fsArt = document.getElementById("fs-art");
+    const fsArt = document.getElementById("fs-artwork") || document.getElementById("fs-art");
+    const fsAlbum = document.getElementById("fs-header-album");
+    const fsQueueCount = document.getElementById("fs-queue-count");
     const fsProgressFill = document.getElementById("fs-progress-fill");
     const fsProgressThumb = document.getElementById("fs-progress-thumb");
     const fsCurrTime = document.getElementById("fs-curr-time");
     const fsDuration = document.getElementById("fs-duration");
     if (fsTitle) fsTitle.textContent = "No track playing";
     if (fsArtist) fsArtist.textContent = "Select a song from library";
+    if (fsAlbum) fsAlbum.textContent = "Local Studio";
     if (fsArt) fsArt.src = "icon-512.png";
+    if (fsQueueCount) fsQueueCount.textContent = "0";
     if (fsProgressFill) fsProgressFill.style.width = "0%";
     if (fsProgressThumb) fsProgressThumb.style.left = "0%";
     if (fsCurrTime) fsCurrTime.textContent = "0:00";
@@ -1333,6 +1367,10 @@ class AudioPlayer {
       }
     }
 
+    const firstUpcomingIdx = this.currentIndex >= 0 ? this.currentIndex + 1 : 0;
+    const upcomingCount = Math.max(0, this.queue.length - firstUpcomingIdx);
+    if (headerCount) headerCount.textContent = `${upcomingCount}`;
+
     if (upcomingList) {
       upcomingList.innerHTML = "";
 
@@ -1341,10 +1379,16 @@ class AudioPlayer {
         return;
       }
 
-      this.queue.forEach((song, idx) => {
-        const isNowPlaying = idx === this.currentIndex;
+      if (upcomingCount === 0) {
+        upcomingList.innerHTML = '<div class="empty-sub">No upcoming tracks in queue. Add more songs using the 3-dots menu!</div>';
+        return;
+      }
+
+      for (let idx = firstUpcomingIdx; idx < this.queue.length; idx++) {
+        const song = this.queue[idx];
+        if (!song) continue;
         const row = document.createElement("div");
-        row.className = `queue-row ${isNowPlaying ? "now-playing" : ""}`;
+        row.className = "queue-row";
         row.dataset.index = idx;
         row.draggable = true;
 
@@ -1352,11 +1396,11 @@ class AudioPlayer {
           <div class="queue-drag-handle" title="Hold & Drag to reorder"><i class="fa-solid fa-grip-lines"></i></div>
           <img src="${song.artwork || "icon-512.png"}" class="queue-thumb queue-row-thumb" alt="cover" onerror="this.src='icon-512.png'">
           <div class="queue-info">
-            <div class="queue-title ${isNowPlaying ? "highlight" : ""}">${escapeHtml(song.title)}</div>
+            <div class="queue-title">${escapeHtml(song.title)}</div>
             <div class="queue-artist">${escapeHtml(song.artist)}</div>
           </div>
           <div class="queue-actions">
-            ${idx > 0 ? `<button class="queue-btn move-up" title="Move Up"><i class="fa-solid fa-chevron-up"></i></button>` : ""}
+            ${idx > firstUpcomingIdx ? `<button class="queue-btn move-up" title="Move Up"><i class="fa-solid fa-chevron-up"></i></button>` : ""}
             ${idx < this.queue.length - 1 ? `<button class="queue-btn move-down" title="Move Down"><i class="fa-solid fa-chevron-down"></i></button>` : ""}
             <button class="queue-btn remove-track" title="Remove"><i class="fa-solid fa-xmark"></i></button>
           </div>
@@ -1447,7 +1491,7 @@ class AudioPlayer {
         }
 
         upcomingList.appendChild(row);
-      });
+      }
     }
   }
 
@@ -1510,17 +1554,25 @@ class AudioPlayer {
 
   updateSleepTimerUI(remainingMs = 0) {
     const badge = document.getElementById("sleep-timer-badge");
-    const fsBadge = document.getElementById("fs-sleep-badge");
+    const studioStatus = document.getElementById("studio-st-status");
+    const modalStatus = document.getElementById("sleep-timer-status");
+    const sleepBtn = document.getElementById("fs-sleep-btn");
 
     if (!this.sleepTimerMode) {
       if (badge) badge.classList.add("hidden");
-      if (fsBadge) fsBadge.classList.add("hidden");
+      if (sleepBtn) sleepBtn.classList.remove("active");
+      if (studioStatus) studioStatus.textContent = "Off (Tap to configure)";
+      if (modalStatus) modalStatus.textContent = "Timer is off";
+      document.querySelectorAll(".st-pill").forEach(p => p.classList.remove("active"));
       return;
     }
 
+    if (sleepBtn) sleepBtn.classList.add("active");
+
     if (this.sleepTimerMode === "end_of_song") {
-      if (badge) { badge.classList.remove("hidden"); badge.textContent = "End of song"; }
-      if (fsBadge) { fsBadge.classList.remove("hidden"); fsBadge.textContent = "End of song"; }
+      if (badge) { badge.classList.remove("hidden"); badge.textContent = "1 Track"; }
+      if (studioStatus) studioStatus.textContent = "Active • Stops at end of track";
+      if (modalStatus) modalStatus.textContent = "🌙 Active: Stops at end of current track";
       return;
     }
 
@@ -1530,7 +1582,8 @@ class AudioPlayer {
     const str = `${m}:${s < 10 ? "0" : ""}${s}`;
 
     if (badge) { badge.classList.remove("hidden"); badge.textContent = str; }
-    if (fsBadge) { fsBadge.classList.remove("hidden"); fsBadge.textContent = str; }
+    if (studioStatus) studioStatus.textContent = `Active • ${str} remaining`;
+    if (modalStatus) modalStatus.textContent = `🌙 Active: ${str} remaining`;
   }
 
   // ==========================================
@@ -1592,17 +1645,20 @@ class AudioPlayer {
   }
 
   updatePlayPauseUI() {
+    const miniPlayer = document.getElementById("mini-player");
     const miniPlayIcon = document.querySelector("#mini-play-btn i") || document.getElementById("mini-play-icon");
     const fsPlayIcon = document.querySelector("#fs-play-btn i");
     const vinylBox = document.querySelector(".fs-vinyl-box");
     const miniEq = document.getElementById("mini-equalizer");
 
     if (this.isPlaying) {
+      if (miniPlayer) miniPlayer.classList.add("playing");
       if (miniPlayIcon) { miniPlayIcon.classList.remove("fa-play"); miniPlayIcon.classList.add("fa-pause"); }
       if (fsPlayIcon) { fsPlayIcon.classList.remove("fa-play"); fsPlayIcon.classList.add("fa-pause"); }
       if (vinylBox) vinylBox.classList.add("rotating");
       if (miniEq) miniEq.classList.remove("hidden");
     } else {
+      if (miniPlayer) miniPlayer.classList.remove("playing");
       if (miniPlayIcon) { miniPlayIcon.classList.remove("fa-pause"); miniPlayIcon.classList.add("fa-play"); }
       if (fsPlayIcon) { fsPlayIcon.classList.remove("fa-pause"); fsPlayIcon.classList.add("fa-play"); }
       if (vinylBox) vinylBox.classList.remove("rotating");

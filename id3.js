@@ -49,7 +49,8 @@ class ID3Parser {
           const finalTitle = id3Meta.title || filenameMeta.title;
           const finalArtist = (id3Meta.artist && id3Meta.artist.toLowerCase() !== 'local artist') ? id3Meta.artist : filenameMeta.artist;
           const finalAlbum = id3Meta.album || filenameMeta.album;
-          const finalArtwork = id3Meta.artwork || this.generateProceduralCover(finalTitle, finalArtist);
+          const rawArtwork = id3Meta.artwork || this.generateProceduralCover(finalTitle, finalArtist);
+          const finalArtwork = await this.compressArtwork(rawArtwork, 300);
 
           return {
             title: finalTitle,
@@ -72,7 +73,8 @@ class ID3Parser {
           const finalTitle = m4aMeta.title || filenameMeta.title;
           const finalArtist = m4aMeta.artist || filenameMeta.artist;
           const finalAlbum = m4aMeta.album || filenameMeta.album;
-          const finalArtwork = m4aMeta.artwork || this.generateProceduralCover(finalTitle, finalArtist);
+          const rawArtwork = m4aMeta.artwork || this.generateProceduralCover(finalTitle, finalArtist);
+          const finalArtwork = await this.compressArtwork(rawArtwork, 300);
 
           return {
             title: finalTitle,
@@ -95,7 +97,8 @@ class ID3Parser {
           const finalTitle = flacMeta.title || filenameMeta.title;
           const finalArtist = flacMeta.artist || filenameMeta.artist;
           const finalAlbum = flacMeta.album || filenameMeta.album;
-          const finalArtwork = flacMeta.artwork || this.generateProceduralCover(finalTitle, finalArtist);
+          const rawArtwork = flacMeta.artwork || this.generateProceduralCover(finalTitle, finalArtist);
+          const finalArtwork = await this.compressArtwork(rawArtwork, 300);
 
           return {
             title: finalTitle,
@@ -148,7 +151,7 @@ class ID3Parser {
         const timer = setTimeout(() => {
           cleanup();
           resolve(0);
-        }, 800);
+        }, 450);
 
         a.onloadedmetadata = () => {
           clearTimeout(timer);
@@ -613,6 +616,46 @@ class ID3Parser {
       artist: 'Local Artist',
       album: 'Offline Music'
     };
+  }
+
+  /**
+   * Compresses large embedded cover art Data URLs to a compact 300x300 JPEG thumbnail
+   * Prevents multi-MB Base64 strings from bloating RAM and slowing down list scrolling
+   */
+  static compressArtwork(dataUrl, maxDim = 300) {
+    if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/') || dataUrl.length < 45000) {
+      return Promise.resolve(dataUrl || 'icon-512.png');
+    }
+    return new Promise((resolve) => {
+      try {
+        const img = new Image();
+        const timer = setTimeout(() => resolve(dataUrl), 400);
+        img.onload = () => {
+          clearTimeout(timer);
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = maxDim;
+            canvas.height = maxDim;
+            const ctx = canvas.getContext('2d');
+            // Center-crop square aspect ratio
+            const minSide = Math.min(img.width || maxDim, img.height || maxDim);
+            const sx = ((img.width || maxDim) - minSide) / 2;
+            const sy = ((img.height || maxDim) - minSide) / 2;
+            ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, maxDim, maxDim);
+            resolve(canvas.toDataURL('image/jpeg', 0.82));
+          } catch (err) {
+            resolve(dataUrl);
+          }
+        };
+        img.onerror = () => {
+          clearTimeout(timer);
+          resolve(dataUrl);
+        };
+        img.src = dataUrl;
+      } catch (e) {
+        resolve(dataUrl);
+      }
+    });
   }
 
   /**

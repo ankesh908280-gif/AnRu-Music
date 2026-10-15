@@ -151,6 +151,46 @@ class MusicDatabase {
     });
   }
 
+  async saveSongsBatch(songsDataArray) {
+    if (!songsDataArray || songsDataArray.length === 0) return [];
+    await this.initPromise;
+    this.invalidateCache();
+
+    const records = songsDataArray.map((songData, idx) => ({
+      id: songData.id || ('local-' + Date.now() + '-' + idx + '-' + Math.random().toString(36).substr(2, 6)),
+      title: songData.title || 'Untitled Song',
+      artist: songData.artist || 'Local Artist',
+      album: songData.album || 'Offline Music',
+      duration: songData.duration || 0,
+      artwork: songData.artwork || 'icon-512.png',
+      audioBlob: songData.audioBlob,
+      dateAdded: songData.dateAdded || (Date.now() + idx),
+      fileSize: songData.fileSize || (songData.audioBlob ? songData.audioBlob.size : 0),
+      fileName: songData.fileName || ''
+    }));
+
+    if (!this.db) {
+      records.forEach(record => {
+        const idx = this.mem.songs.findIndex(s => s.id === record.id);
+        if (idx >= 0) this.mem.songs[idx] = record;
+        else this.mem.songs.push(record);
+      });
+      return records;
+    }
+
+    return new Promise((resolve, reject) => {
+      try {
+        const tx = this.db.transaction(['songs'], 'readwrite');
+        const store = tx.objectStore('songs');
+        records.forEach(record => store.put(record));
+        tx.oncomplete = () => resolve(records);
+        tx.onerror = (e) => reject(e);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
   async getAllSongs() {
     await this.initPromise;
     if (!this.db) {
@@ -474,6 +514,51 @@ class MusicDatabase {
         resolve(true);
       };
       req.onerror = () => resolve(false);
+    });
+  }
+
+  async addSongsToPlaylistBatch(playlistId, songIdsArray) {
+    if (!playlistId || !songIdsArray || songIdsArray.length === 0) return 0;
+    await this.initPromise;
+    if (!this.db) {
+      const pl = this.mem.playlists.find(p => p.id === playlistId);
+      let added = 0;
+      if (pl) {
+        if (!pl.songIds) pl.songIds = [];
+        songIdsArray.forEach(sid => {
+          if (!pl.songIds.includes(sid)) {
+            pl.songIds.push(sid);
+            added++;
+          }
+        });
+      }
+      return added;
+    }
+
+    return new Promise((resolve) => {
+      try {
+        const tx = this.db.transaction(['playlists'], 'readwrite');
+        const store = tx.objectStore('playlists');
+        const req = store.get(playlistId);
+        let added = 0;
+        req.onsuccess = () => {
+          const pl = req.result;
+          if (pl) {
+            if (!pl.songIds) pl.songIds = [];
+            songIdsArray.forEach(sid => {
+              if (!pl.songIds.includes(sid)) {
+                pl.songIds.push(sid);
+                added++;
+              }
+            });
+            if (added > 0) store.put(pl);
+          }
+        };
+        tx.oncomplete = () => resolve(added);
+        tx.onerror = () => resolve(0);
+      } catch (e) {
+        resolve(0);
+      }
     });
   }
 

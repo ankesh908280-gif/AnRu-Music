@@ -1,29 +1,26 @@
-// Service Worker for Anru Music Studio Pro v22.1 (100% Offline Audiophile Master Edition)
-const CACHE_NAME = 'anru-music-v23.3-controller-fixed';
+// Service Worker for Anru Music Studio Pro v24.0 (100% Offline Audiophile Master Edition)
+const CACHE_NAME = 'anru-music-v24.0-master-fixed';
 const STATIC_ASSETS = [
   './',
   './index.html',
-  './style.css?v=23.1',
-  './css/variables.css',
-  './css/base.css',
-  './css/components.css',
-  './css/views.css',
-  './css/player.css',
-  './css/vector_icons.css',
-  './id3.js?v=23.1',
-  './db.js?v=23.1',
-  './player.js?v=23.1',
-  './app.js?v=23.1',
+  './style.css?v=24.0',
+  './id3.js?v=24.0',
+  './db.js?v=24.0',
+  './player.js?v=24.0',
+  './app.js?v=24.0',
   './manifest.json',
   './favicon.png',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './icons/favicon.png',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Anru SW] Pre-caching v22 pure offline studio shell');
+      console.log('[Anru SW] Pre-caching v24.0 pure offline studio shell');
       return cache.addAll(STATIC_ASSETS).catch(err => console.warn('Cache error:', err));
     })
   );
@@ -46,7 +43,6 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Navigation requests: NETWORK FIRST with robust offline fallback
   if (event.request.mode === 'navigate' || event.request.destination === 'document') {
     event.respondWith(
       fetch(event.request).then((networkResponse) => {
@@ -57,14 +53,13 @@ self.addEventListener('fetch', (event) => {
         return networkResponse;
       }).catch(() => {
         return caches.match('./index.html').then((cached) => {
-          return cached || caches.match('/') || fetch(event.request);
+          return cached || caches.match('./') || fetch(event.request);
         });
       })
     );
     return;
   }
 
-  // Assets: Cache First with network background update
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
       if (cachedResponse) {
