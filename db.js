@@ -693,48 +693,51 @@ class MusicDatabase {
     const now = new Date();
     const oneDayMs = 86400000;
 
-    let filtered = [];
+    // 1. Filter for Activity Graph top metrics (strictly by timeframe: day/week/month/year)
+    let cutoff = 0;
+    let daysCount = 7;
+    if (timeframe === 'day') {
+      cutoff = Date.now() - oneDayMs;
+      daysCount = 1;
+    } else if (timeframe === 'week') {
+      cutoff = Date.now() - (7 * oneDayMs);
+      daysCount = 7;
+    } else if (timeframe === 'month') {
+      cutoff = Date.now() - (30 * oneDayMs);
+      daysCount = 30;
+    } else if (timeframe === 'year') {
+      cutoff = Date.now() - (365 * oneDayMs);
+      daysCount = 365;
+    }
+    const timeframeFiltered = history.filter(h => (h.timestamp || 0) >= cutoff);
 
+    let totalSeconds = 0;
+    timeframeFiltered.forEach(e => totalSeconds += (e.duration || 30));
+
+    const totalMinutes = Math.round(totalSeconds / 60);
+    const totalHours = (totalMinutes / 60).toFixed(1);
+    const dailyAvgMinutes = Math.round(totalMinutes / daysCount);
+
+    // 2. Filter for Top 5 Most Played Tracks (all = true All Time, this_month, or specific month 0..11)
+    let topFiltered = [];
     if (monthFilter === 'all') {
-      let cutoff = 0;
-      let daysCount = 7;
-      if (timeframe === 'day') {
-        cutoff = Date.now() - oneDayMs;
-        daysCount = 1;
-      } else if (timeframe === 'week') {
-        cutoff = Date.now() - (7 * oneDayMs);
-        daysCount = 7;
-      } else if (timeframe === 'month') {
-        cutoff = Date.now() - (30 * oneDayMs);
-        daysCount = 30;
-      } else if (timeframe === 'year') {
-        cutoff = Date.now() - (365 * oneDayMs);
-        daysCount = 365;
-      }
-      filtered = history.filter(h => (h.timestamp || 0) >= cutoff);
+      topFiltered = history;
     } else if (monthFilter === 'this_month') {
-      filtered = history.filter(h => {
+      topFiltered = history.filter(h => {
         const d = new Date(h.timestamp || 0);
         return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
       });
     } else {
       const targetMonth = parseInt(monthFilter, 10);
-      filtered = history.filter(h => {
+      topFiltered = history.filter(h => {
         const d = new Date(h.timestamp || 0);
         return d.getMonth() === targetMonth && d.getFullYear() === now.getFullYear();
       });
     }
 
-    let totalSeconds = 0;
-    filtered.forEach(e => totalSeconds += (e.duration || 30));
-
-    const totalMinutes = Math.round(totalSeconds / 60);
-    const totalHours = (totalMinutes / 60).toFixed(1);
-    const dailyAvgMinutes = Math.round(totalMinutes / (timeframe === 'day' ? 1 : (timeframe === 'week' ? 7 : 30)));
-
-    // Calculate Top 5 Most Played Tracks for this timeframe/month
+    // Calculate Top 5 Most Played Tracks for the selected monthFilter
     const songPlayMap = {};
-    filtered.forEach(h => {
+    topFiltered.forEach(h => {
       if (!songPlayMap[h.songId]) {
         songPlayMap[h.songId] = {
           songId: h.songId,
@@ -768,7 +771,7 @@ class MusicDatabase {
 
     return {
       totalHours,
-      totalPlays: filtered.length,
+      totalPlays: timeframeFiltered.length,
       dailyAvgMinutes,
       totalSeconds,
       topSongs

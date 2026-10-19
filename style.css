@@ -3839,3 +3839,45 @@ i.fa-pen {
   background: radial-gradient(circle, rgba(236, 72, 153, 0.3) 0%, transparent 70%);
   pointer-events: none;
 }
+
+
+/* ==========================================================
+   v26.0 PLAYLIST MINI-PLAYER VISIBILITY & Z-INDEX FIX
+   Ensures Floating Mini-Player and Bottom Navigation Bar remain
+   clearly visible and interactive when inside any Playlist!
+   ========================================================== */
+
+.playlist-detail-overlay {
+  top: var(--header-height) !important;
+  bottom: 0 !important;
+  z-index: 1050 !important;
+  padding: 18px 18px calc(var(--bottom-nav-height) + var(--mini-player-height) + env(safe-area-inset-bottom, 16px) + 32px) 18px !important;
+}
+
+.bottom-nav {
+  z-index: 1250 !important;
+}
+
+.mini-player {
+  z-index: 1300 !important;
+}
+
+.selection-action-bar {
+  z-index: 1350 !important;
+}
+
+.fullscreen-player {
+  z-index: 1500 !important;
+}
+
+.queue-drawer {
+  z-index: 1800 !important;
+}
+
+.modal-overlay {
+  z-index: 2000 !important;
+}
+
+.action-sheet-overlay {
+  z-index: 2100 !important;
+}

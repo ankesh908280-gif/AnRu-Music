@@ -171,6 +171,10 @@ function popNavStateIfMatches(modalName) {
 // Tab Navigation
 function switchTab(tabId) {
   if (isSelectionMode) exitSelectionMode();
+  const plDetail = document.getElementById('playlist-detail-view');
+  if (plDetail && !plDetail.classList.contains('hidden')) {
+    plDetail.classList.add('hidden');
+  }
 
   document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.bottom-nav .nav-tab').forEach(b => b.classList.remove('active'));
@@ -759,6 +763,15 @@ function initPlayerControls() {
         ? '<i class="fa-solid fa-heart" style="color:#ec4899;"></i>' 
         : '<i class="fa-regular fa-heart"></i>';
       showToast(isFav ? 'Added to Favorites 💖' : 'Removed from Favorites');
+      // Refresh Playlists view and open Liked Songs detail if currently open
+      renderPlaylistsTab();
+      if (activePlaylistDetail === 'favorites') {
+        const plView = document.getElementById('playlist-detail-view');
+        if (plView && !plView.classList.contains('hidden')) {
+          const favIds = await db.getAllFavorites();
+          openPlaylistDetail('favorites', 'Liked Songs', favIds);
+        }
+      }
     });
   }
 
@@ -848,6 +861,24 @@ function initActionSheet() {
       await db.deleteSong(targetSong.id);
       showToast('Deleted from library 🗑️');
       await refreshLibrary();
+      renderPlaylistsTab();
+      const plView = document.getElementById('playlist-detail-view');
+      if (plView && !plView.classList.contains('hidden') && activePlaylistDetail) {
+        if (activePlaylistDetail === 'favorites') {
+          const favIds = await db.getAllFavorites();
+          openPlaylistDetail('favorites', 'Liked Songs', favIds);
+        } else if (activePlaylistDetail === 'most_played') {
+          const smart = await db.getSmartPlaylists();
+          openPlaylistDetail('most_played', 'Most Played', smart.mostPlayed.map(s => s.id));
+        } else if (activePlaylistDetail === 'never_played') {
+          const smart = await db.getSmartPlaylists();
+          openPlaylistDetail('never_played', 'Never Played', smart.neverPlayed.map(s => s.id));
+        } else {
+          const pls = await db.getPlaylists();
+          const curPl = pls.find(p => p.id === activePlaylistDetail);
+          if (curPl) openPlaylistDetail(curPl.id, curPl.name, curPl.songIds || []);
+        }
+      }
     }
   });
 }
@@ -1358,6 +1389,7 @@ async function renderPlaylistsTab() {
 }
 
 function openPlaylistDetail(id, title, songIds) {
+  activePlaylistDetail = id;
   const plView = document.getElementById('playlist-detail-view');
   const titleEl = document.getElementById('pl-detail-title');
   const countEl = document.getElementById('pl-detail-count');
@@ -1378,6 +1410,8 @@ function openPlaylistDetail(id, title, songIds) {
   if (playAllBtn) {
     playAllBtn.onclick = () => {
       if (plSongs.length > 0) {
+        player.isShuffle = false;
+        player.syncControlModesUI();
         player.playSong(plSongs[0], plSongs);
         showToast(`Playing "${title}" ▶`);
       } else {
@@ -1386,11 +1420,17 @@ function openPlaylistDetail(id, title, songIds) {
     };
   }
 
-  // Shuffle
+  // Shuffle (Fisher-Yates unbiased shuffle + enable player shuffle mode)
   if (shuffleBtn) {
     shuffleBtn.onclick = () => {
       if (plSongs.length > 0) {
-        const shuffled = [...plSongs].sort(() => Math.random() - 0.5);
+        const shuffled = [...plSongs];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        player.isShuffle = true;
+        player.syncControlModesUI();
         player.playSong(shuffled[0], shuffled);
         showToast(`Shuffling "${title}" 🔀`);
       } else {
@@ -1429,13 +1469,15 @@ function openPlaylistDetail(id, title, songIds) {
     listEl.innerHTML = '<div class="empty-sub">No songs in this playlist yet. Add songs using the 3-dots menu on any track!</div>';
   } else {
     plSongs.forEach((song, idx) => {
+      const isCurrent = player.currentSong && player.currentSong.id === song.id;
       const row = document.createElement('div');
-      row.className = 'song-row';
+      row.className = `song-row ${isCurrent ? 'playing' : ''}`;
+      row.dataset.id = song.id;
       row.innerHTML = `
         <span class="row-num">${idx + 1}</span>
         <div class="row-art-box">
-          <img src="${song.artwork || 'icon-512.png'}" alt="cover" class="row-art" onerror="this.src='icon-512.png'">
-          <div class="row-play-hover"><i class="fa-solid fa-play"></i></div>
+          <img src="${song.artwork || 'icon-512.png'}" alt="cover" class="row-art" loading="lazy" decoding="async" onerror="this.src='icon-512.png'">
+          <div class="row-play-hover"><i class="fa-solid ${(isCurrent && player.isPlaying) ? 'fa-pause' : 'fa-play'}"></i></div>
         </div>
         <div class="row-meta">
           <div class="row-title">${escapeHtml(song.title)}</div>
@@ -1454,6 +1496,15 @@ function openPlaylistDetail(id, title, songIds) {
 
       row.onclick = (e) => {
         if (e.target.closest('.row-action-btn')) return;
+        if (player.currentSong && player.currentSong.id === song.id) {
+          const fsPlayer = document.getElementById('fullscreen-player');
+          if (fsPlayer) {
+            fsPlayer.classList.remove('hidden');
+            pushNavState('fullscreen');
+            player.drawWaveformSeekbar(0);
+          }
+          return;
+        }
         player.playSong(song, plSongs);
       };
 
@@ -1579,18 +1630,27 @@ async function renderActivityGraph(timeframe = 'week') {
   if (playsEl) playsEl.textContent = stats.totalPlays;
   if (avgEl) avgEl.textContent = `${stats.dailyAvgMinutes}m`;
 
-  // Draw Activity Graph (Bar Chart like Anru Focus)
+  // Draw Activity Graph (Crisp High-DPI Bar Chart)
   if (canvas && graphData && graphData.length > 0) {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const cssWidth = rect.width > 0 ? rect.width : 340;
+    const cssHeight = rect.height > 0 ? rect.height : 135;
+    if (canvas.width !== Math.round(cssWidth * dpr) || canvas.height !== Math.round(cssHeight * dpr)) {
+      canvas.width = Math.round(cssWidth * dpr);
+      canvas.height = Math.round(cssHeight * dpr);
+    }
+
     const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
-    ctx.clearRect(0, 0, width, height);
+    ctx.save();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
 
     const maxMin = Math.max(10, ...graphData.map(d => d.minutes));
-    const chartHeight = height - 28;
+    const chartHeight = cssHeight - 26;
     const numBars = graphData.length;
-    const barWidth = Math.max(12, Math.min(28, (width - (numBars * 10)) / numBars));
-    const spacing = (width - (numBars * barWidth)) / (numBars + 1);
+    const barWidth = Math.max(10, Math.min(28, (cssWidth - (numBars * 8)) / numBars));
+    const spacing = (cssWidth - (numBars * barWidth)) / (numBars + 1);
 
     graphData.forEach((d, i) => {
       const barH = Math.max(4, (d.minutes / maxMin) * (chartHeight - 20));
@@ -1624,10 +1684,11 @@ async function renderActivityGraph(timeframe = 'week') {
       }
 
       // X-Axis Day/Period Label
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
       ctx.font = '600 10px "Plus Jakarta Sans", sans-serif';
-      ctx.fillText(d.label, x + barWidth / 2, height - 6);
+      ctx.fillText(d.label, x + barWidth / 2, cssHeight - 6);
     });
+    ctx.restore();
   }
 
   // Top 5 Most Played Tracks
@@ -1655,7 +1716,19 @@ async function renderActivityGraph(timeframe = 'week') {
     row.addEventListener('click', () => {
       const match = allLibrarySongs.find(s => s.id === item.songId || s.title === item.title);
       if (match) {
-        player.playSong(match);
+        if (player.currentSong && player.currentSong.id === match.id) {
+          const fsPlayer = document.getElementById('fullscreen-player');
+          if (fsPlayer) {
+            fsPlayer.classList.remove('hidden');
+            pushNavState('fullscreen');
+            player.drawWaveformSeekbar(0);
+          }
+          return;
+        }
+        const topQueue = stats.topSongs
+          .map(t => allLibrarySongs.find(s => s.id === t.songId || s.title === t.title))
+          .filter(Boolean);
+        player.playSong(match, topQueue.length > 0 ? topQueue : allLibrarySongs);
       }
     });
 
@@ -1750,14 +1823,39 @@ function renderWrappedPosterToImage() {
     ctx.fillText('ANRU STUDIO 2026', 45, 65);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 36px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('YOUR MUSIC WRAPPED', 45, 120);
+    ctx.font = 'bold 34px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('YOUR OFFLINE VIBE', 45, 112);
 
-    // User name
+    // Circular Avatar + User Name & VIP Badge
+    const avatarImg = document.getElementById('wrapped-avatar');
+    let textLeft = 45;
+    if (avatarImg && avatarImg.complete && avatarImg.naturalWidth > 0) {
+      try {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(72, 162, 27, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(avatarImg, 45, 135, 54, 54);
+        ctx.restore();
+
+        ctx.beginPath();
+        ctx.arc(72, 162, 27, 0, Math.PI * 2);
+        ctx.strokeStyle = '#a855f7';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        textLeft = 114;
+      } catch (e) {}
+    }
+
     const userName = document.getElementById('holo-profile-name')?.textContent || 'Anru VIP Listener';
     ctx.font = 'bold 22px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(userName, textLeft, 158);
+
+    ctx.font = 'bold 13px "Plus Jakarta Sans", sans-serif';
     ctx.fillStyle = '#00f2fe';
-    ctx.fillText(userName, 45, 170);
+    ctx.fillText('VIP Audiophile Pro', textLeft, 178);
 
     // Stats Boxes
     const hours = document.getElementById('wrapped-hours')?.textContent || '0.0h';

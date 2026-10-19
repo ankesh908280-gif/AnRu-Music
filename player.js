@@ -40,6 +40,14 @@ class AudioPlayer {
     this.isShuffle = false;
     this.repeatMode = "all"; // "none", "all", "one"
     this.playbackRate = 1.0;
+    this._playRequestId = 0;
+    this._pendingResumeTime = null;
+    this._isSwitchingTrack = false;
+    this._pauseSuspendTimer = null;
+    this._preloadedNext = null; // { id, blob, objectUrl }
+    this._webLockResolver = null;
+    this._keepAliveNode = null;
+    this._keepAliveGain = null;
 
     // Shuffle Bag & History
     this.shuffleBag = [];
@@ -100,23 +108,44 @@ class AudioPlayer {
 
   initAudioListeners() {
     this.audio.addEventListener("play", () => {
+      if (this._pauseSuspendTimer) {
+        clearTimeout(this._pauseSuspendTimer);
+        this._pauseSuspendTimer = null;
+      }
+      this._isSwitchingTrack = false;
       this.isPlaying = true;
       this.songPlayStartTime = Date.now();
       this.updatePlayPauseUI();
       document.body.classList.remove("app-paused");
       if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "playing";
-      this.triggerStateSave(500);
+      this.acquirePlaybackWakeLock();
       this.resumeAudioContext();
+      this.triggerStateSave(500);
+      // Pre-buffer the next song in queue so screen-off track transitions are 100% synchronous
+      this.scheduleNextTrackPreload();
     });
 
     this.audio.addEventListener("pause", () => {
+      // CRITICAL FIX FOR SCREEN-OFF PLAYBACK:
+      // HTML5 <audio> fires 'pause' right before 'ended' and during src switches.
+      // Never suspend AudioContext or drop MediaSession when transitioning between songs!
+      if (this.audio.ended || this._isSwitchingTrack) {
+        return;
+      }
       this.isPlaying = false;
       this.recordListeningTime();
       this.updatePlayPauseUI();
       document.body.classList.add("app-paused");
       if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "paused";
       this.triggerStateSave(100);
-      this.suspendAudioContext();
+      this.releasePlaybackWakeLock();
+
+      if (this._pauseSuspendTimer) clearTimeout(this._pauseSuspendTimer);
+      this._pauseSuspendTimer = setTimeout(() => {
+        if (this.audio.paused && !this._isSwitchingTrack && !this.isPlaying) {
+          this.suspendAudioContext();
+        }
+      }, 350);
     });
 
     this.audio.addEventListener("timeupdate", () => {
@@ -133,6 +162,13 @@ class AudioPlayer {
         if (typeof db !== "undefined") {
           db.updateSongDuration(this.currentSong.id, this.currentSong.duration);
         }
+      }
+      if (this._pendingResumeTime !== null && this._pendingResumeTime > 0) {
+        const targetTime = Math.min(this._pendingResumeTime, Math.max(0, (this.audio.duration || this._pendingResumeTime) - 0.5));
+        this._pendingResumeTime = null;
+        try {
+          this.audio.currentTime = targetTime;
+        } catch (e) {}
       }
       this.onTimeUpdate();
     });
@@ -331,6 +367,24 @@ class AudioPlayer {
       this.postDSPSum.connect(this.limiterNode);
       this.limiterNode.connect(this.audioCtx.destination);
 
+      // Sub-audible (-100dB) continuous hardware bridge while AudioContext is running:
+      // Prevents Android OS from killing the WebAudio session during the 10ms gap between tracks when screen is off.
+      // Consumes 0% battery when paused because the entire AudioContext is suspended on pause!
+      try {
+        this._keepAliveGain = this.audioCtx.createGain();
+        this._keepAliveGain.gain.value = 0.00001;
+        if (this.audioCtx.createConstantSource) {
+          this._keepAliveNode = this.audioCtx.createConstantSource();
+          this._keepAliveNode.offset.value = 1.0;
+        } else {
+          this._keepAliveNode = this.audioCtx.createOscillator();
+          this._keepAliveNode.frequency.value = 1;
+        }
+        this._keepAliveNode.connect(this._keepAliveGain);
+        this._keepAliveGain.connect(this.audioCtx.destination);
+        this._keepAliveNode.start(0);
+      } catch (e) {}
+
       this.updatePreampGain();
       console.log("[Anru Audio] Battery-Optimized DSP Graph Active ⚡");
     } catch (err) {
@@ -354,6 +408,83 @@ class AudioPlayer {
         await this.audioCtx.resume();
       } catch (e) {}
     }
+  }
+
+  // Holds a Web Lock ONLY while music is actively playing so Android Chromium never freezes background track transitions
+  acquirePlaybackWakeLock() {
+    if (this._webLockResolver) return;
+    if (navigator.locks && typeof navigator.locks.request === "function") {
+      try {
+        navigator.locks.request("anru_music_active_playback", () => {
+          return new Promise((resolve) => {
+            this._webLockResolver = resolve;
+          });
+        }).catch(() => {});
+      } catch (e) {}
+    }
+  }
+
+  // Releases the Web Lock immediately when music is paused or stopped so CPU enters deep sleep (0% battery drain)
+  releasePlaybackWakeLock() {
+    if (this._webLockResolver) {
+      const resolve = this._webLockResolver;
+      this._webLockResolver = null;
+      try { resolve(); } catch (e) {}
+    }
+  }
+
+  clearPreloadedNext() {
+    if (this._preloadedNext) {
+      if (this._preloadedNext.objectUrl && this._preloadedNext.objectUrl !== this.currentObjectUrl) {
+        try { URL.revokeObjectURL(this._preloadedNext.objectUrl); } catch (e) {}
+      }
+      this._preloadedNext = null;
+    }
+  }
+
+  peekNextSong() {
+    if (!this.queue || this.queue.length === 0) return null;
+    if (this.repeatMode === "one" && this.currentSong) return this.currentSong;
+
+    if (this.isShuffle && this.queue.length > 1) {
+      if (!this.shuffleBag || this.shuffleBag.length === 0) {
+        this.refillShuffleBag();
+      }
+      if (this.shuffleBag.length > 0) {
+        const nextIdx = this.shuffleBag[this.shuffleBag.length - 1];
+        return this.queue[nextIdx] || null;
+      }
+    }
+
+    let nextIdx = this.currentIndex + 1;
+    if (nextIdx >= this.queue.length) {
+      if (this.repeatMode === "all") nextIdx = 0;
+      else return null;
+    }
+    return this.queue[nextIdx] || null;
+  }
+
+  async scheduleNextTrackPreload() {
+    const nextSong = this.peekNextSong();
+    if (!nextSong || !nextSong.id) return;
+    if (this._preloadedNext && this._preloadedNext.id === nextSong.id && this._preloadedNext.objectUrl) {
+      return; // Already preloaded!
+    }
+
+    this.clearPreloadedNext();
+
+    if (typeof db === "undefined") return;
+    try {
+      const blob = nextSong.audioBlob || await db.getSongBlob(nextSong.id);
+      if (blob && this.isPlaying) {
+        const objectUrl = URL.createObjectURL(blob);
+        this._preloadedNext = {
+          id: nextSong.id,
+          blob: blob,
+          objectUrl: objectUrl
+        };
+      }
+    } catch (e) {}
   }
 
   updatePreampGain() {
@@ -605,6 +736,13 @@ class AudioPlayer {
   async playSong(song, newQueue = null) {
     if (!song) return;
 
+    const reqId = ++this._playRequestId;
+    this._isSwitchingTrack = true;
+    if (this._pauseSuspendTimer) {
+      clearTimeout(this._pauseSuspendTimer);
+      this._pauseSuspendTimer = null;
+    }
+    this._pendingResumeTime = null;
     this.recordListeningTime();
 
     if (newQueue && Array.isArray(newQueue)) {
@@ -622,30 +760,49 @@ class AudioPlayer {
     this.currentSong = song;
     this.songPlayStartTime = Date.now();
 
+    // Check if this song was already pre-buffered for instant 0ms synchronous screen-off transition!
+    let preloadedUrl = null;
+    let blob = song.audioBlob;
+
+    if (this._preloadedNext && this._preloadedNext.id === song.id && this._preloadedNext.objectUrl) {
+      preloadedUrl = this._preloadedNext.objectUrl;
+      blob = this._preloadedNext.blob;
+      this._preloadedNext = null;
+    } else {
+      this.clearPreloadedNext();
+    }
+
+    // Only await IndexedDB if not already pre-buffered in memory
+    if (!preloadedUrl && !blob && typeof db !== "undefined") {
+      try {
+        blob = await db.getSongBlob(song.id);
+      } catch (e) {}
+    }
+
+    // Abort if a newer playSong call was triggered while awaiting IndexedDB
+    if (reqId !== this._playRequestId) return;
+
     // Revoke previous blob URL immediately to avoid memory leak
-    if (this.currentObjectUrl) {
-      URL.revokeObjectURL(this.currentObjectUrl);
+    if (this.currentObjectUrl && this.currentObjectUrl !== preloadedUrl) {
+      try { URL.revokeObjectURL(this.currentObjectUrl); } catch (e) {}
       this.currentObjectUrl = null;
     }
 
     // Keep ONLY the active song in RAM: drop blobs of all other tracks
     this.cleanupMemoryBlobs(song.id);
 
-    // Stream on-demand from IndexedDB
-    let blob = song.audioBlob;
-    if (!blob && typeof db !== "undefined") {
-      try {
-        blob = await db.getSongBlob(song.id);
-      } catch (e) {}
-    }
-
-    if (blob) {
+    if (preloadedUrl) {
+      song.audioBlob = blob;
+      this.currentObjectUrl = preloadedUrl;
+      this.audio.src = this.currentObjectUrl;
+    } else if (blob) {
       song.audioBlob = blob; // Kept in memory only while playing!
       this.currentObjectUrl = URL.createObjectURL(blob);
       this.audio.src = this.currentObjectUrl;
     } else if (song.audioUrl) {
       this.audio.src = song.audioUrl;
     } else {
+      this._isSwitchingTrack = false;
       if (typeof showToast === "function") {
         showToast(`⚠️ No audio file for "${song.title}". Auto-skipping...`);
       }
@@ -653,24 +810,58 @@ class AudioPlayer {
       return;
     }
 
+    this.initWebAudio();
+    this.resumeAudioContext();
+    this.acquirePlaybackWakeLock();
+
     this.audio.playbackRate = this.playbackRate;
-    if (this.audio && typeof this.audio.load === "function") this.audio.load();
+    if ("preservesPitch" in this.audio) this.audio.preservesPitch = true;
 
     const playPromise = (this.audio && typeof this.audio.play === "function") ? this.audio.play() : undefined;
     if (playPromise !== undefined) {
-      playPromise.catch(err => {
-        console.warn("[Anru Player] Playback notice:", err);
+      playPromise.then(() => {
+        this._isSwitchingTrack = false;
+      }).catch(err => {
+        this._isSwitchingTrack = false;
+        if (err && err.name !== "AbortError") {
+          console.warn("[Anru Player] Playback notice:", err);
+        }
       });
+    } else {
+      this._isSwitchingTrack = false;
     }
-
-    this.initWebAudio();
-    this.resumeAudioContext();
 
     this.generateWaveformBars(song);
     this.updateTrackUI();
     this.updateMediaSession();
     this.renderQueueDrawer();
     this.triggerStateSave(500);
+    this.scheduleNextTrackPreload();
+  }
+
+  syncControlModesUI() {
+    const shuffleBtn = document.getElementById("fs-shuffle-btn");
+    if (shuffleBtn) shuffleBtn.classList.toggle("active", !!this.isShuffle);
+
+    const repeatBtn = document.getElementById("fs-repeat-btn");
+    if (repeatBtn) {
+      if (this.repeatMode === "one") {
+        repeatBtn.classList.add("active");
+        repeatBtn.innerHTML = '<i class="fa-solid fa-repeat"></i><span class="repeat-one-sub">1</span>';
+      } else if (this.repeatMode === "none") {
+        repeatBtn.classList.remove("active");
+        repeatBtn.innerHTML = '<i class="fa-solid fa-repeat"></i>';
+      } else {
+        repeatBtn.classList.add("active");
+        repeatBtn.innerHTML = '<i class="fa-solid fa-repeat"></i>';
+      }
+    }
+
+    const speedBtn = document.getElementById("fs-speed-btn");
+    if (speedBtn) speedBtn.textContent = `${this.playbackRate}x`;
+
+    const volSlider = document.getElementById("fs-vol-slider");
+    if (volSlider) volSlider.value = this.audio.volume;
   }
 
   // Restore player state on app reload without auto-playing aloud
@@ -679,9 +870,10 @@ class AudioPlayer {
     const targetSong = allSongs.find(s => s.id === state.songId);
     if (!targetSong) return;
 
+    const songMap = new Map(allSongs.map(s => [s.id, s]));
     if (state.queueSongIds && Array.isArray(state.queueSongIds)) {
       this.queue = state.queueSongIds
-        .map(id => allSongs.find(s => s.id === id))
+        .map(id => songMap.get(id))
         .filter(Boolean);
     }
     if (this.queue.length === 0) {
@@ -694,6 +886,16 @@ class AudioPlayer {
     this.isShuffle = !!state.isShuffle;
     this.repeatMode = state.repeatMode || "all";
 
+    if (state.playbackRate && state.playbackRate >= 0.5 && state.playbackRate <= 2.0) {
+      this.playbackRate = state.playbackRate;
+      this.audio.playbackRate = state.playbackRate;
+    }
+    if (state.volume !== undefined && state.volume >= 0 && state.volume <= 1) {
+      this.audio.volume = state.volume;
+      this._preTimerVolume = state.volume;
+    }
+
+    this.syncControlModesUI();
     if (this.isShuffle) this.initShuffleBag();
 
     // Stream on demand from IndexedDB
@@ -704,6 +906,8 @@ class AudioPlayer {
       } catch (e) {}
     }
 
+    this._pendingResumeTime = state.currentTime || 0;
+
     if (blob) {
       targetSong.audioBlob = blob;
       this.currentObjectUrl = URL.createObjectURL(blob);
@@ -712,10 +916,14 @@ class AudioPlayer {
       this.audio.src = targetSong.audioUrl;
     }
 
-    this.audio.currentTime = state.currentTime || 0;
+    try {
+      this.audio.currentTime = state.currentTime || 0;
+    } catch (e) {}
+
     this.generateWaveformBars(targetSong);
     this.updateTrackUI();
     this.updatePlayPauseUI();
+    this.onTimeUpdate();
     this.renderQueueDrawer();
     console.log("[Anru Player] Resumed saved playback state at:", state.currentTime, "s");
   }
@@ -743,10 +951,12 @@ class AudioPlayer {
     if (this.currentSong && typeof db !== "undefined") {
       db.savePlaybackState({
         songId: this.currentSong.id,
-        currentTime: this.audio.currentTime || 0,
+        currentTime: this.audio.currentTime || this._pendingResumeTime || 0,
         queueSongIds: this.queue.map(s => s.id),
         isShuffle: this.isShuffle,
-        repeatMode: this.repeatMode
+        repeatMode: this.repeatMode,
+        playbackRate: this.playbackRate,
+        volume: this.audio.volume
       });
     }
   }
@@ -839,26 +1049,40 @@ class AudioPlayer {
     this.recordListeningTime();
 
     if (this.sleepTimerMode === "end_of_song") {
+      this._isSwitchingTrack = false;
+      this.isPlaying = false;
       this.audio.pause();
+      this.releasePlaybackWakeLock();
       this.suspendAudioContext();
       this.cancelSleepTimer();
+      this.updatePlayPauseUI();
       if (typeof showToast === "function") showToast("🌙 Sleep timer: playback paused.");
       return;
     }
 
+    this._isSwitchingTrack = true;
     if (this.repeatMode === "one") {
       this.audio.currentTime = 0;
-      this.audio.play().catch(() => {});
+      this.resumeAudioContext();
+      this.audio.play().then(() => {
+        this._isSwitchingTrack = false;
+      }).catch(() => {
+        this._isSwitchingTrack = false;
+      });
     } else {
       this.next();
     }
   }
 
   onQueueFinished() {
+    this._isSwitchingTrack = false;
     this.isPlaying = false;
     this.audio.pause();
+    this.clearPreloadedNext();
+    this.releasePlaybackWakeLock();
     this.suspendAudioContext();
     this.updatePlayPauseUI();
+    document.body.classList.add("app-paused");
     if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "paused";
     if (typeof showToast === "function") showToast("Queue playback completed 🎵");
   }
@@ -958,18 +1182,22 @@ class AudioPlayer {
   setVolume(val) {
     this.audio.volume = Math.max(0, Math.min(1, val));
     this._preTimerVolume = this.audio.volume;
+    this.triggerStateSave(300);
   }
 
   setSpeed(rate) {
     this.playbackRate = rate;
     this.audio.playbackRate = rate;
+    if ("preservesPitch" in this.audio) this.audio.preservesPitch = true;
     const speedBtn = document.getElementById("fs-speed-btn");
     if (speedBtn) speedBtn.textContent = `${rate}x`;
     if (typeof showToast === "function") showToast(`Speed: ${rate}x`);
+    this.triggerStateSave(200);
   }
 
   toggleShuffle() {
     this.isShuffle = !this.isShuffle;
+    this.scheduleNextTrackPreload();
     if (this.isShuffle) this.initShuffleBag();
     const btn = document.getElementById("fs-shuffle-btn");
     if (btn) btn.classList.toggle("active", this.isShuffle);
@@ -1180,6 +1408,7 @@ class AudioPlayer {
       this.queue.push(song);
     }
     if (this.isShuffle) this.refillShuffleBag();
+    this.scheduleNextTrackPreload();
     this.renderQueueDrawer();
     this.triggerStateSave(100);
     if (typeof showToast === "function") showToast(`Playing next: "${song.title}"`);
@@ -1189,6 +1418,7 @@ class AudioPlayer {
     if (!song) return;
     this.queue.push(song);
     if (this.isShuffle) this.refillShuffleBag();
+    this.scheduleNextTrackPreload();
     this.renderQueueDrawer();
     this.triggerStateSave(100);
     if (typeof showToast === "function") showToast(`Added to queue: "${song.title}"`);
