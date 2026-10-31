@@ -804,9 +804,8 @@ class AudioPlayer {
     } else {
       this._isSwitchingTrack = false;
       if (typeof showToast === "function") {
-        showToast(`⚠️ No audio file for "${song.title}". Auto-skipping...`);
+        showToast(`📂 Tap Folder icon once to link phone storage for "${song.title}" (Zero-Copy Mode)`);
       }
-      setTimeout(() => this.next(), 300);
       return;
     }
 

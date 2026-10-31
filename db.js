@@ -15,6 +15,9 @@ class MusicDatabase {
     this.dbVersion = 4;
     this.db = null;
     this._cachedSongMeta = null;
+    // Zero-Copy in-memory File reference map (reads directly from phone storage with 0 MB browser duplication)
+    this._sessionFiles = new Map(); // id -> File or FileSystemFileHandle
+    this._sessionFilesByKey = new Map(); // "fileSize|fileName" -> File
 
     // Fallback in-memory store if IndexedDB is blocked
     this.mem = {
@@ -114,21 +117,45 @@ class MusicDatabase {
     });
   }
 
+  registerZeroCopyFile(id, fileOrHandle, fileSize = 0, fileName = '') {
+    if (!fileOrHandle) return;
+    if (id) this._sessionFiles.set(id, fileOrHandle);
+    const cleanName = (fileName || fileOrHandle.name || '').toLowerCase().trim();
+    const size = fileSize || fileOrHandle.size || 0;
+    if (cleanName && size > 0) {
+      this._sessionFilesByKey.set(`${size}|${cleanName}`, fileOrHandle);
+    }
+  }
+
   async saveSong(songData) {
     await this.initPromise;
     this.invalidateCache();
 
+    const id = songData.id || ('local-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6));
+    const fileSize = songData.fileSize || (songData.audioBlob ? songData.audioBlob.size : 0);
+    const fileName = songData.fileName || (songData.audioBlob && songData.audioBlob.name) || '';
+
+    // ZERO-COPY ENGINE: Keep local File reference in session map and FileSystemFileHandle in DB,
+    // NEVER store multi-MB binary audioBlob inside IndexedDB by default!
+    if (songData.audioBlob) {
+      this.registerZeroCopyFile(id, songData.audioBlob, fileSize, fileName);
+    }
+    if (songData.fileHandle) {
+      this.registerZeroCopyFile(id, songData.fileHandle, fileSize, fileName);
+    }
+
     const record = {
-      id: songData.id || ('local-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6)),
+      id: id,
       title: songData.title || 'Untitled Song',
       artist: songData.artist || 'Local Artist',
       album: songData.album || 'Offline Music',
       duration: songData.duration || 0,
       artwork: songData.artwork || 'icon-512.png',
-      audioBlob: songData.audioBlob,
+      fileHandle: songData.fileHandle || null,
+      isZeroCopy: true,
       dateAdded: songData.dateAdded || Date.now(),
-      fileSize: songData.fileSize || (songData.audioBlob ? songData.audioBlob.size : 0),
-      fileName: songData.fileName || ''
+      fileSize: fileSize,
+      fileName: fileName
     };
 
     if (!this.db) {
@@ -156,18 +183,32 @@ class MusicDatabase {
     await this.initPromise;
     this.invalidateCache();
 
-    const records = songsDataArray.map((songData, idx) => ({
-      id: songData.id || ('local-' + Date.now() + '-' + idx + '-' + Math.random().toString(36).substr(2, 6)),
-      title: songData.title || 'Untitled Song',
-      artist: songData.artist || 'Local Artist',
-      album: songData.album || 'Offline Music',
-      duration: songData.duration || 0,
-      artwork: songData.artwork || 'icon-512.png',
-      audioBlob: songData.audioBlob,
-      dateAdded: songData.dateAdded || (Date.now() + idx),
-      fileSize: songData.fileSize || (songData.audioBlob ? songData.audioBlob.size : 0),
-      fileName: songData.fileName || ''
-    }));
+    const records = songsDataArray.map((songData, idx) => {
+      const id = songData.id || ('local-' + Date.now() + '-' + idx + '-' + Math.random().toString(36).substr(2, 6));
+      const fileSize = songData.fileSize || (songData.audioBlob ? songData.audioBlob.size : 0);
+      const fileName = songData.fileName || (songData.audioBlob && songData.audioBlob.name) || '';
+
+      if (songData.audioBlob) {
+        this.registerZeroCopyFile(id, songData.audioBlob, fileSize, fileName);
+      }
+      if (songData.fileHandle) {
+        this.registerZeroCopyFile(id, songData.fileHandle, fileSize, fileName);
+      }
+
+      return {
+        id: id,
+        title: songData.title || 'Untitled Song',
+        artist: songData.artist || 'Local Artist',
+        album: songData.album || 'Offline Music',
+        duration: songData.duration || 0,
+        artwork: songData.artwork || 'icon-512.png',
+        fileHandle: songData.fileHandle || null,
+        isZeroCopy: true,
+        dateAdded: songData.dateAdded || (Date.now() + idx),
+        fileSize: fileSize,
+        fileName: fileName
+      };
+    });
 
     if (!this.db) {
       records.forEach(record => {
@@ -191,6 +232,38 @@ class MusicDatabase {
     });
   }
 
+  // Purge heavy legacy audioBlobs from IndexedDB while keeping all song metadata, playlists, and history intact!
+  async purgeLegacyCopiedBlobs() {
+    await this.initPromise;
+    if (!this.db) return 0;
+    this.invalidateCache();
+
+    return new Promise((resolve) => {
+      try {
+        const tx = this.db.transaction(['songs'], 'readwrite');
+        const store = tx.objectStore('songs');
+        const req = store.getAll();
+        let freedBytes = 0;
+        req.onsuccess = () => {
+          const all = req.result || [];
+          all.forEach(item => {
+            if (item.audioBlob) {
+              freedBytes += (item.audioBlob.size || item.fileSize || 0);
+              this.registerZeroCopyFile(item.id, item.audioBlob, item.fileSize, item.fileName);
+              delete item.audioBlob;
+              item.isZeroCopy = true;
+              store.put(item);
+            }
+          });
+        };
+        tx.oncomplete = () => resolve(freedBytes);
+        tx.onerror = () => resolve(0);
+      } catch (e) {
+        resolve(0);
+      }
+    });
+  }
+
   async getAllSongs() {
     await this.initPromise;
     if (!this.db) {
@@ -209,13 +282,19 @@ class MusicDatabase {
       const req = store.getAll();
       req.onsuccess = () => {
         const rawList = req.result || [];
-        // Performance & Battery Optimization:
-        // Strip heavy binary audioBlob from in-memory metadata array!
-        // audioBlob is loaded on-demand via getSongBlob(id) when playing.
+        let hasLegacyBlobs = false;
         const list = rawList.map(item => {
+          if (item.audioBlob) {
+            hasLegacyBlobs = true;
+            this.registerZeroCopyFile(item.id, item.audioBlob, item.fileSize, item.fileName);
+          }
           const { audioBlob, ...meta } = item;
           return meta;
         });
+        // Automatically migrate any old duplicated blobs in background to free browser disk space!
+        if (hasLegacyBlobs) {
+          setTimeout(() => this.purgeLegacyCopiedBlobs(), 800);
+        }
         list.sort((a, b) => (b.dateAdded || 0) - (a.dateAdded || 0));
         this._cachedSongMeta = list;
         resolve(list);
@@ -224,21 +303,80 @@ class MusicDatabase {
     });
   }
 
+  async resolveHandleOrBlob(entry) {
+    if (!entry) return null;
+    if (entry instanceof Blob) return entry;
+    if (typeof entry.getFile === 'function') {
+      try {
+        if (typeof entry.queryPermission === 'function') {
+          let perm = await entry.queryPermission({ mode: 'read' });
+          if (perm !== 'granted' && typeof entry.requestPermission === 'function') {
+            perm = await entry.requestPermission({ mode: 'read' });
+          }
+        }
+        return await entry.getFile();
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
   async getSongBlob(id) {
     if (!id) return null;
     await this.initPromise;
-    if (!this.db) {
-      const s = this.mem.songs.find(s => s.id === id);
-      return s ? s.audioBlob : null;
+
+    // 1. Check Zero-Copy Session File / Handle Map first (0ms, 0 MB browser storage)
+    if (this._sessionFiles.has(id)) {
+      const resolved = await this.resolveHandleOrBlob(this._sessionFiles.get(id));
+      if (resolved) return resolved;
     }
 
+    // 2. Check by fileSize|fileName match in session map
+    if (this._cachedSongMeta) {
+      const meta = this._cachedSongMeta.find(s => s.id === id);
+      if (meta) {
+        const key = `${meta.fileSize || 0}|${(meta.fileName || '').toLowerCase().trim()}`;
+        if (this._sessionFilesByKey.has(key)) {
+          const resolved = await this.resolveHandleOrBlob(this._sessionFilesByKey.get(key));
+          if (resolved) {
+            this._sessionFiles.set(id, resolved);
+            return resolved;
+          }
+        }
+      }
+    }
+
+    if (!this.db) {
+      const s = this.mem.songs.find(s => s.id === id);
+      return s ? (s.audioBlob || null) : null;
+    }
+
+    // 3. Fallback to persistent FileSystemFileHandle or legacy audioBlob in IndexedDB
     return new Promise((resolve) => {
       try {
         const tx = this.db.transaction(['songs'], 'readonly');
         const store = tx.objectStore('songs');
         const req = store.get(id);
-        req.onsuccess = () => {
-          resolve(req.result ? req.result.audioBlob : null);
+        req.onsuccess = async () => {
+          const rec = req.result;
+          if (!rec) {
+            resolve(null);
+            return;
+          }
+          if (rec.fileHandle) {
+            const file = await this.resolveHandleOrBlob(rec.fileHandle);
+            if (file) {
+              this.registerZeroCopyFile(id, file, rec.fileSize, rec.fileName);
+              resolve(file);
+              return;
+            }
+          }
+          if (rec.audioBlob) {
+            resolve(rec.audioBlob);
+            return;
+          }
+          resolve(null);
         };
         req.onerror = () => resolve(null);
       } catch (e) {

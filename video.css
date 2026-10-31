@@ -1,0 +1,879 @@
+/* ==========================================================
+   ANRU VIDEO STUDIO PRO v27.0 - PLAYIT 4K HDR PLAYER STYLES
+   Standalone Stylesheet (video.css)
+   ========================================================== */
+
+/* Additional Vector Icons for Video Player */
+i.fa-sun {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Cpath%20d%3D%22M361.5%201.2c5%202.1%208.6%206.6%209.6%2011.9L391%20121l107.9%2019.8c5.3%201%209.8%204.6%2011.9%209.6s1.5%2010.7-1.6%2015.2L446.9%20256l62.3%2090.3c3.1%204.5%203.7%2010.2%201.6%2015.2s-6.6%208.6-11.9%209.6L391%20391%20371.1%20498.9c-1%205.3-4.6%209.8-9.6%2011.9s-10.7%201.5-15.2-1.6L256%20446.9l-90.3%2062.3c-4.5%203.1-10.2%203.7-15.2%201.6s-8.6-6.6-11.9-9.6L121%20391%2013.1%20371.1c-5.3-1-9.8-4.6-11.9-9.6s-1.5-10.7%201.6-15.2L65.1%20256%202.8%20165.7c-3.1-4.5-3.7-10.2-1.6-15.2s6.6-8.6%2011.9-9.6L121%20121%20140.9%2013.1c1-5.3%204.6-9.8%209.6-11.9s10.7-1.5%2015.2%201.6L256%2065.1%20346.3%202.8c4.5-3.1%2010.2-3.7%2015.2-1.6zM160%20256a96%2096%200%201%201%20192%200%2096%2096%200%201%201-192%200zm224%200a128%20128%200%201%200-256%200%20128%20128%200%201%200%20256%200z%22/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Cpath%20d%3D%22M361.5%201.2c5%202.1%208.6%206.6%209.6%2011.9L391%20121l107.9%2019.8c5.3%201%209.8%204.6%2011.9%209.6s1.5%2010.7-1.6%2015.2L446.9%20256l62.3%2090.3c3.1%204.5%203.7%2010.2%201.6%2015.2s-6.6%208.6-11.9%209.6L391%20391%20371.1%20498.9c-1%205.3-4.6%209.8-9.6%2011.9s-10.7%201.5-15.2-1.6L256%20446.9l-90.3%2062.3c-4.5%203.1-10.2%203.7-15.2%201.6s-8.6-6.6-11.9-9.6L121%20391%2013.1%20371.1c-5.3-1-9.8-4.6-11.9-9.6s-1.5-10.7%201.6-15.2L65.1%20256%202.8%20165.7c-3.1-4.5-3.7-10.2-1.6-15.2s6.6-8.6%2011.9-9.6L121%20121%20140.9%2013.1c1-5.3%204.6-9.8%209.6-11.9s10.7-1.5%2015.2%201.6L256%2065.1%20346.3%202.8c4.5-3.1%2010.2-3.7%2015.2-1.6zM160%20256a96%2096%200%201%201%20192%200%2096%2096%200%201%201-192%200zm224%200a128%20128%200%201%200-256%200%20128%20128%200%201%200%20256%200z%22/%3E%3C/svg%3E");
+}
+
+i.fa-lock {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20448%20512%22%3E%3Cpath%20d%3D%22M144%20144l0%2048%20160%200%200-48c0-44.2-35.8-80-80-80s-80%2035.8-80%2080zM80%20192l0-48C80%2064.5%20144.5%200%20224%200s144%2064.5%20144%20144l0%2048%2016%200c35.3%200%2064%2028.7%2064%2064l0%20192c0%2035.3-28.7%2064-64%2064L64%20512c-35.3%200-64-28.7-64-64L0%20256c0-35.3%2028.7-64%2064-64l16%200z%22/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20448%20512%22%3E%3Cpath%20d%3D%22M144%20144l0%2048%20160%200%200-48c0-44.2-35.8-80-80-80s-80%2035.8-80%2080zM80%20192l0-48C80%2064.5%20144.5%200%20224%200s144%2064.5%20144%20144l0%2048%2016%200c35.3%200%2064%2028.7%2064%2064l0%20192c0%2035.3-28.7%2064-64%2064L64%20512c-35.3%200-64-28.7-64-64L0%20256c0-35.3%2028.7-64%2064-64l16%200z%22/%3E%3C/svg%3E");
+}
+
+i.fa-expand {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20448%20512%22%3E%3Cpath%20d%3D%22M32%2032C14.3%2032%200%2046.3%200%2064l0%2096c0%2017.7%2014.3%2032%2032%2032s32-14.3%2032-32l0-64%2064%200c17.7%200%2032-14.3%2032-32s-14.3-32-32-32L32%2032zM64%20352c0-17.7-14.3-32-32-32s-32%2014.3-32%2032l0%2096c0%2017.7%2014.3%2032%2032%2032l96%200c17.7%200%2032-14.3%2032-32s-14.3-32-32-32l-64%200%200-64zM320%2032c-17.7%200-32%2014.3-32%2032s14.3%2032%2032%2032l64%200%200%2064c0%2017.7%2014.3%2032%2032%2032s32-14.3%2032-32l0-96c0-17.7-14.3-32-32-32l-96%200zM448%20352c0-17.7-14.3-32-32-32s-32%2014.3-32%2032l0%2064-64%200c-17.7%200-32%2014.3-32%2032s14.3%2032%2032%2032l96%200c17.7%200%2032-14.3%2032-32l0-96z%22/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20448%20512%22%3E%3Cpath%20d%3D%22M32%2032C14.3%2032%200%2046.3%200%2064l0%2096c0%2017.7%2014.3%2032%2032%2032s32-14.3%2032-32l0-64%2064%200c17.7%200%2032-14.3%2032-32s-14.3-32-32-32L32%2032zM64%20352c0-17.7-14.3-32-32-32s-32%2014.3-32%2032l0%2096c0%2017.7%2014.3%2032%2032%2032l96%200c17.7%200%2032-14.3%2032-32s-14.3-32-32-32l-64%200%200-64zM320%2032c-17.7%200-32%2014.3-32%2032s14.3%2032%2032%2032l64%200%200%2064c0%2017.7%2014.3%2032%2032%2032s32-14.3%2032-32l0-96c0-17.7-14.3-32-32-32l-96%200zM448%20352c0-17.7-14.3-32-32-32s-32%2014.3-32%2032l0%2064-64%200c-17.7%200-32%2014.3-32%2032s14.3%2032%2032%2032l96%200c17.7%200%2032-14.3%2032-32l0-96z%22/%3E%3C/svg%3E");
+}
+
+i.fa-clone {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Cpath%20d%3D%22M288%20448L64%20448l0-224%2064%200%200-64-64%200c-35.3%200-64%2028.7-64%2064L0%20448c0%2035.3%2028.7%2064%2064%2064l224%200c35.3%200%2064-28.7%2064-64l0-64-64%200%200%2064zm-64-96l224%200c35.3%200%2064-28.7%2064-64l0-224c0-35.3-28.7-64-64-64L224%200c-35.3%200-64%2028.7-64%2064l0%20224c0%2035.3%2028.7%2064%2064%2064z%22/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Cpath%20d%3D%22M288%20448L64%20448l0-224%2064%200%200-64-64%200c-35.3%200-64%2028.7-64%2064L0%20448c0%2035.3%2028.7%2064%2064%2064l224%200c35.3%200%2064-28.7%2064-64l0-64-64%200%200%2064zm-64-96l224%200c35.3%200%2064-28.7%2064-64l0-224c0-35.3-28.7-64-64-64L224%200c-35.3%200-64%2028.7-64%2064l0%20224c0%2035.3%2028.7%2064%2064%2064z%22/%3E%3C/svg%3E");
+}
+
+i.fa-rotate-left {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Cpath%20d%3D%22M48.5%20224L40%20224c-13.3%200-24-10.7-24-24L16%2072c0-9.7%205.8-18.5%2014.8-22.2s19.3-1.7%2026.2%205.2L98.6%2096.6c87.6-86.5%20228.7-86.2%20315.8%201c87.5%2087.5%2087.5%20229.3%200%20316.8s-229.3%2087.5-316.8%200c-12.5-12.5-12.5-32.8%200-45.3s32.8-12.5%2045.3%200c62.5%2062.5%20163.8%2062.5%20226.3%200s62.5-163.8%200-226.3c-62.2-62.2-162.7-62.5-225.3-1L185%20183c6.9%206.9%208.9%2017.2%205.2%2026.2s-12.5%2014.8-22.2%2014.8L48.5%20224z%22/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Cpath%20d%3D%22M48.5%20224L40%20224c-13.3%200-24-10.7-24-24L16%2072c0-9.7%205.8-18.5%2014.8-22.2s19.3-1.7%2026.2%205.2L98.6%2096.6c87.6-86.5%20228.7-86.2%20315.8%201c87.5%2087.5%2087.5%20229.3%200%20316.8s-229.3%2087.5-316.8%200c-12.5-12.5-12.5-32.8%200-45.3s32.8-12.5%2045.3%200c62.5%2062.5%20163.8%2062.5%20226.3%200s62.5-163.8%200-226.3c-62.2-62.2-162.7-62.5-225.3-1L185%20183c6.9%206.9%208.9%2017.2%205.2%2026.2s-12.5%2014.8-22.2%2014.8L48.5%20224z%22/%3E%3C/svg%3E");
+}
+
+i.fa-rotate-right {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Cpath%20d%3D%22M463.5%20224l8.5%200c13.3%200%2024-10.7%2024-24l0-128c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2%205.2L413.4%2096.6c-87.6-86.5-228.7-86.2-315.8%201C10.1%20185.1%2010.1%20326.9%2097.6%20414.4s229.3%2087.5%20316.8%200c12.5-12.5%2012.5-32.8%200-45.3s-32.8-12.5-45.3%200c-62.5%2062.5-163.8%2062.5-226.3%200s-62.5-163.8%200-226.3c62.2-62.2%20162.7-62.5%20225.3-1L327%20183c-6.9%206.9-8.9%2017.2-5.2%2026.2s12.5%2014.8%2022.2%2014.8l119.5%200z%22/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Cpath%20d%3D%22M463.5%20224l8.5%200c13.3%200%2024-10.7%2024-24l0-128c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2%205.2L413.4%2096.6c-87.6-86.5-228.7-86.2-315.8%201C10.1%20185.1%2010.1%20326.9%2097.6%20414.4s229.3%2087.5%20316.8%200c12.5-12.5%2012.5-32.8%200-45.3s-32.8-12.5-45.3%200c-62.5%2062.5-163.8%2062.5-226.3%200s-62.5-163.8%200-226.3c62.2-62.2%20162.7-62.5%20225.3-1L327%20183c-6.9%206.9-8.9%2017.2-5.2%2026.2s12.5%2014.8%2022.2%2014.8l119.5%200z%22/%3E%3C/svg%3E");
+}
+
+i.fa-gauge-high {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Cpath%20d%3D%22M0%20256a256%20256%200%201%201%20512%200A256%20256%200%201%201%200%20256zM288%2096a32%2032%200%201%200-64%200%2032%2032%200%201%200%2064%200zM256%20416c35.3%200%2064-28.7%2064-64c0-17.4-6.9-33.1-18.1-44.6L366%20161.7c5.3-12.1-.2-26.3-12.3-31.6s-26.3%20.2-31.6%2012.3L257.9%20288c-.6%200-1.3%200-1.9%200c-35.3%200-64%2028.7-64%2064s28.7%2064%2064%2064zM176%20144a32%2032%200%201%200-64%200%2032%2032%200%201%200%2064%200zm-80%2096a32%2032%200%201%200%200%2064%2032%2032%200%201%200%200-64zm320%2032a32%2032%200%201%200%2064%200%2032%2032%200%201%200-64%200z%22/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Cpath%20d%3D%22M0%20256a256%20256%200%201%201%20512%200A256%20256%200%201%201%200%20256zM288%2096a32%2032%200%201%200-64%200%2032%2032%200%201%200%2064%200zM256%20416c35.3%200%2064-28.7%2064-64c0-17.4-6.9-33.1-18.1-44.6L366%20161.7c5.3-12.1-.2-26.3-12.3-31.6s-26.3%20.2-31.6%2012.3L257.9%20288c-.6%200-1.3%200-1.9%200c-35.3%200-64%2028.7-64%2064s28.7%2064%2064%2064zM176%20144a32%2032%200%201%200-64%200%2032%2032%200%201%200%2064%200zm-80%2096a32%2032%200%201%200%200%2064%2032%2032%200%201%200%200-64zm320%2032a32%2032%200%201%200%2064%200%2032%2032%200%201%200-64%200z%22/%3E%3C/svg%3E");
+}
+
+i.fa-mobile-screen {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20384%20512%22%3E%3Cpath%20d%3D%22M16%2064C16%2028.7%2044.7%200%2080%200L304%200c35.3%200%2064%2028.7%2064%2064l0%20384c0%2035.3-28.7%2064-64%2064L80%20512c-35.3%200-64-28.7-64-64L16%2064zM144%20448c0%208.8%207.2%2016%2016%2016l64%200c8.8%200%2016-7.2%2016-16s-7.2-16-16-16l-64%200c-8.8%200-16%207.2-16%2016zM304%2064L80%2064l0%20320%20224%200%200-320z%22/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20384%20512%22%3E%3Cpath%20d%3D%22M16%2064C16%2028.7%2044.7%200%2080%200L304%200c35.3%200%2064%2028.7%2064%2064l0%20384c0%2035.3-28.7%2064-64%2064L80%20512c-35.3%200-64-28.7-64-64L16%2064zM144%20448c0%208.8%207.2%2016%2016%2016l64%200c8.8%200%2016-7.2%2016-16s-7.2-16-16-16l-64%200c-8.8%200-16%207.2-16%2016zM304%2064L80%2064l0%20320%20224%200%200-320z%22/%3E%3C/svg%3E");
+}
+
+/* ==========================================================
+   1. VIDEO LIBRARY TOP BAR, SUBTABS & BREADCRUMB
+   ========================================================== */
+
+.vid-top-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.vid-subtabs {
+  display: flex;
+  gap: 10px;
+}
+
+.vid-subtab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glassBorder);
+  color: var(--textSub);
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+.vid-subtab.active {
+  background: var(--gradAccent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 4px 15px var(--accentGlow);
+}
+
+.subtab-count {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.vid-sort-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+#vid-sort-select {
+  background: none;
+  border: none;
+  color: var(--textSub);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#vid-sort-select option {
+  background: #181232;
+  color: #fff;
+}
+
+.vid-folder-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border-radius: var(--radius-md);
+  background: rgba(168, 85, 247, 0.14);
+  border: 1px solid var(--accent);
+}
+
+.vfb-info h3 {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.vfb-info span {
+  font-size: 11px;
+  color: var(--textSub);
+}
+
+/* ==========================================================
+   2. CONTINUE WATCHING BANNER & EMPTY STATE
+   ========================================================== */
+
+.vid-continue-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 16px;
+  cursor: pointer;
+  border: 1px solid rgba(6, 182, 212, 0.45);
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.16), rgba(168, 85, 247, 0.18));
+}
+
+.vc-thumb-wrap {
+  width: 84px;
+  height: 52px;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  background: #000;
+}
+
+.vc-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vc-play-badge {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 15px;
+}
+
+.vc-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.vc-progress-fill {
+  height: 100%;
+  background: var(--accentCyan);
+  width: 0%;
+}
+
+.vc-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.vc-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--accentCyan);
+}
+
+.vc-meta h4 {
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 2px 0;
+}
+
+.vc-meta span {
+  font-size: 11px;
+  color: var(--textSub);
+}
+
+.vc-close-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--textMuted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vid-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.vid-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glassBorderBright);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ==========================================================
+   3. PLAYIT VIDEO CARDS & FOLDER CARDS
+   ========================================================== */
+
+.vid-grid-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vid-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--bgCard);
+  border: 1px solid var(--glassBorder);
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.vid-card:hover {
+  background: var(--bgSurfaceHover);
+  border-color: var(--glassBorderBright);
+  transform: translateY(-1px);
+}
+
+.vid-card:active {
+  transform: scale(0.99);
+}
+
+.vid-thumb-box {
+  width: 112px;
+  height: 66px;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  background: #0d0a1a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+}
+
+.vid-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vid-duration-chip {
+  position: absolute;
+  bottom: 5px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 5px;
+  letter-spacing: 0.3px;
+}
+
+.vid-hdr-tag {
+  position: absolute;
+  top: 5px;
+  left: 6px;
+  background: linear-gradient(135deg, #f59e0b, #ec4899);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 1px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.4px;
+}
+
+.vid-resume-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.vid-resume-fill {
+  height: 100%;
+  background: var(--accent);
+}
+
+.vid-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vid-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.3;
+}
+
+.vid-sub-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--textMuted);
+}
+
+.vid-folder-pill {
+  color: var(--accentCyan);
+  background: rgba(6, 182, 212, 0.12);
+  padding: 1px 7px;
+  border-radius: 6px;
+}
+
+/* Folders Grid */
+.vid-folders-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.vid-folder-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  background: var(--bgCard);
+  border: 1px solid var(--glassBorder);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vid-folder-card:hover {
+  border-color: var(--accent);
+  background: var(--bgSurfaceHover);
+}
+
+.vf-icon-box {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: rgba(168, 85, 247, 0.18);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.vf-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.vf-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vf-count {
+  font-size: 11px;
+  color: var(--textMuted);
+  margin-top: 2px;
+}
+
+/* ==========================================================
+   4. PLAYIT FULLSCREEN 4K HDR PLAYER OVERLAY & HUD
+   ========================================================== */
+
+.playit-player-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000000;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.playit-video-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  overflow: hidden;
+}
+
+.playit-video-el {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: filter 0.25s ease;
+}
+
+/* Aspect Ratio Modes */
+.playit-video-el.aspect-fit {
+  object-fit: contain;
+}
+
+.playit-video-el.aspect-fill {
+  object-fit: cover;
+}
+
+.playit-video-el.aspect-stretch {
+  object-fit: fill;
+}
+
+.playit-video-el.aspect-16-9 {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  max-height: 100%;
+  object-fit: cover;
+}
+
+/* 1-CLICK CINEMA HDR ENHANCEMENT MODE */
+.playit-video-el.hdr-active {
+  filter: url(#anru-cinema-hdr-filter) contrast(1.16) saturate(1.28) brightness(1.05);
+}
+
+.playit-dimmer-layer {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.08s linear;
+}
+
+.hdr-live-indicator {
+  position: absolute;
+  top: 74px;
+  right: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.88), rgba(236, 72, 153, 0.88));
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 16px rgba(236, 72, 153, 0.5);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Center Gesture HUD (Brightness / Volume / Seek) */
+.playit-gesture-hud {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 148px;
+  padding: 16px 20px;
+  border-radius: 18px;
+  background: rgba(12, 10, 22, 0.86);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.playit-gesture-hud i {
+  font-size: 24px;
+  color: var(--accentCyan);
+}
+
+.playit-gesture-hud span {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.hud-bar-bg {
+  width: 100%;
+  height: 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.hud-bar-fill {
+  height: 100%;
+  background: var(--gradAccent);
+  border-radius: 4px;
+}
+
+/* Double-Tap Ripple Zones */
+.dtap-zone {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  pointer-events: none;
+  z-index: 12;
+}
+
+.dtap-zone.left {
+  left: 24px;
+}
+
+.dtap-zone.right {
+  right: 24px;
+}
+
+/* Child Lock Unlock Button */
+.playit-unlock-floating-btn {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  z-index: 25;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(18, 14, 32, 0.85);
+  border: 1px solid var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.7);
+}
+
+/* HUD Layer */
+.playit-hud-layer {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: linear-gradient(180deg, rgba(0,0,0,0.78) 0%, transparent 24%, transparent 72%, rgba(0,0,0,0.86) 100%);
+  padding: env(safe-area-inset-top, 14px) 16px calc(env(safe-area-inset-bottom, 16px) + 12px) 16px;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.playit-hud-layer.hud-hidden {
+  opacity: 0;
+}
+
+.playit-hud-layer:not(.hud-hidden) .playit-top-bar,
+.playit-hud-layer:not(.hud-hidden) .playit-center-controls,
+.playit-hud-layer:not(.hud-hidden) .playit-bottom-bar {
+  pointer-events: auto;
+}
+
+/* Top Bar */
+.playit-top-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vp-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.vp-icon-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.vp-title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.vp-title-wrap h3 {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vp-title-wrap span {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.vp-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* 1-CLICK HDR BOOST BUTTON */
+.vp-hdr-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.6);
+  color: #fcd34d;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  transition: all 0.2s;
+}
+
+.vp-hdr-pill-btn.active {
+  background: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%);
+  color: #ffffff;
+  border-color: #ffffff;
+  box-shadow: 0 0 18px rgba(245, 158, 11, 0.75);
+  transform: scale(1.04);
+}
+
+.vp-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.vp-pill-btn.boost-active {
+  background: linear-gradient(135deg, #06b6d4, #3b82f6);
+  border-color: #fff;
+  box-shadow: 0 0 14px rgba(6, 182, 212, 0.6);
+}
+
+/* Center Transport Row */
+.playit-center-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+}
+
+.vp-center-btn {
+  border-radius: 50%;
+  background: rgba(15, 12, 28, 0.68);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.15s ease;
+}
+
+.vp-center-btn:active {
+  transform: scale(0.92);
+}
+
+.vp-center-btn.small {
+  width: 44px;
+  height: 44px;
+  font-size: 16px;
+}
+
+.vp-center-btn.seek {
+  width: 52px;
+  height: 52px;
+  font-size: 20px;
+}
+
+.vp-center-btn.seek .seek-num {
+  position: absolute;
+  font-size: 9px;
+  font-weight: 900;
+  margin-top: 2px;
+}
+
+.vp-center-btn.play-main {
+  width: 68px;
+  height: 68px;
+  font-size: 26px;
+  background: var(--gradAccent);
+  border: none;
+  box-shadow: 0 8px 25px var(--accentGlow);
+}
+
+/* Bottom Timeline & Utility Dock */
+.playit-bottom-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vp-timeline-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vp-time {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  min-width: 40px;
+  text-align: center;
+}
+
+.vp-seekbar-wrap {
+  flex: 1;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.vp-seekbar-bg {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.vp-seekbar-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #ec4899, #a855f7, #06b6d4);
+  box-shadow: 0 0 10px var(--accentGlow);
+}
+
+.vp-seekbar-thumb {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 12px #a855f7;
+  transform: translate(-50%, -50%);
+}
+
+.vp-utility-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.vp-util-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 6px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vp-util-btn.active {
+  background: rgba(168, 85, 247, 0.35);
+  border-color: var(--accent);
+  color: #fff;
+}

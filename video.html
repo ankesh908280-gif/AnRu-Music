@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="hi" data-theme="aurora">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Anru Studio - PLAYit 4K HDR Video Player</title>
+  <meta name="description" content="100% Offline Zero-Copy 4K HDR Video Player with 200% Volume Booster, 3D Surround, Smart Swipe Gestures, Pop-up PiP & Background Audio">
+  <meta name="theme-color" content="#0a0814">
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icon-512.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Shared Base Theme + Dedicated Standalone Video Player Styles -->
+  <link rel="stylesheet" href="style.css?v=27.0">
+  <link rel="stylesheet" href="video.css?v=27.0">
+</head>
+<body>
+
+  <!-- Hidden SVG Hardware Filter for 1-Click Cinema HDR Enhancement (Sharpening + Micro-Contrast + Rich Color Matrix) -->
+  <svg width="0" height="0" style="position:absolute; pointer-events:none; opacity:0;">
+    <defs>
+      <filter id="anru-cinema-hdr-filter" color-interpolation-filters="sRGB">
+        <!-- Subtle luma unsharp-mask convolution for crisp 4K detail -->
+        <feConvolveMatrix order="3" kernelMatrix="0 -0.22 0 -0.22 1.88 -0.22 0 -0.22 0" preserveAlpha="true" result="sharpened"/>
+        <!-- Rich color vibrance & deep shadow/highlight S-curve -->
+        <feColorMatrix in="sharpened" type="matrix" values="
+          1.14 -0.05 -0.05 0 -0.015
+         -0.04  1.12 -0.04 0 -0.015
+         -0.04 -0.05  1.15 0 -0.015
+          0     0     0    1  0" result="vibrant"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- Hidden Native Video & Folder Pickers (Fallback for browsers without showDirectoryPicker) -->
+  <input type="file" id="vid-file-picker" multiple accept="video/*,.mp4,.mkv,.webm,.mov,.avi,.m4v,.3gp" style="display:none;">
+  <input type="file" id="vid-folder-picker" webkitdirectory directory multiple style="display:none;">
+
+  <div class="app-root">
+
+    <!-- Top Sticky Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-box">
+          <img src="icon-512.png" alt="Anru Logo" class="brand-logo" onerror="this.onerror=null; this.src='icons/icon-512.png';">
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">Anru Video</span>
+          <span class="brand-tagline">PLAYIT 4K HDR PRO</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="header-action-btn primary-glow" id="vid-scan-folder-btn" title="Auto-Scan Video Folder (Zero-Copy)">
+          <i class="fa-solid fa-folder-open"></i>
+          <span>Scan Folder</span>
+        </button>
+        <button class="header-icon-btn" id="vid-add-files-btn" title="Select Video Files">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Video Library Body -->
+    <main class="app-body">
+
+      <!-- Search Bar -->
+      <div class="library-search-wrap">
+        <div class="search-input-box">
+          <i class="fa-solid fa-magnifying-glass search-ico"></i>
+          <input type="text" id="vid-search-input" placeholder="Search movies, videos, folders..." autocomplete="off">
+          <button class="clear-btn hidden" id="vid-clear-search-btn" title="Clear search"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+
+      <!-- Sub-View Switcher (All Videos vs Folders) & Zero-Copy Storage Badge -->
+      <div class="vid-top-bar">
+        <div class="vid-subtabs">
+          <button class="vid-subtab active" id="subtab-all-videos" data-mode="all">
+            <i class="fa-solid fa-film"></i> <span>All Videos</span> <span class="subtab-count" id="vid-total-count">0</span>
+          </button>
+          <button class="vid-subtab" id="subtab-folders" data-mode="folders">
+            <i class="fa-solid fa-folder-open"></i> <span>Folders</span> <span class="subtab-count" id="vid-folder-count">0</span>
+          </button>
+        </div>
+
+        <div class="vid-sort-row">
+          <span class="meta-pill storage" id="vid-zerocopy-badge" title="Videos play directly from your phone storage without copying to Chrome">⚡ 0 MB Copy (Direct Phone)</span>
+          <div class="sort-select-wrap">
+            <i class="fa-solid fa-arrow-down-short-wide sort-ico"></i>
+            <select id="vid-sort-select" aria-label="Sort Videos">
+              <option value="date-new">Recent First</option>
+              <option value="title-asc">Name (A-Z)</option>
+              <option value="size-desc">Largest Size</option>
+              <option value="duration-desc">Longest Video</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Folder Breadcrumb Bar (Appears when inside a specific folder) -->
+      <div class="vid-folder-breadcrumb hidden" id="vid-folder-breadcrumb">
+        <button class="back-btn" id="vid-folder-back-btn" title="Back to Folders"><i class="fa-solid fa-arrow-left"></i></button>
+        <div class="vfb-info">
+          <h3 id="vfb-folder-name">Folder</h3>
+          <span id="vfb-folder-meta">0 Videos</span>
+        </div>
+      </div>
+
+      <!-- Continue Watching Banner (Appears if user has a resumable video) -->
+      <div class="vid-continue-card glass-card hidden" id="vid-continue-banner">
+        <div class="vc-thumb-wrap">
+          <img src="icon-512.png" id="vc-thumb" alt="Resume" class="vc-thumb">
+          <div class="vc-play-badge"><i class="fa-solid fa-play"></i></div>
+          <div class="vc-progress-bar"><div class="vc-progress-fill" id="vc-progress-fill"></div></div>
+        </div>
+        <div class="vc-meta">
+          <span class="vc-label">CONTINUE WATCHING</span>
+          <h4 id="vc-title">Video Title</h4>
+          <span id="vc-time-left">Resume playback</span>
+        </div>
+        <button class="vc-close-btn" id="vc-dismiss-btn" title="Dismiss"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Empty State (When no videos scanned yet) -->
+      <div class="empty-library-state" id="vid-empty-state">
+        <div class="empty-icon-wrap">
+          <i class="fa-solid fa-film"></i>
+        </div>
+        <h3>Scan Your Phone Videos (0 MB Extra Space)</h3>
+        <p>Link your phone's Movies, Download, or WhatsApp Video folder. Videos stream directly from your phone storage with 1-Click Cinema HDR & 200% Audio Boost!</p>
+        <div class="vid-empty-actions">
+          <button class="import-big-btn" id="vid-empty-folder-btn">
+            <i class="fa-solid fa-folder-open"></i>
+            <span>Auto-Scan Video Folder</span>
+          </button>
+          <button class="vid-secondary-btn" id="vid-empty-files-btn">
+            <i class="fa-solid fa-plus"></i>
+            <span>Pick Video Files</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Videos Grid / List Container -->
+      <div class="vid-grid-container" id="vid-grid-container"></div>
+
+      <!-- Folders Grid Container -->
+      <div class="vid-folders-container hidden" id="vid-folders-container"></div>
+
+    </main>
+
+    <!-- Background Audio Mini-Bar (Appears when video is playing in "Background Audio" mode) -->
+    <div class="mini-player glass-panel hidden" id="vid-bg-audio-bar">
+      <div class="mini-progress-track">
+        <div class="mini-progress-fill" id="vbg-progress-fill"></div>
+      </div>
+      <div class="mini-player-content" id="vbg-content">
+        <div class="mini-art-box">
+          <img src="icon-512.png" alt="Poster" class="mini-thumb" id="vbg-thumb">
+          <div class="mini-playing-indicator" style="display:flex;">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="mini-info">
+          <div class="mini-title" id="vbg-title">Video Title</div>
+          <div class="mini-artist">🎧 Background Audio Mode • Tap to return to Video</div>
+        </div>
+        <div class="mini-controls">
+          <button class="mini-action-btn" id="vbg-prev-btn" title="Previous"><i class="fa-solid fa-backward-step"></i></button>
+          <button class="mini-action-btn play-circle" id="vbg-play-btn" title="Play/Pause"><i class="fa-solid fa-pause" id="vbg-play-icon"></i></button>
+          <button class="mini-action-btn" id="vbg-next-btn" title="Next"><i class="fa-solid fa-forward-step"></i></button>
+          <button class="mini-action-btn" id="vbg-close-btn" title="Stop"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation Bar (4 Unified Tabs) -->
+    <nav class="bottom-nav">
+      <button class="nav-tab" id="nav-library" onclick="window.location.href='index.html'">
+        <i class="fa-solid fa-lines-leaning"></i>
+        <span>Library</span>
+      </button>
+      <button class="nav-tab" id="nav-playlists" onclick="window.location.href='index.html#playlists'">
+        <i class="fa-solid fa-list-ul"></i>
+        <span>Playlists</span>
+      </button>
+      <button class="nav-tab active" id="nav-videos">
+        <i class="fa-solid fa-film"></i>
+        <span>Videos</span>
+      </button>
+      <button class="nav-tab" id="nav-studio" onclick="window.location.href='index.html#studio'">
+        <i class="fa-solid fa-sliders"></i>
+        <span>Studio</span>
+      </button>
+    </nav>
+
+    <!-- ==========================================================
+         PLAYIT PRO FULLSCREEN 4K HDR VIDEO PLAYER OVERLAY
+         ========================================================== -->
+    <div class="playit-player-overlay hidden" id="playit-player-overlay">
+
+      <!-- Video Stage Wrapper (Receives Gesture Touch Events & Brightness Overlay) -->
+      <div class="playit-video-stage" id="playit-video-stage">
+        <video id="playit-video-el" class="playit-video-el" playsinline webkit-playsinline preload="metadata"></video>
+
+        <!-- Software Darkness Layer when Brightness is swiped below 100% -->
+        <div class="playit-dimmer-layer" id="playit-dimmer-layer"></div>
+
+        <!-- Split Screen HDR Comparison Badge (Shows when HDR is active) -->
+        <div class="hdr-live-indicator hidden" id="hdr-live-indicator">
+          <i class="fa-solid fa-sparkles"></i> <span>CINEMA HDR 10+ ACTIVE</span>
+        </div>
+
+        <!-- Center Gesture Feedback HUD (Brightness %, Volume 0-200%, Seek ±10s) -->
+        <div class="playit-gesture-hud hidden" id="playit-gesture-hud">
+          <i class="fa-solid fa-sun" id="hud-icon"></i>
+          <span id="hud-text">100%</span>
+          <div class="hud-bar-bg"><div class="hud-bar-fill" id="hud-bar-fill" style="width:50%;"></div></div>
+        </div>
+
+        <!-- Double-Tap Left / Right Ripple Feedback -->
+        <div class="dtap-zone left hidden" id="dtap-left">
+          <i class="fa-solid fa-backward-step"></i>
+          <span>-10s</span>
+        </div>
+        <div class="dtap-zone right hidden" id="dtap-right">
+          <i class="fa-solid fa-forward-step"></i>
+          <span>+10s</span>
+        </div>
+      </div>
+
+      <!-- Child Lock Floating Button (Visible when screen is locked) -->
+      <button class="playit-unlock-floating-btn hidden" id="playit-unlock-btn" title="Tap to Unlock Controls">
+        <i class="fa-solid fa-lock"></i>
+        <span>Tap to Unlock</span>
+      </button>
+
+      <!-- Interactive Player HUD Controls (Top Bar + Side Quick Pills + Bottom Bar) -->
+      <div class="playit-hud-layer" id="playit-hud-layer">
+
+        <!-- TOP HUD BAR -->
+        <div class="playit-top-bar">
+          <button class="vp-icon-btn" id="vp-back-btn" title="Exit Video Player">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <div class="vp-title-wrap">
+            <h3 id="vp-video-title">Movie Title.mp4</h3>
+            <span id="vp-video-sub">1080p • Direct Storage</span>
+          </div>
+          <div class="vp-top-actions">
+            <!-- 1-CLICK HDR BOOST BUTTON (PLAYit Signature Feature) -->
+            <button class="vp-hdr-pill-btn" id="vp-hdr-btn" title="1-Click Cinema HDR Enhancement">
+              <i class="fa-solid fa-sparkles"></i>
+              <span>HDR</span>
+            </button>
+            <!-- 200% Volume + 3D Surround Booster Toggle -->
+            <button class="vp-pill-btn" id="vp-boost-btn" title="Toggle 200% Volume Boost & 3D Surround">
+              <i class="fa-solid fa-bolt"></i>
+              <span id="vp-boost-label">100% Vol</span>
+            </button>
+            <!-- Background Audio Play Button -->
+            <button class="vp-icon-btn" id="vp-bgaudio-btn" title="Play as Background Audio (Screen Off)">
+              <i class="fa-solid fa-headphones"></i>
+            </button>
+            <!-- Floating Pop-up PiP Mode -->
+            <button class="vp-icon-btn" id="vp-pip-btn" title="Floating Pop-up Window (PiP)">
+              <i class="fa-solid fa-clone"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- CENTER TRANSPORT CONTROLS -->
+        <div class="playit-center-controls">
+          <button class="vp-center-btn small" id="vp-prev-vid-btn" title="Previous Video">
+            <i class="fa-solid fa-backward-step"></i>
+          </button>
+          <button class="vp-center-btn seek" id="vp-rew-10-btn" title="Rewind 10s">
+            <i class="fa-solid fa-rotate-left"></i>
+            <span class="seek-num">10</span>
+          </button>
+          <button class="vp-center-btn play-main primary-glow" id="vp-play-pause-btn" title="Play / Pause">
+            <i class="fa-solid fa-pause" id="vp-play-pause-icon"></i>
+          </button>
+          <button class="vp-center-btn seek" id="vp-fwd-10-btn" title="Forward 10s">
+            <i class="fa-solid fa-rotate-right"></i>
+            <span class="seek-num">10</span>
+          </button>
+          <button class="vp-center-btn small" id="vp-next-vid-btn" title="Next Video">
+            <i class="fa-solid fa-forward-step"></i>
+          </button>
+        </div>
+
+        <!-- BOTTOM SEEKBAR & UTILITY DOCK -->
+        <div class="playit-bottom-bar">
+
+          <!-- Interactive Timeline Seekbar -->
+          <div class="vp-timeline-row">
+            <span class="vp-time" id="vp-curr-time">0:00</span>
+            <div class="vp-seekbar-wrap" id="vp-seekbar-wrap">
+              <div class="vp-seekbar-bg">
+                <div class="vp-seekbar-fill" id="vp-seekbar-fill" style="width:0%;"></div>
+                <div class="vp-seekbar-thumb" id="vp-seekbar-thumb" style="left:0%;"></div>
+              </div>
+            </div>
+            <span class="vp-time" id="vp-total-time">0:00</span>
+          </div>
+
+          <!-- Bottom Quick Utility Actions (Lock, Speed, Aspect Ratio, Rotate, 3D Audio) -->
+          <div class="vp-utility-row">
+            <button class="vp-util-btn" id="vp-lock-btn" title="Lock Screen Controls">
+              <i class="fa-solid fa-lock"></i>
+              <span>Lock</span>
+            </button>
+            <button class="vp-util-btn" id="vp-speed-btn" title="Playback Speed">
+              <i class="fa-solid fa-gauge-high"></i>
+              <span id="vp-speed-label">1.0x</span>
+            </button>
+            <button class="vp-util-btn" id="vp-3daudio-btn" title="3D Cinema Surround Sound">
+              <i class="fa-solid fa-headphones"></i>
+              <span>3D Audio</span>
+            </button>
+            <button class="vp-util-btn" id="vp-aspect-btn" title="Aspect Ratio (Fit / Fill / 16:9)">
+              <i class="fa-solid fa-expand"></i>
+              <span id="vp-aspect-label">Fit</span>
+            </button>
+            <button class="vp-util-btn" id="vp-rotate-btn" title="Landscape / Fullscreen Rotate">
+              <i class="fa-solid fa-mobile-screen"></i>
+              <span>Rotate</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="db.js?v=27.0"></script>
+  <script src="video.js?v=27.0"></script>
+  <div id="app-toast" class="app-toast"></div>
+</body>
+</html>

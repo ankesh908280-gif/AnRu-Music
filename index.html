@@ -18,7 +18,7 @@
 
   <!-- Official Font Awesome Library (CDN with offline vector fallback) -->
   
-  <link rel="stylesheet" href="style.css?v=26.0">
+  <link rel="stylesheet" href="style.css?v=27.0">
 
   <!-- Self-Contained Master Stylesheet with Font Awesome Vector Engine (Guaranteed 100% Offline) -->
     <!-- 100% Offline & Emergency Cache-Busting Script -->
@@ -39,7 +39,7 @@
       if ('caches' in window) {
         caches.keys().then(function(keys) {
           keys.forEach(function(k) {
-            if (k !== 'anru-music-v26.0-final-master') {
+            if (k !== 'anru-studio-v27.0-music-video-master') {
               caches.delete(k);
               console.log('[Anru SW] Deleted old cache:', k);
             }
@@ -49,7 +49,7 @@
       // Register Offline Service Worker v24.0
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-          navigator.serviceWorker.register('./sw.js?v=26.0').catch(function(err) {
+          navigator.serviceWorker.register('./sw.js?v=27.0').catch(function(err) {
             console.warn('[Anru SW] Registration notice:', err);
           });
         });
@@ -357,8 +357,8 @@
               <span class="highlight">7-Band EQ + 3D Virtualizer + Normalizer</span>
             </div>
             <div class="dsp-info-row">
-              <span>Storage</span>
-              <span class="highlight">IndexedDB Persistent Blob</span>
+              <span>Storage Mode</span>
+              <span class="highlight success">Zero-Copy Direct Phone Stream (0 MB Used)</span>
             </div>
             <div class="dsp-info-row">
               <span>Cloud / Network</span>
@@ -408,7 +408,7 @@
       </div>
     </div>
 
-    <!-- Bottom Navigation Bar (Clean 3 Offline Tabs) -->
+    <!-- Bottom Navigation Bar (4 Offline Tabs: Library, Playlists, Videos, Studio) -->
     <nav class="bottom-nav">
       <button class="nav-tab active" id="nav-library" data-tab="library">
         <i class="fa-solid fa-lines-leaning"></i>
@@ -417,6 +417,10 @@
       <button class="nav-tab" id="nav-playlists" data-tab="playlists">
         <i class="fa-solid fa-list-ul"></i>
         <span>Playlists</span>
+      </button>
+      <button class="nav-tab" id="nav-videos" data-tab="videos" onclick="window.location.href='video.html'">
+        <i class="fa-solid fa-film"></i>
+        <span>Videos</span>
       </button>
       <button class="nav-tab" id="nav-studio" data-tab="studio">
         <i class="fa-solid fa-sliders"></i>
@@ -789,10 +793,10 @@
   </div>
 
   <!-- Master Offline Scripts (100% Offline, Pure Local Engine) -->
-  <script src="id3.js?v=26.0"></script>
-  <script src="db.js?v=26.0"></script>
-  <script src="player.js?v=26.0"></script>
-  <script src="app.js?v=26.0"></script>
+  <script src="id3.js?v=27.0"></script>
+  <script src="db.js?v=27.0"></script>
+  <script src="player.js?v=27.0"></script>
+  <script src="app.js?v=27.0"></script>
   <div id="app-toast" class="app-toast"></div>
 </body>
 </html>

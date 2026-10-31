@@ -1,13 +1,16 @@
-// Service Worker for Anru Music Studio Pro v24.0 (100% Offline Audiophile Master Edition)
-const CACHE_NAME = 'anru-music-v26.0-final-master';
+// Service Worker for Anru Music & PLAYit 4K HDR Video Studio Pro v27.0 (100% Offline & Zero-Copy)
+const CACHE_NAME = 'anru-studio-v27.0-music-video-master';
 const STATIC_ASSETS = [
   './',
   './index.html',
-  './style.css?v=26.0',
-  './id3.js?v=26.0',
-  './db.js?v=26.0',
-  './player.js?v=26.0',
-  './app.js?v=26.0',
+  './video.html',
+  './style.css?v=27.0',
+  './video.css?v=27.0',
+  './id3.js?v=27.0',
+  './db.js?v=27.0',
+  './player.js?v=27.0',
+  './app.js?v=27.0',
+  './video.js?v=27.0',
   './manifest.json',
   './favicon.png',
   './icon-192.png',
@@ -20,7 +23,6 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Anru SW] Pre-caching v24.0 pure offline studio shell');
       return cache.addAll(STATIC_ASSETS).catch(err => console.warn('Cache error:', err));
     })
   );
@@ -33,7 +35,6 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
-            console.log('[Anru SW] Purging old cache', key);
             return caches.delete(key);
           }
         })
@@ -52,7 +53,11 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch(() => {
-        return caches.match('./index.html').then((cached) => {
+        const reqUrl = event.request.url || '';
+        if (reqUrl.includes('video.html')) {
+          return caches.match('./video.html', { ignoreSearch: true });
+        }
+        return caches.match('./index.html', { ignoreSearch: true }).then((cached) => {
           return cached || caches.match('./') || fetch(event.request);
         });
       })

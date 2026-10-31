@@ -50,6 +50,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load persistent library and restore previous playback session
   await refreshLibrary();
   await restoreSavedPlaybackSession();
+
+  // Support direct hash navigation from Video Player tab bar (#playlists or #studio)
+  const initialHash = (window.location.hash || '').replace('#', '').trim();
+  if (initialHash === 'playlists' || initialHash === 'studio') {
+    switchTab(initialHash);
+    history.replaceState({ page: initialHash }, '', window.location.pathname);
+  }
 });
 
 // Suppress unwanted desktop/browser behaviors (context menu, image drag)
@@ -170,6 +177,10 @@ function popNavStateIfMatches(modalName) {
 
 // Tab Navigation
 function switchTab(tabId) {
+  if (tabId === 'videos') {
+    window.location.href = 'video.html';
+    return;
+  }
   if (isSelectionMode) exitSelectionMode();
   const plDetail = document.getElementById('playlist-detail-view');
   if (plDetail && !plDetail.classList.contains('hidden')) {
@@ -218,6 +229,25 @@ async function restoreSavedPlaybackSession() {
 // ==========================================
 // 3. BATCH AUDIO FILE & FOLDER IMPORTER
 // ==========================================
+async function scanDirectoryHandleRecursively(dirHandle, outList = []) {
+  try {
+    for await (const entry of dirHandle.values()) {
+      if (entry.kind === 'file') {
+        if (/\.(mp3|m4a|aac|flac|wav|ogg|opus)$/i.test(entry.name)) {
+          try {
+            const file = await entry.getFile();
+            file._fileHandle = entry;
+            outList.push(file);
+          } catch (e) {}
+        }
+      } else if (entry.kind === 'directory') {
+        await scanDirectoryHandleRecursively(entry, outList);
+      }
+    }
+  } catch (e) {}
+  return outList;
+}
+
 function initImporter() {
   const fileInput = document.getElementById('local-file-picker');
   const folderInput = document.getElementById('local-folder-picker');
@@ -225,15 +255,53 @@ function initImporter() {
   const importFolderBtn = document.getElementById('import-folder-btn');
   const emptyImportBtn = document.getElementById('empty-import-btn');
 
-  if (importFileBtn && fileInput) {
-    importFileBtn.addEventListener('click', () => fileInput.click());
-  }
-  if (importFolderBtn && folderInput) {
-    importFolderBtn.addEventListener('click', () => folderInput.click());
-  }
-  if (emptyImportBtn && fileInput) {
-    emptyImportBtn.addEventListener('click', () => fileInput.click());
-  }
+  const triggerSmartFilesPicker = async () => {
+    if (typeof window.showOpenFilePicker === 'function') {
+      try {
+        const handles = await window.showOpenFilePicker({
+          multiple: true,
+          types: [{
+            description: 'Audio Files',
+            accept: { 'audio/*': ['.mp3', '.m4a', '.aac', '.flac', '.wav', '.ogg', '.opus'] }
+          }]
+        });
+        const files = [];
+        for (const h of handles) {
+          const f = await h.getFile();
+          f._fileHandle = h;
+          files.push(f);
+        }
+        if (files.length > 0) await handleFilesImport(files);
+        return;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+      }
+    }
+    fileInput?.click();
+  };
+
+  const triggerSmartFolderPicker = async () => {
+    if (typeof window.showDirectoryPicker === 'function') {
+      try {
+        const dirHandle = await window.showDirectoryPicker({ mode: 'read' });
+        showToast('Scanning folder directly from phone storage... ⚡');
+        const files = await scanDirectoryHandleRecursively(dirHandle);
+        if (files.length > 0) {
+          await handleFilesImport(files);
+        } else {
+          showToast('⚠️ No audio files found in selected folder.');
+        }
+        return;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+      }
+    }
+    folderInput?.click();
+  };
+
+  if (importFileBtn) importFileBtn.addEventListener('click', triggerSmartFilesPicker);
+  if (importFolderBtn) importFolderBtn.addEventListener('click', triggerSmartFolderPicker);
+  if (emptyImportBtn) emptyImportBtn.addEventListener('click', triggerSmartFolderPicker);
 
   if (fileInput) {
     fileInput.addEventListener('change', (e) => handleFilesImport(e.target.files));
@@ -276,9 +344,11 @@ async function handleFilesImport(fileList) {
     }
 
     // Fast pre-filter by exact fileSize + fileName before parsing ID3
+    // Also registers existing songs in Zero-Copy memory map so re-linked folders play immediately!
     const filesToParse = [];
     for (const file of chunk) {
       const cleanFilename = (file.name || '').toLowerCase().trim();
+      db.registerZeroCopyFile(null, file._fileHandle || file, file.size, file.name);
       if (file.size > 0 && existingFiles.has(`${file.size}|${cleanFilename}`)) {
         skippedDuplicates++;
       } else {
@@ -332,6 +402,7 @@ async function handleFilesImport(fileList) {
         artwork: meta.artwork,
         duration: meta.duration || 0,
         audioBlob: file,
+        fileHandle: file._fileHandle || null,
         fileSize: file.size,
         fileName: file.name,
         dateAdded: baseTime + start + idx
@@ -385,10 +456,10 @@ function renderLibraryView(songs) {
   const totalSongs = songs.length;
   if (countBadge) countBadge.textContent = `${totalSongs} Songs`;
 
-  let totalBytes = 0;
-  songs.forEach(s => totalBytes += (s.fileSize || 0));
-  const mb = (totalBytes / (1024 * 1024)).toFixed(1);
-  if (storageBadge) storageBadge.textContent = totalBytes > 1073741824 ? `${(totalBytes / 1073741824).toFixed(2)} GB` : `${mb} MB`;
+  if (storageBadge) {
+    storageBadge.textContent = totalSongs > 0 ? '⚡ 0 MB Copy (Direct Phone)' : '0 MB';
+    storageBadge.title = 'Zero-Copy Engine: Songs play directly from your phone storage without duplicating space in Chrome';
+  }
 
   if (totalSongs === 0) {
     container.innerHTML = '';
